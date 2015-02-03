@@ -163,7 +163,7 @@ end
 
 
 # we use a mix of global and local variables here to cut down on function parameters
-average_reward = 0. :: Float64;
+#=average_reward = 0. :: Float64;
 average_delta_reward = 0. :: Float64;
 n = 0 :: Int;
 #Rn = 0. :: Float64;
@@ -179,10 +179,9 @@ function running_av_reward(R)
   global average_reward = Rn;
 
 	return Rn;
-end
+end=#
 
 
-#=
 # individual critics for running rewards
 # no_tasks = 2
 # no_choices = 2
@@ -192,7 +191,7 @@ end
 function multi_critic_running_av_reward(R::Float64, taskID::Int, choiceID::Int)
   global n[taskID,choiceID] += 1;
 
-  tau_r = running_av_window;
+  tau_r = running_av_window_length;
   tau = min(tau_r, n[taskID, choiceID]);
 
   Rn = ( (tau - 1) * average_reward[taskID, choiceID] + R ) / tau;
@@ -201,7 +200,6 @@ function multi_critic_running_av_reward(R::Float64, taskID::Int, choiceID::Int)
 
   return Rn;
 end
-=#
 
 
 average_choice = 0. :: Float64;
