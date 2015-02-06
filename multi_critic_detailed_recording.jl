@@ -96,7 +96,14 @@ function perform_learning_block_single_problem(is_problem_1::Bool, block_dat::Bl
 
   x = generate_test_sequence(no_trials_in_block);
   monitor_reward = 0;
-  global average_reward = 0;
+  global average_reward;
+  global n_critic;
+  for i = 1: no_task_critics
+    for j = 1:no_choices_per_task_critics
+      average_reward[i,j] = 0.;
+      n_critic[i,j] = 0;
+    end
+  end
   global average_delta_reward = 0;
   global average_choice = 0.0;
   global n = 0;
@@ -150,7 +157,14 @@ function perform_learning_block_trial_switching(block_dat::Block)
   task_2_count = 0;
 
   monitor_reward = 0;
-  global average_reward = 0;
+  global average_reward;
+  global n_critic;
+  for i = 1:no_task_critics
+    for j = 1:no_choices_per_task_critics
+      average_reward[i,j] = 0.;
+      n_critic[i,j] = 0;
+    end
+  end
   global average_delta_reward = 0;
   global average_choice = 0.0;
   global n = 0;
@@ -212,8 +226,17 @@ function perform_single_subject_experiment(is_trial_1_task::Bool, subjects::Arra
       print("------------------ Block number $i --------------------\n")
     end
     subjects[subject_id].blocks[i].proportion_correct = perform_learning_block_single_problem(is_trial_1_task, subjects[subject_id].blocks[i])
-    subjects[subject_id].blocks[i].average_reward = average_reward;
-    subjects[subject_id].blocks[i].average_delta_reward = average_delta_reward;
+    local_average_reward = 0.;
+    local_sum_critics = 0;
+    for k = 1:no_task_critics
+      for j = 1:no_choices_per_task_critics
+        local_average_reward += average_reward[k,j] * n_critic[k,j];
+        local_sum_critics += n_critic[k,j];
+      end
+    end
+    #subjects[subject_id].blocks[i].average_reward = ( local_average_reward / (no_task_critics * no_choices_per_task_critics) );
+    subjects[subject_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
+    #subjects[subject_id].blocks[i].average_delta_reward = average_delta_reward;
     subjects[subject_id].blocks[i].average_choice = average_choice;
     if(verbosity > -1)
       print("Block $i completed. Type 1 task: $is_trial_1_task.\n") 
@@ -248,8 +271,17 @@ function perform_single_subject_experiment_trial_switching(subjects::Array{Subje
       print("-------------------------------------------\n")
     end
     subjects[subject_id].blocks[i].proportion_correct = perform_learning_block_trial_switching(subjects[subject_id].blocks[i])
-    subjects[subject_id].blocks[i].average_reward = average_reward;
-    subjects[subject_id].blocks[i].average_delta_reward = average_delta_reward;
+    local_average_reward = 0.;
+    local_sum_critics = 0;
+    for k = 1:no_task_critics
+      for j = 1:no_choices_per_task_critics
+        local_average_reward += average_reward[k,j] * n_critic[k,j];
+        local_sum_critics += n_critic[k,j];
+      end
+    end
+    #subjects[subject_id].blocks[i].average_reward = ( local_average_reward / (no_task_critics * no_choices_per_task_critics) );
+    subjects[subject_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
+    #subjects[subject_id].blocks[i].average_delta_reward = average_delta_reward;
     subjects[subject_id].blocks[i].proportion_1_correct = proportion_1_correct;
     subjects[subject_id].blocks[i].proportion_2_correct = proportion_2_correct;
     subjects[subject_id].blocks[i].average_choice = average_choice;
@@ -468,7 +500,13 @@ end
 
 function plot_multi_subject_experiment_as_subplots(latest_experiment_results::RovingExperiment)
   figure(figsize=(12,12))
-  title("For x in ($problem_left_bound, $problem_right_bound), proportion correct. Comparing three task types.")
+    if (use_multi_critic)
+    suptitle("For x in ($problem_left_bound, $problem_right_bound), proportion correct. Comparing three task types. Multicritic: $use_multi_critic, no_task_critics: $no_task_critics, no_choices_per_task_critics: $no_choices_per_task_critics ")
+  elseif (use_single_global_critic)
+    suptitle("For x in ($problem_left_bound, $problem_right_bound), proportion correct. Comparing three task types. Single critic")
+  else
+    suptitle("For x in ($problem_left_bound, $problem_right_bound), proportion correct. Comparing three task types. No critic")
+  end
   subplot(221);
   xlim((0,no_blocks_in_experiment))
   ylim((0,1))
@@ -591,7 +629,13 @@ end
 
 function plot_multi_subject_experiment_reward_as_subplots(latest_experiment_results::RovingExperiment)
   figure(figsize=(12,8))
-  title("For x in ($problem_left_bound, $problem_right_bound), proportion correct. Comparing three task types.")
+  if (use_multi_critic)
+    suptitle("For x in ($problem_left_bound, $problem_right_bound). Comparing three task types. Multicritic: $use_multi_critic, no_task_critics: $no_task_critics, no_choices_per_task_critics: $no_choices_per_task_critics ")
+  elseif (use_single_global_critic)
+    suptitle("For x in ($problem_left_bound, $problem_right_bound). Comparing three task types. Single critic")
+  else
+    suptitle("For x in ($problem_left_bound, $problem_right_bound). Comparing three task types. No critic")
+  end
   subplot(221);
   xlim((0,no_blocks_in_experiment))
   ylim((-1,1))
@@ -692,7 +736,13 @@ end
 
 function plot_multi_subject_experiment_choice_as_subplots(latest_experiment_results::RovingExperiment)
   figure(figsize=(12,8))
-  title("For x in ($problem_left_bound, $problem_right_bound), proportion correct. Comparing three task types.")
+    if (use_multi_critic)
+    suptitle("For x in ($problem_left_bound, $problem_right_bound). Comparing three task types. Multicritic: $use_multi_critic, no_task_critics: $no_task_critics, no_choices_per_task_critics: $no_choices_per_task_critics ")
+  elseif (use_single_global_critic)
+    suptitle("For x in ($problem_left_bound, $problem_right_bound). Comparing three task types. Single critic")
+  else
+    suptitle("For x in ($problem_left_bound, $problem_right_bound). Comparing three task types. No critic")
+  end
 #=  subplot(221);
   xlim((0,no_blocks_in_experiment))
   ylim((-1,1))

@@ -39,19 +39,19 @@ function initialise()
   update_noise();
   initialise_weight_matrix();
 
-  #global subject = Array(Subject,1);
-  global average_reward = 0.0;
   global average_delta_reward = 0.0;
   global average_choice = 0.0;
-  global n = 0 :: Int;
-  #global Rn = 0.0; # just use average_reward, it's confusing having two variables for the same purpose
+  global n = 0 :: Int; # use this to monitor trial ID per block
+  # changing to multi-critic model
+  global n_critic = int(zeros(no_task_critics, no_choices_per_task_critics)); # use this to monitor trial ID per critic per block
+  global average_reward = zeros(no_task_critics, no_choices_per_task_critics);
+
   global instance_correct = 0;
   global instance_incorrect = 0;
 
   global proportion_1_correct = 0.0;
   global proportion_2_correct = 0.0; 
 
-  #global results = Array(Multi_subject_experiment_results,0);
   global exp_results = Array(RovingExperiment, 0);
 
   print("RND seeded $random_seed\n")
@@ -134,8 +134,8 @@ end
 
 
 # this is the only function which actually knows if things went right or wrong
-instance_correct = 0;
-instance_incorrect = 0;
+# instance_correct = 0;
+# instance_incorrect = 0;
 function reward(x, is_problem_1::Bool)
 	local_post = post(x, is_problem_1, true)
 
@@ -183,40 +183,43 @@ end=#
 
 
 # individual critics for running rewards
-# no_tasks = 2
-# no_choices = 2
+# no_task_critics = 2
+# no_choices_per_task_critics = 2
 # initialise
 #  n = 0
 #  average_reward = 0
-function multi_critic_running_av_reward(R::Float64, taskID::Int, choiceID::Int)
-  global n[taskID,choiceID] += 1;
+function multi_critic_running_av_reward(R::Int, taskID::Int, choiceID::Int)
+  global n_critic;
+  global average_reward;
+
+  n_critic[taskID,choiceID] += 1;
 
   tau_r = running_av_window_length;
-  tau = min(tau_r, n[taskID, choiceID]);
+  tau = min(tau_r, n_critic[taskID, choiceID]);
 
   Rn = ( (tau - 1) * average_reward[taskID, choiceID] + R ) / tau;
 
   # update average_reward monitor
+  average_reward[taskID, choiceID] = Rn;
 
   return Rn;
 end
 
 
-average_choice = 0. :: Float64;
+# average_choice = 0. :: Float64;
 function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   if(verbosity > 3)
     global instance_reward;
     global instance_average_reward;
   end
-  # eta is the learning rate
-	#learning_rate = 0.001; #0.002;
+  global n += 1;
 
-  # don't forget to update noise on separate iterations
+  # don't forget to update noise externally to this function on separate iterations
   local_pre = pre(x, is_problem_1);
   local_post = post(x, is_problem_1);
-  local_reward = reward(x, is_problem_1); # it is important that noise is not updated between calls to post() and reward()
+  local_reward = reward(x, is_problem_1) :: Int; # it is important that noise is not updated between calls to post() and reward()
   if(verbosity > 3)
-    instance_reward[n+1] = local_reward;
+    instance_reward[n] = local_reward;
   end
 
   # Save some data for later examination
@@ -225,27 +228,56 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   trial_dat.chosen_answer = (local_post[1] < local_post[2] ? 1 : -1) # note sign reversal, to maintain greater than relationship
   trial_dat.got_it_right = (local_reward > 0 ? true : false);
 
-  running_av_reward(local_reward); # Nicolas is doing this before dw update, so first timestep is less unstable...
-
-  # monitor average choice per block here, assume n has been incremented in running_av_reward()
+  # monitor average choice per block here
+  #   using n independent of critic, for now
   local_choice = (local_post[1] > 0 ? 1 : 2);
-  global average_choice = ( (n - 1) * average_choice + local_choice ) / n;
+  global average_choice = ( (n-1) * average_choice + local_choice ) / (n);
+
+  #running_av_reward(local_reward); # Nicolas is doing this before dw update, so first timestep is less unstable...
+  # TODO: need to improve critic response axis and task type bin logic here
+  local_critic_response_bin = 1::Int;
+  if(no_choices_per_task_critics > 1)
+    local_correct_answer = (x > 0 ? 2 : 1);
+    local_critic_response_bin = local_correct_answer;
+  end
+  local_critic_task_bin = 1::Int;
+  if(no_task_critics > 1)
+    local_critic_task_bin = trial_dat.task_type;
+  end
+  multi_critic_running_av_reward(local_reward, local_critic_task_bin, local_critic_response_bin);
+
+  # decide which form of average reward we're using here:
+  if( use_multi_critic)
+    #   multi critic:
+    #     currently expanding logic to use number of critics declared in params
+    local_average_reward = average_reward[local_critic_task_bin, local_critic_response_bin];
+  elseif (use_single_global_critic)
+    #   single global critic:
+    local_sum_reward = 0.;
+    for i=1:no_task_critics
+      for j = 1:no_choices_per_task_critics
+        local_sum_reward += average_reward[i, j];
+      end
+    end
+    local_average_reward = ( local_sum_reward / (no_task_critics * no_choices_per_task_critics) );
+  else
+    # Rmax (no running average):
+    local_average_reward = 0.;
+  end
 
   # the weight update matrix
   dw = zeros(no_pre_neurons, no_post_neurons);
-  dw[:,1] = learning_rate * local_pre[:] * local_post[1] * (local_reward - average_reward);
-  dw[:,2] = learning_rate * local_pre[:] * local_post[2] * (local_reward - average_reward);
+  dw[:,1] = learning_rate * local_pre[:] * local_post[1] * (local_reward - local_average_reward);
+  dw[:,2] = learning_rate * local_pre[:] * local_post[2] * (local_reward - local_average_reward);
   # Save some data for later examination
-  trial_dat.reward_received = (local_reward - average_reward);
+  trial_dat.reward_received = (local_reward - local_average_reward);
   trial_dat.w = deepcopy(w);
   trial_dat.dw = deepcopy(dw);
 
-  # running_av_reward(local_reward); # should be after dw update, but before appears more stable
-
 
   if (verbosity > 3)
-    instance_average_reward[n] = average_reward;
-    reward_signal = (local_reward - average_reward)
+    instance_average_reward[n] = local_average_reward;
+    reward_signal = (local_reward - local_average_reward)
     print("local_reward-average_reward: $local_reward - $average_reward = $reward_signal\n")
     #TODO: can I find a better measure of dw here?
     l1_norm_dw = sum(abs(dw));
