@@ -254,12 +254,14 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   elseif (use_single_global_critic)
     #   single global critic:
     local_sum_reward = 0.;
+    local_sum_critics = 0;
     for i=1:no_task_critics
       for j = 1:no_choices_per_task_critics
-        local_sum_reward += average_reward[i, j];
+        local_sum_reward += average_reward[i, j] * n_critic[i,j];
+        local_sum_critics += n_critic[i,j];
       end
     end
-    local_average_reward = ( local_sum_reward / (no_task_critics * no_choices_per_task_critics) );
+    local_average_reward = ( local_sum_reward / local_sum_critics );
   else
     # Rmax (no running average):
     local_average_reward = 0.;
