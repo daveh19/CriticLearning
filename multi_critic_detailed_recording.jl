@@ -948,6 +948,33 @@ function plot_multi_subject_average_reward(subjects::Array{Subject,1}, begin_id:
   end
 end
 
+
+function plot_single_subject_weight_vs_bias(subject::Subject, is_task_1::Bool=true, is_task_2::Bool=false)
+  #figure()
+  easy_size = length(subject.b) / 2 :: Int;
+  if (is_task_1)
+    scatter(subject.b[1:easy_size], subject.w_final[1:easy_size,1], marker="o", c="g", label="left, easy")
+    scatter(subject.b[1:easy_size], subject.w_final[1:easy_size,2], marker="o", c="y", label="right, easy")
+  end
+  if (is_task_2)
+    scatter(subject.b[easy_size+1:end], subject.w_final[easy_size+1:end,1], marker="o", c="r", label="left, hard")
+    scatter(subject.b[easy_size+1:end], subject.w_final[easy_size+1:end,2], marker="o", c="k", label="right, hard")
+  end
+  xlim([-1.2,1.2])
+  ylim([-12,12])
+  #legend()
+end
+
+function plot_multi_subject_weight_vs_bias(subjects::Array{Subject,1}, begin_id::Int=1, end_id::Int=no_subjects)
+  figure(figsize=(4,20))
+  for i = begin_id:end_id
+    subplot(10,1,i)
+    plot_single_subject_weight_vs_bias(subjects[i]);
+  end
+  legend()
+end
+
+
 #####################################
 print("------------NEW RUN--------------\n")
 #perform_multi_subject_experiment(true)
