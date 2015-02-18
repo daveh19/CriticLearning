@@ -9,14 +9,14 @@ weights_upper_bound = 10;
 weights_lower_bound = -10;
 
 # trial length parameters
-no_trials_in_block = 200::Int; #80;
+no_trials_in_block = 80::Int; #80;
 no_blocks_in_experiment = 50::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = false::Bool;
 
 # critic parameters
 no_task_critics = 2 :: Int;
-no_choices_per_task_critics = 2 :: Int;
+no_choices_per_task_critics = 1 :: Int;
 use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
 
@@ -26,10 +26,10 @@ problem_right_bound = 1; #0.5;
 
 running_av_window_length = 50::Int;
 
-learning_rate = 0.0001; # 0.001; #0.002;
-output_noise = 20.0; #10.0;
+learning_rate = 0.001; # 0.001; #0.002;
+output_noise = 10.0; #10.0;
 
-initial_weight_bias = (1.0); # 2.0
+initial_weight_bias = (2.0); # 2.0
 
 # selective tuning of input
 input_baseline = 2.0; #2.0;

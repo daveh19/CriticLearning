@@ -38,7 +38,7 @@ function generate_test_sequence(seq_length::Int64)
   #x = linspace(-1,1,seq_length);
 
   # points are uniform randomly distributed:
-  #x = rand(Uniform(problem_left_bound,problem_right_bound), seq_length);
+  x = rand(Uniform(problem_left_bound,problem_right_bound), seq_length);
 
   # alternating +/-1 sequence
   # x = zeros(seq_length,1);
@@ -47,11 +47,11 @@ function generate_test_sequence(seq_length::Int64)
   # end
 
   # randomly alternating +/-1 sequence
-  x = zeros(seq_length,1);
+  #=x = zeros(seq_length,1);
   choice = rand(Uniform(0,1), seq_length);
   for (i = 1:seq_length)
    x[i] = (choice[i] > 0.5? -1.0 : 1.0)
-  end
+  end=#
 
   return x;
 end
@@ -206,26 +206,30 @@ function perform_learning_block_trial_switching(block_dat::Block)
 end
 
 
-function perform_single_subject_experiment(is_trial_1_task::Bool, subjects::Array{Subject,1}, subject_id::Int64=1)
+function perform_single_subject_experiment(is_trial_1_task::Bool, subjects_dat::Array{Subject,1}, subject_id::Int64=1)
   #global subject
   #subject[subject_id] = Subject(zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_pre_neurons,2),zeros(no_pre_neurons,2));
   initialise_weight_matrix()
-  subjects[subject_id].w_initial = deepcopy(w);
+  subjects_dat[subject_id].w_initial = deepcopy(w);
 
   if (use_ab_persistence)
-    global a = deepcopy(subjects[subject_id].a)
-    global b = deepcopy(subjects[subject_id].b)
+    global a = deepcopy(subjects_dat[subject_id].a)
+    global b = deepcopy(subjects_dat[subject_id].b)
   else
     initialise_pre_population()
-    subjects[subject_id].a = deepcopy(a);
-    subjects[subject_id].b = deepcopy(b);
+    subjects_dat[subject_id].a = deepcopy(a);
+    subjects_dat[subject_id].b = deepcopy(b);
   end
   
   for (i = 1:no_blocks_in_experiment)
+    if(i == no_blocks_in_experiment && subject_id == 9)
+      local_old_verbosity = verbosity;
+      global verbosity = 10;
+    end
     if(verbosity > -1)
       print("------------------ Block number $i --------------------\n")
     end
-    subjects[subject_id].blocks[i].proportion_correct = perform_learning_block_single_problem(is_trial_1_task, subjects[subject_id].blocks[i])
+    subjects_dat[subject_id].blocks[i].proportion_correct = perform_learning_block_single_problem(is_trial_1_task, subjects_dat[subject_id].blocks[i])
     local_average_reward = 0.;
     local_sum_critics = 0;
     for k = 1:no_task_critics
@@ -235,14 +239,17 @@ function perform_single_subject_experiment(is_trial_1_task::Bool, subjects::Arra
       end
     end
     #subjects[subject_id].blocks[i].average_reward = ( local_average_reward / (no_task_critics * no_choices_per_task_critics) );
-    subjects[subject_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
+    subjects_dat[subject_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
     #subjects[subject_id].blocks[i].average_delta_reward = average_delta_reward;
-    subjects[subject_id].blocks[i].average_choice = average_choice;
+    subjects_dat[subject_id].blocks[i].average_choice = average_choice;
     if(verbosity > -1)
       print("Block $i completed. Type 1 task: $is_trial_1_task.\n") 
     end
+    if(i == no_blocks_in_experiment && subject_id == 9)
+      verbosity = local_old_verbosity;
+    end
   end
-  subjects[subject_id].w_final = deepcopy(w);
+  subjects_dat[subject_id].w_final = deepcopy(w);
   return 0;
 end
 

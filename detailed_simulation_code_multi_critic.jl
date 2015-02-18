@@ -114,15 +114,20 @@ end
 # post-synaptic firing rate upon presentation of pattern x
 #  no longer generating a new noise value (ksi) on each call,
 #  this must be done externally to allow for repeatibility during debug
+# Note: local_post returns a tuple where one value is 0. All comparisons to find the non zero value should use absolute comparison.
 function post(x::Float64, is_problem_1::Bool, debug_on::Bool=false)
 	local_pre = pre(x, is_problem_1)
+  
   noise_free_left = sum(local_pre.*w[:,1]);
   noise_free_right = sum(local_pre.*w[:,2]);
-	left = noise_free_left + ksi[1]
+	
+  left = noise_free_left + ksi[1]
 	right = noise_free_right+ ksi[2]
 
   # calculated probability of getting this result given de-noised results and error size
+  #   TODO: finish this code
   trial_probability_left = 0.5 + erf((noise_free_left - noise_free_right) / (output_noise / 2.0)) * 0.5;
+  #probably should be probability right?
 
   if(debug_on)
     if(verbosity > 0)
@@ -140,24 +145,24 @@ function reward(x, is_problem_1::Bool)
 	local_post = post(x, is_problem_1, true)
 
   # I've had some trouble with the logic here due to wta() accepting negative inputs
-	if ((x > 0) && (local_post[2] != 0))#right
+	if ((x > 0) && (abs(local_post[2]) > 0))#right
     if(verbosity > 1)
       global instance_correct += 1;
       print("Greater than zero (x: $x)\n") 
     end
-		return 1
-	elseif (x < 0 && local_post[1] != 0)#left
+		return (1);
+	elseif ((x <= 0) && (abs(local_post[1]) > 0))#left
     if(verbosity > 1)
       instance_correct += 1;
       print("Less than zero (x: $x)\n")
     end
-		return 1
+		return (1);
 	else
     if(verbosity > 1)
       global instance_incorrect += 1;
       print("WRONG\n")
     end
-		return -1
+		return (-1);
 	end
 end
 
@@ -216,6 +221,7 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
 
   # don't forget to update noise externally to this function on separate iterations
   local_pre = pre(x, is_problem_1);
+  # Note: local_post returns a tuple where one value is 0. All comparisons to find the non zero value should use absolute comparison.
   local_post = post(x, is_problem_1);
   local_reward = reward(x, is_problem_1) :: Int; # it is important that noise is not updated between calls to post() and reward()
   if(verbosity > 3)
@@ -224,22 +230,24 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
 
   # Save some data for later examination
   trial_dat.task_type = (is_problem_1 ? 1 : 2);
-  trial_dat.correct_answer = (x > 0 ? 1 : -1);
-  trial_dat.chosen_answer = (local_post[1] < local_post[2] ? 1 : -1) # note sign reversal, to maintain greater than relationship
-  trial_dat.got_it_right = (local_reward > 0 ? true : false);
+  trial_dat.correct_answer = x #(x > 0 ? 1 : -1);
+  trial_dat.chosen_answer = ((abs(local_post[1]) > abs(local_post[2])) ? -1 : 1) # note sign reversal, to maintain greater than relationship
+  trial_dat.got_it_right = ((local_reward > 0) ? true : false);
 
   # monitor average choice per block here
   #   using n independent of critic, for now
-  local_choice = (local_post[1] > 0 ? 1 : 2);
+  local_choice = (abs(local_post[1]) > 0 ? 1 : 2);
   global average_choice = ( (n-1) * average_choice + local_choice ) / (n);
 
   #running_av_reward(local_reward); # Nicolas is doing this before dw update, so first timestep is less unstable...
   # TODO: need to improve critic response axis and task type bin logic here
+  # Binning along input-output/selection choice axis
   local_critic_response_bin = 1::Int;
   if(no_choices_per_task_critics > 1)
     local_correct_answer = (x > 0 ? 2 : 1);
     local_critic_response_bin = local_correct_answer;
   end
+  # Binning along task type axis
   local_critic_task_bin = 1::Int;
   if(no_task_critics > 1)
     local_critic_task_bin = trial_dat.task_type;
@@ -264,6 +272,7 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
     local_average_reward = ( local_sum_reward / local_sum_critics );
   else
     # Rmax (no running average):
+    #TODO: actually this is not Rmax, that would also require (post-\bar{post}) in the dw formula
     local_average_reward = 0.;
   end
 
