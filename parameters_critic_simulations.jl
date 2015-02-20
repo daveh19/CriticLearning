@@ -37,6 +37,8 @@ input_baseline_variance = 0.5; #0.5;
 task_slope_variance_easy = 0.375; #0.375;
 task_slope_variance_hard = 0.25; #0.25
 
+detection_threshold = 0.25;
+
 # this mimics the same subject in each experiment, rather than new subjects throughout
 use_ab_persistence = false :: Bool; 
 

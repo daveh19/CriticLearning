@@ -127,7 +127,6 @@ function post(x::Float64, is_problem_1::Bool, debug_on::Bool=false)
   # calculated probability of getting this result given de-noised results and error size
   #   TODO: finish this code
   trial_probability_left = 0.5 + erf((noise_free_left - noise_free_right) / (output_noise / 2.0)) * 0.5;
-  #probably should be probability right?
 
   if(debug_on)
     if(verbosity > 0)
@@ -135,6 +134,67 @@ function post(x::Float64, is_problem_1::Bool, debug_on::Bool=false)
     end
   end
 	return wta(left,right, debug_on)
+end
+
+
+function detect_threshold(is_problem_1::Bool=true)
+  # find the detection threshold with current weight matrix and current subject
+  no_points = 30;
+  error_rate = zeros(no_points, 1);
+  x = linspace(0,1,no_points); # linspace of x values for detection threshold
+  i = 1;
+  for xi in x
+    # calculate pre for +/- xi
+    local_pre_pos = pre(xi, is_problem_1);
+    local_pre_neg = pre(-xi, is_problem_1);
+
+    #print("DEBUG: $local_pre_pos, $local_pre_neg ")
+
+    # calculate noise free post for xi
+    local_noise_free_post_pos_left = sum(local_pre_pos.*w[:,1]);
+    local_noise_free_post_pos_right = sum(local_pre_pos.*w[:,2]);
+
+    # calculate noise free post for -xi
+    local_noise_free_post_neg_left = sum(local_pre_neg.*w[:,1]);
+    local_noise_free_post_neg_right = sum(local_pre_neg.*w[:,2]);
+    if(verbosity > 2)
+      print("DEBUG: $local_noise_free_post_pos_left, $local_noise_free_post_pos_right, ")
+      print("$local_noise_free_post_neg_left, $local_noise_free_post_neg_right, ")
+    end
+
+    # probability, for a positive input (i) that we choose left
+    p_pos_left = 0.5 + 0.5 * erf( (local_noise_free_post_pos_left - local_noise_free_post_pos_right) / (output_noise / 2.0) );
+    p_pos_right = (1. - p_pos_left);
+    if(verbosity > 2)
+      print("p_pos_left: $p_pos_left, p_pos_right: $p_pos_right ")
+    end
+
+    # probability, for a negative input (-i) that we choose left
+    p_neg_left = 0.5 + 0.5 * erf( (local_noise_free_post_neg_left - local_noise_free_post_neg_right) / (output_noise / 2.0) );
+    p_neg_right = (1. - p_neg_left);
+    if(verbosity > 2)
+      print("p_neg_left: $p_neg_left, p_neg_right: $p_neg_right,")
+    end
+
+    # probability of choosing the wrong side
+    error_rate[i] = ( p_pos_left + p_neg_right ) / 2.0;
+
+    if(verbosity > 1)
+      print(" i: $i, xi: $xi, error_rate: ", error_rate[i],"\n")
+    end
+    i += 1;
+  end
+
+  # do a sort to enforce increasing error rates
+  A = [error_rate x];
+  A = sortrows(A, by=x->x[1], rev=false)
+
+  # linear interpolator from target error rate back to value on input space producing this error rate
+  z = InterpIrregular(A[:,1], A[:,2], 1, InterpLinear);
+  if(verbosity > 1)
+    print("n: $n, z: ", z[detection_threshold], "\n");
+  end
+  return z[detection_threshold];
 end
 
 
@@ -224,6 +284,7 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   # Note: local_post returns a tuple where one value is 0. All comparisons to find the non zero value should use absolute comparison.
   local_post = post(x, is_problem_1);
   local_reward = reward(x, is_problem_1) :: Int; # it is important that noise is not updated between calls to post() and reward()
+  local_threshold = detect_threshold(is_problem_1);
   if(verbosity > 3)
     instance_reward[n] = local_reward;
   end
@@ -233,6 +294,7 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   trial_dat.correct_answer = x #(x > 0 ? 1 : -1);
   trial_dat.chosen_answer = ((abs(local_post[1]) > abs(local_post[2])) ? -1 : 1) # note sign reversal, to maintain greater than relationship
   trial_dat.got_it_right = ((local_reward > 0) ? true : false);
+  trial_dat.error_threshold = local_threshold;
 
   # monitor average choice per block here
   #   using n independent of critic, for now

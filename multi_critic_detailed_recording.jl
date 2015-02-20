@@ -1,7 +1,7 @@
 ######## External requirements ###########
 using Distributions
 using PyPlot
-
+using Grid
 
 ########## Parameters #############
 
@@ -879,23 +879,26 @@ end
 
 
 function print_single_block_performance(block::Block)
-  print("Task|Chosen|Correct|Right|Reward\n")
+  print("Task|Chosen|Correct|Right|Reward|ErrorThreshold\n")
   local_av_task = 0;
   local_av_choice = 0.;
   local_av_x = 0.;
   local_av_correct = 0;
   local_av_reward = 0.;
+  local_av_err_threshold = 0.;
   for i = 1:length(block.trial)
     print("",block.trial[i].task_type," | ")
     print("",block.trial[i].chosen_answer," | ")
     print("",block.trial[i].correct_answer," | ")
     print("",block.trial[i].got_it_right," | ")
-    print("",block.trial[i].reward_received," \n ")
+    print("",block.trial[i].reward_received," | ")
+    print("",block.trial[i].error_threshold," \n");
     local_av_task += block.trial[i].task_type;
     local_av_choice += block.trial[i].chosen_answer;
     local_av_x += block.trial[i].correct_answer;
     (block.trial[i].got_it_right ? local_av_correct += 1 : 0 )
     local_av_reward += block.trial[i].reward_received
+    local_av_err_threshold += block.trial[i].error_threshold;
   end
   local_av_n = length(block.trial);
   local_av_task /= local_av_n;
@@ -903,12 +906,14 @@ function print_single_block_performance(block::Block)
   local_av_x /= local_av_n;
   local_av_correct /= local_av_n;
   local_av_reward /= local_av_n;
+  local_av_err_threshold /= local_av_n;
   print("--------------------------\n")
   print("",local_av_task," | ")
   print("",local_av_choice," | ")
   print("",local_av_x," | ")
   print("",local_av_correct," | ")
-  print("",local_av_reward," \n ")
+  print("",local_av_reward," | ")
+  print("",local_av_err_threshold," \n ")
 end
 
 function plot_single_block_performance(block::Block)

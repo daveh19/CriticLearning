@@ -11,7 +11,7 @@ type Trial
   w :: Array{Float64, 2};
   dw :: Array{Float64, 2};
   mag_dw :: Float64;
-  error_probability :: Float64;
+  error_threshold :: Float64;
 end
 
 function initialise_empty_trials(no_trials)
