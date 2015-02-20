@@ -222,10 +222,10 @@ function perform_single_subject_experiment(is_trial_1_task::Bool, subjects_dat::
   end
   
   for (i = 1:no_blocks_in_experiment)
-    if(i == no_blocks_in_experiment && subject_id == 9)
+    #=if(i == no_blocks_in_experiment && subject_id == 9)
       local_old_verbosity = verbosity;
       global verbosity = 10;
-    end
+    end=#
     if(verbosity > -1)
       print("------------------ Block number $i --------------------\n")
     end
@@ -245,9 +245,9 @@ function perform_single_subject_experiment(is_trial_1_task::Bool, subjects_dat::
     if(verbosity > -1)
       print("Block $i completed. Type 1 task: $is_trial_1_task.\n") 
     end
-    if(i == no_blocks_in_experiment && subject_id == 9)
+    #=if(i == no_blocks_in_experiment && subject_id == 9)
       verbosity = local_old_verbosity;
-    end
+    end=#
   end
   subjects_dat[subject_id].w_final = deepcopy(w);
   return 0;
@@ -880,13 +880,35 @@ end
 
 function print_single_block_performance(block::Block)
   print("Task|Chosen|Correct|Right|Reward\n")
+  local_av_task = 0;
+  local_av_choice = 0.;
+  local_av_x = 0.;
+  local_av_correct = 0;
+  local_av_reward = 0.;
   for i = 1:length(block.trial)
     print("",block.trial[i].task_type," | ")
     print("",block.trial[i].chosen_answer," | ")
     print("",block.trial[i].correct_answer," | ")
     print("",block.trial[i].got_it_right," | ")
     print("",block.trial[i].reward_received," \n ")
+    local_av_task += block.trial[i].task_type;
+    local_av_choice += block.trial[i].chosen_answer;
+    local_av_x += block.trial[i].correct_answer;
+    (block.trial[i].got_it_right ? local_av_correct += 1 : 0 )
+    local_av_reward += block.trial[i].reward_received
   end
+  local_av_n = length(block.trial);
+  local_av_task /= local_av_n;
+  local_av_choice /= local_av_n;
+  local_av_x /= local_av_n;
+  local_av_correct /= local_av_n;
+  local_av_reward /= local_av_n;
+  print("--------------------------\n")
+  print("",local_av_task," | ")
+  print("",local_av_choice," | ")
+  print("",local_av_x," | ")
+  print("",local_av_correct," | ")
+  print("",local_av_reward," \n ")
 end
 
 function plot_single_block_performance(block::Block)
@@ -945,6 +967,26 @@ function plot_multi_subject_average_reward(subjects::Array{Subject,1}, begin_id:
   figure()
   for i = begin_id:end_id
     plot_single_subject_average_reward(subjects[i])
+  end
+end
+
+
+function plot_single_subject_average_choice(subject::Subject)
+  #figure()
+  local_av_choice = zeros(no_blocks_in_experiment);
+  x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
+  for i = 1:no_blocks_in_experiment
+    local_av_choice[i] = (subject.blocks[i].average_choice - 1) * 2;
+    #print("", x[i], " ", local_reward_received[i], "\n")
+  end
+  #print("", size(local_reward_received), " ", size(x),"\n")
+  plot(x, local_av_choice, linewidth=2)
+end
+
+function plot_multi_subject_average_choice(subjects::Array{Subject,1}, begin_id::Int=1, end_id::Int=no_subjects)
+  figure()
+  for i = begin_id:end_id
+    plot_single_subject_average_choice(subjects[i])
   end
 end
 

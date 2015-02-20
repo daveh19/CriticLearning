@@ -1,5 +1,18 @@
 if false
 print_single_block_performance(exp_results[1].subjects_task1[9].blocks[end])
+
+
+local_pre = pre(x, is_problem_1);
+# Note: local_post returns a tuple where one value is 0. All comparisons to find the non zero value should use absolute comparison.
+local_post = post(x, is_problem_1);
+
+local_reward = -1
+local_average_reward = 1
+
+dw = zeros(no_pre_neurons, no_post_neurons);
+dw[:,1] = learning_rate * local_pre[:] * local_post[1] * (local_reward - local_average_reward);
+dw[:,2] = learning_rate * local_pre[:] * local_post[2] * (local_reward - local_average_reward);
+
 end
 
 

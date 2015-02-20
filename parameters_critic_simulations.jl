@@ -1,5 +1,5 @@
 ########## Parameters #############
-random_seed = 2;
+random_seed = 3;
 
 # network parameters
 no_pre_neurons = 100::Int;
@@ -24,9 +24,9 @@ use_single_global_critic = false :: Bool;
 problem_left_bound = -1; #-0.5;
 problem_right_bound = 1; #0.5;
 
-running_av_window_length = 50::Int;
+running_av_window_length = 50::Int; #50::Int;
 
-learning_rate = 0.001; # 0.001; #0.002;
+learning_rate = 0.00001; # 0.001; #0.002;
 output_noise = 10.0; #10.0;
 
 initial_weight_bias = (2.0); # 2.0

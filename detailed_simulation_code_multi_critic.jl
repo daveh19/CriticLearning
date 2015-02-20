@@ -243,7 +243,7 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   # TODO: need to improve critic response axis and task type bin logic here
   # Binning along input-output/selection choice axis
   local_critic_response_bin = 1::Int;
-  if(no_choices_per_task_critics > 1)
+  if(no_choices_per_task_critics > 1) #current logic has max 2 critics on this axis of choice
     local_correct_answer = (x > 0 ? 2 : 1);
     local_critic_response_bin = local_correct_answer;
   end
