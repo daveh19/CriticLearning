@@ -284,7 +284,10 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   # Note: local_post returns a tuple where one value is 0. All comparisons to find the non zero value should use absolute comparison.
   local_post = post(x, is_problem_1);
   local_reward = reward(x, is_problem_1) :: Int; # it is important that noise is not updated between calls to post() and reward()
-  local_threshold = detect_threshold(is_problem_1);
+  if(perform_detection_threshold)
+    local_threshold = detect_threshold(is_problem_1);
+    trial_dat.error_threshold = local_threshold;
+  end
   if(verbosity > 3)
     instance_reward[n] = local_reward;
   end
@@ -294,7 +297,6 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   trial_dat.correct_answer = x #(x > 0 ? 1 : -1);
   trial_dat.chosen_answer = ((abs(local_post[1]) > abs(local_post[2])) ? -1 : 1) # note sign reversal, to maintain greater than relationship
   trial_dat.got_it_right = ((local_reward > 0) ? true : false);
-  trial_dat.error_threshold = local_threshold;
 
   # monitor average choice per block here
   #   using n independent of critic, for now

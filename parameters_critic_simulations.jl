@@ -9,8 +9,8 @@ weights_upper_bound = 10;
 weights_lower_bound = -10;
 
 # trial length parameters
-no_trials_in_block = 80::Int; #80;
-no_blocks_in_experiment = 50::Int; #14;
+no_trials_in_block = 180::Int; #80;
+no_blocks_in_experiment = 200::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = false::Bool;
 
@@ -37,6 +37,8 @@ input_baseline_variance = 0.5; #0.5;
 task_slope_variance_easy = 0.375; #0.375;
 task_slope_variance_hard = 0.25; #0.25
 
+# discrimination threshold calculation
+perform_detection_threshold = false::Bool;
 detection_threshold = 0.25;
 
 # this mimics the same subject in each experiment, rather than new subjects throughout
