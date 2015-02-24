@@ -38,20 +38,26 @@ function generate_test_sequence(seq_length::Int64)
   #x = linspace(-1,1,seq_length);
 
   # points are uniform randomly distributed:
-  x = rand(Uniform(problem_left_bound,problem_right_bound), seq_length);
+  if(use_cts_random_inputs)
+    x = rand(Uniform(problem_left_bound,problem_right_bound), seq_length);
+  end
 
   # alternating +/-1 sequence
-  # x = zeros(seq_length,1);
-  # for(i=1:seq_length)
-    # x[i] = -(-1)^i;
-  # end
+  if(use_binary_alternating_inputs)
+    x = zeros(seq_length,1);
+    for(i=1:seq_length)
+      x[i] = -(-1)^i;
+    end
+  end
 
   # randomly alternating +/-1 sequence
-  #=x = zeros(seq_length,1);
-  choice = rand(Uniform(0,1), seq_length);
-  for (i = 1:seq_length)
-   x[i] = (choice[i] > 0.5? -1.0 : 1.0)
-  end=#
+  if(use_binary_random_inputs)
+    x = zeros(seq_length,1);
+    choice = rand(Uniform(0,1), seq_length);
+    for (i = 1:seq_length)
+      x[i] = (choice[i] > 0.5? -1.0 : 1.0)
+    end
+  end
 
   return x;
 end

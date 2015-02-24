@@ -9,7 +9,7 @@ weights_upper_bound = 10;
 weights_lower_bound = -10;
 
 # trial length parameters
-no_trials_in_block = 180::Int; #80;
+no_trials_in_block = 80::Int; #80;
 no_blocks_in_experiment = 200::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = false::Bool;
@@ -30,6 +30,11 @@ learning_rate = 0.00001; # 0.001; #0.002;
 output_noise = 10.0; #10.0;
 
 initial_weight_bias = (2.0); # 2.0
+
+# choose input sequence
+use_cts_random_inputs = true :: Bool;
+use_binary_random_inputs = false :: Bool;
+use_binary_alternating_inputs = false :: Bool;
 
 # selective tuning of input
 input_baseline = 2.0; #2.0;
