@@ -106,8 +106,8 @@ function perform_learning_block_single_problem(is_problem_1::Bool, block_dat::Bl
   global n_critic;
   for i = 1: no_task_critics
     for j = 1:no_choices_per_task_critics
-      average_reward[i,j] = 0.;
-      n_critic[i,j] = 0;
+      #average_reward[i,j] = 0.;
+      #n_critic[i,j] = 0;
     end
   end
   global average_delta_reward = 0;
@@ -167,8 +167,8 @@ function perform_learning_block_trial_switching(block_dat::Block)
   global n_critic;
   for i = 1:no_task_critics
     for j = 1:no_choices_per_task_critics
-      average_reward[i,j] = 0.;
-      n_critic[i,j] = 0;
+      #average_reward[i,j] = 0.;
+      #n_critic[i,j] = 0;
     end
   end
   global average_delta_reward = 0;
@@ -226,6 +226,15 @@ function perform_single_subject_experiment(is_trial_1_task::Bool, subjects_dat::
     subjects_dat[subject_id].a = deepcopy(a);
     subjects_dat[subject_id].b = deepcopy(b);
   end
+
+  global average_reward;
+  global n_critic;
+  for i = 1:no_task_critics
+    for j = 1:no_choices_per_task_critics
+      average_reward[i,j] = 0.;
+      n_critic[i,j] = 0;
+    end
+  end
   
   for (i = 1:no_blocks_in_experiment)
     #=if(i == no_blocks_in_experiment && subject_id == 9)
@@ -275,6 +284,15 @@ function perform_single_subject_experiment_trial_switching(subjects::Array{Subje
     subjects[subject_id].b = deepcopy(b);
   end
 
+  global average_reward;
+  global n_critic;
+  for i = 1:no_task_critics
+    for j = 1:no_choices_per_task_critics
+      average_reward[i,j] = 0.;
+      n_critic[i,j] = 0;
+    end
+  end
+  
   if(double_no_of_trials_in_alternating_experiment)
     global no_trials_in_block = int(no_trials_in_block * 2);
   end
@@ -1002,7 +1020,7 @@ function plot_multi_subject_average_choice(subjects::Array{Subject,1}, begin_id:
 end
 
 
-function plot_single_subject_weight_vs_bias(subject::Subject, is_task_1::Bool=true, is_task_2::Bool=false)
+function plot_single_subject_final_weight_vs_bias(subject::Subject, is_task_1::Bool=true, is_task_2::Bool=false)
   #figure()
   easy_size = length(subject.b) / 2 :: Int;
   if (is_task_1)
@@ -1018,15 +1036,51 @@ function plot_single_subject_weight_vs_bias(subject::Subject, is_task_1::Bool=tr
   #legend()
 end
 
-function plot_multi_subject_weight_vs_bias(subjects::Array{Subject,1}, begin_id::Int=1, end_id::Int=no_subjects)
+function plot_multi_subject_final_weight_vs_bias(subjects::Array{Subject,1}, begin_id::Int=1, end_id::Int=no_subjects)
   figure(figsize=(4,20))
   for i = begin_id:end_id
     subplot(10,1,i)
-    plot_single_subject_weight_vs_bias(subjects[i]);
+    plot_single_subject_final_weight_vs_bias(subjects[i]);
   end
   legend()
 end
 
+
+function plot_single_subject_initial_weight_vs_bias(subject::Subject, is_task_1::Bool=true, is_task_2::Bool=false)
+  #figure()
+  easy_size = length(subject.b) / 2 :: Int;
+  if (is_task_1)
+    scatter(subject.b[1:easy_size], subject.w_initial[1:easy_size,1], marker="o", c="g", label="left, easy")
+    scatter(subject.b[1:easy_size], subject.w_initial[1:easy_size,2], marker="o", c="y", label="right, easy")
+  end
+  if (is_task_2)
+    scatter(subject.b[easy_size+1:end], subject.w_initial[easy_size+1:end,1], marker="o", c="r", label="left, hard")
+    scatter(subject.b[easy_size+1:end], subject.w_initial[easy_size+1:end,2], marker="o", c="k", label="right, hard")
+  end
+  xlim([-1.2,1.2])
+  ylim([-12,12])
+  #legend()
+end
+
+function plot_multi_subject_initial_weight_vs_bias(subjects::Array{Subject,1}, begin_id::Int=1, end_id::Int=no_subjects)
+  figure(figsize=(4,20))
+  for i = begin_id:end_id
+    subplot(10,1,i)
+    plot_single_subject_initial_weight_vs_bias(subjects[i]);
+  end
+  legend()
+end
+
+
+
+function who_doesnt_learn(subjects::Array{Subject,1}, threshold::Float64=10.0, begin_id::Int=1, end_id::Int=no_subjects)
+  print("Detection threshold: $threshold\n")
+  for i = begin_id:end_id
+    if ( subjects[i].blocks[end].proportion_correct < threshold )
+      print("Subject $i proportion correct:", subjects[i].blocks[end].proportion_correct,"\n")
+    end
+  end
+end
 
 #####################################
 print("------------NEW RUN--------------\n")
