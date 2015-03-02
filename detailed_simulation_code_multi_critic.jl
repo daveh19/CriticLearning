@@ -138,10 +138,11 @@ function post(x::Float64, is_problem_1::Bool, debug_on::Bool=false)
 end
 
 
-function detect_threshold(is_problem_1::Bool=true)
+function detect_threshold(is_problem_1::Bool=true, split_output::Bool=false)
   # find the detection threshold with current weight matrix and current subject
   no_points = 30;
-  error_rate = zeros(no_points, 1);
+  error_rate = zeros(no_points);
+  split_error = zeros(no_points,2)
   x = linspace(0,1,no_points); # linspace of x values for detection threshold
   i = 1;
   for xi in x
@@ -179,9 +180,11 @@ function detect_threshold(is_problem_1::Bool=true)
 
     # probability of choosing the wrong side
     error_rate[i] = ( p_pos_left + p_neg_right ) / 2.0;
+    split_error[i,1] = p_pos_left;
+    split_error[i,2] = p_neg_right; # prob for a negative input we falsely choose right of zero
 
     if(verbosity > 1)
-      print(" i: $i, xi: $xi, error_rate: ", error_rate[i],"\n")
+      print(" i: $i, xi: $xi, error_rate: ", error_rate[i],", error_left: ", split_error[i,1], ", error_right: ", split_error[i,2], "\n")
     end
     i += 1;
   end
@@ -192,10 +195,28 @@ function detect_threshold(is_problem_1::Bool=true)
 
   # linear interpolator from target error rate back to value on input space producing this error rate
   z = InterpIrregular(A[:,1], A[:,2], 1, InterpLinear);
-  if(verbosity > 1)
-    print("n: $n, z: ", z[detection_threshold], "\n");
+
+  if(!split_output)
+    if(verbosity > 1)
+      print("n: $n, z: ", z[detection_threshold], "\n");
+    end
+    return z[detection_threshold];
+  else
+    Al = [split_error[:,1] x];
+    Al = sortrows(Al, by=x->x[1], rev=false);
+    zl = InterpIrregular(Al[:,1],Al[:,2], 1, InterpLinear);
+    Ar = [split_error[:,2] x];
+    Ar = sortrows(Ar, by=x->x[1], rev=false);
+    zr = InterpIrregular(Ar[:,1],Ar[:,2], -1, InterpLinear);
+
+    print("Al: ",Al,"\n")
+    print("Ar: ",Ar,"\n")
+    if(verbosity > 1)
+      print("n: $n, z: ", z[detection_threshold], ", zl: ", zl[detection_threshold], ", zr: ", zr[detection_threshold],"\n");
+    end
+
+    return [zl[detection_threshold] zr[detection_threshold]];
   end
-  return z[detection_threshold];
 end
 
 

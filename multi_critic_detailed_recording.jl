@@ -223,8 +223,8 @@ function perform_single_subject_experiment(is_trial_1_task::Bool, subjects_dat::
   subjects_dat[subject_id].w_initial = deepcopy(w);
 
 #  if (use_ab_persistence)
-    global a = deepcopy(subjects_dat[subject_id].a)
-    global b = deepcopy(subjects_dat[subject_id].b)
+    global a = deepcopy(subjects_dat[subject_id].a);
+    global b = deepcopy(subjects_dat[subject_id].b);
 #=  else
     initialise_pre_population()
     subjects_dat[subject_id].a = deepcopy(a);
@@ -409,9 +409,9 @@ function compare_three_trial_types_with_multiple_subjects()
   end
 
   print("-----Experiment: task 1------\n")
-  perform_multi_subject_experiment(true, latest_experiment_results.subjects_task1)
-  mean_correct = zeros(no_blocks_in_experiment)
-  range_correct = zeros(no_blocks_in_experiment)
+  perform_multi_subject_experiment(true, latest_experiment_results.subjects_task1);
+  mean_correct = zeros(no_blocks_in_experiment);
+  range_correct = zeros(no_blocks_in_experiment);
   err_correct = zeros(no_blocks_in_experiment);
   for i = 1:no_blocks_in_experiment
     local_prop = zeros(no_subjects);
@@ -438,9 +438,9 @@ function compare_three_trial_types_with_multiple_subjects()
   latest_experiment_results.task1_range = range_correct;
 
   print("-----Experiment: task 2------\n")
-  perform_multi_subject_experiment(false, latest_experiment_results.subjects_task2)
-  mean_correct = zeros(no_blocks_in_experiment)
-  range_correct = zeros(no_blocks_in_experiment)
+  perform_multi_subject_experiment(false, latest_experiment_results.subjects_task2);
+  mean_correct = zeros(no_blocks_in_experiment);
+  range_correct = zeros(no_blocks_in_experiment);
   err_correct = zeros(no_blocks_in_experiment);
   for i = 1:no_blocks_in_experiment
     local_prop = zeros(no_subjects);
@@ -467,12 +467,12 @@ function compare_three_trial_types_with_multiple_subjects()
   latest_experiment_results.task2_range = range_correct;
 
   print("-----Experiment: roving task------\n")
-  perform_multi_subject_experiment_trial_switching(latest_experiment_results.subjects_roving_task)
-  mean_correct = zeros(no_blocks_in_experiment)
-  mean_task_1_correct = zeros(no_blocks_in_experiment)
-  mean_task_2_correct = zeros(no_blocks_in_experiment)
+  perform_multi_subject_experiment_trial_switching(latest_experiment_results.subjects_roving_task);
+  mean_correct = zeros(no_blocks_in_experiment);
+  mean_task_1_correct = zeros(no_blocks_in_experiment);
+  mean_task_2_correct = zeros(no_blocks_in_experiment);
   err_correct = zeros(no_blocks_in_experiment);
-  range_correct = zeros(no_blocks_in_experiment)
+  range_correct = zeros(no_blocks_in_experiment);
   for i = 1:no_blocks_in_experiment
     local_prop = zeros(no_subjects);
     local_prop_1 = zeros(no_subjects);
