@@ -1103,7 +1103,7 @@ function plot_single_subject_average_choice(subject::Subject)
   local_av_choice = zeros(no_blocks_in_experiment);
   x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
   for i = 1:no_blocks_in_experiment
-    local_av_choice[i] = (subject.blocks[i].average_choice);# - 1) * 2;
+    local_av_choice[i] = (subject.blocks[i].average_choice - 1.5) * 2;
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
@@ -1178,6 +1178,50 @@ function who_doesnt_learn(subjects::Array{Subject,1}, threshold::Float64=10.0, b
       print("Subject $i proportion correct:", subjects[i].blocks[end].proportion_correct,"\n")
     end
   end
+end
+
+
+function will_subject_learn(subjects::Array{Subject,1}, is_problem_1::Bool=true, begin_id::Int=1, end_id::Int=no_subjects)
+  heuristic_threshold = 1e-3;
+  if(is_problem_1)
+    task_type = 1;
+  else
+    task_type = 2;
+  end
+  print("Heuristic for who will learn based on inital weights and tuning curves, heuristic threshold $heuristic_threshold:\n") 
+  for i = begin_id:end_id
+    global a = deepcopy(subjects[i].a);
+    global b = deepcopy(subjects[i].b);
+    global w = deepcopy(subjects[i].w_initial);
+
+    pre_pos_1 = pre(1.0, is_problem_1);
+    pre_neg_1 = pre(-1.0, is_problem_1);
+
+    # calculate noise free post for +1
+    noise_free_post_pos_left = sum(pre_pos_1.*w[:,1]);
+    noise_free_post_pos_right = sum(pre_pos_1.*w[:,2]);
+
+    # calculate noise free post for -1
+    noise_free_post_neg_left = sum(pre_neg_1.*w[:,1]);
+    noise_free_post_neg_right = sum(pre_neg_1.*w[:,2]);
+
+    p_pos_left = 0.5 + 0.5 * erf( (noise_free_post_pos_left - noise_free_post_pos_right) / (output_noise / 2.0) );
+    p_neg_left = 0.5 + 0.5 * erf( (noise_free_post_neg_left - noise_free_post_neg_right) / (output_noise / 2.0) );
+    p_neg_right = (1. - p_neg_left);
+
+    if (verbosity > 1)
+      print("Subject $i, p_pos_left: $p_pos_left, p_neg_right: $p_neg_right\n")
+    end
+
+    if ( ( abs(p_pos_left - 0) < heuristic_threshold ) && ( abs(p_neg_right - 1) < heuristic_threshold ) )
+      print("Subject $i: Probably not going to learn, biased left for task $task_type\n")
+    elseif ( ( abs(p_pos_left - 1) < heuristic_threshold ) && ( abs(p_neg_right - 0) < heuristic_threshold ) )
+      print("Subject $i: Probably not going to learn, biased right for task $task_type\n")
+    else
+      print("Subject $i, no bias, can learn for task $task_type\n")
+    end
+  end
+  print("\nWarning: function altered global variables a, b and w\n")
 end
 
 
