@@ -389,7 +389,9 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   end
   
   # the weight update
-  global w += dw;
+  if(enable_weight_updates)
+    global w += dw;
+  end
   if (verbosity > 3)
     left_sum_w = sum(w[:,1]);
     right_sum_w = sum(w[:,2]);

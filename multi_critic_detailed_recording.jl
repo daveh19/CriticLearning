@@ -221,7 +221,8 @@ function perform_single_subject_experiment(is_trial_1_task::Bool, subjects_dat::
   #subject[subject_id] = Subject(zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_pre_neurons,2),zeros(no_pre_neurons,2));
   initialise_weight_matrix()
   subjects_dat[subject_id].w_initial = deepcopy(w);
-
+  
+  global enable_weight_updates::Bool;
 #  if (use_ab_persistence)
     global a = deepcopy(subjects_dat[subject_id].a);
     global b = deepcopy(subjects_dat[subject_id].b);
@@ -230,6 +231,10 @@ function perform_single_subject_experiment(is_trial_1_task::Bool, subjects_dat::
     subjects_dat[subject_id].a = deepcopy(a);
     subjects_dat[subject_id].b = deepcopy(b);
   end=#
+
+  if(disable_learning_on_first_block)
+    global enable_weight_updates = false :: Bool;
+  end
 
   global average_reward;
   global n_critic;
@@ -271,6 +276,7 @@ function perform_single_subject_experiment(is_trial_1_task::Bool, subjects_dat::
     #=if(i == no_blocks_in_experiment && subject_id == 9)
       verbosity = local_old_verbosity;
     end=#
+    enable_weight_updates = true;
   end
   subjects_dat[subject_id].w_final = deepcopy(w);
   return 0;
@@ -283,6 +289,7 @@ function perform_single_subject_experiment_trial_switching(subjects::Array{Subje
   initialise_weight_matrix()
   subjects[subject_id].w_initial = deepcopy(w);
 
+  global enable_weight_updates::Bool;
 #  if (use_ab_persistence)
     global a = deepcopy(subjects[subject_id].a)
     global b = deepcopy(subjects[subject_id].b)
@@ -291,6 +298,10 @@ function perform_single_subject_experiment_trial_switching(subjects::Array{Subje
     subjects[subject_id].a = deepcopy(a);
     subjects[subject_id].b = deepcopy(b);
   end=#
+
+  if(disable_learning_on_first_block)
+    global enable_weight_updates = false :: Bool;
+  end
 
   global average_reward;
   global n_critic;
@@ -331,6 +342,7 @@ function perform_single_subject_experiment_trial_switching(subjects::Array{Subje
     if(verbosity > -1)
       print("Block $i completed. Alternating tasks.\n") 
     end
+    enable_weight_updates = true;
   end
   if(double_no_of_trials_in_alternating_experiment)
     no_trials_in_block = int(no_trials_in_block / 2);
