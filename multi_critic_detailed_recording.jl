@@ -219,21 +219,16 @@ end
 function perform_single_subject_experiment(is_trial_1_task::Bool, subjects_dat::Array{Subject,1}, subject_id::Int64=1)
   #global subject
   #subject[subject_id] = Subject(zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_pre_neurons,2),zeros(no_pre_neurons,2));
-  initialise_weight_matrix()
+  global enable_weight_updates :: Bool;
+
+  global a = deepcopy(subjects_dat[subject_id].a);
+  global b = deepcopy(subjects_dat[subject_id].b);
+
+  initialise_weight_matrix() # must be called after a and b are setup
   subjects_dat[subject_id].w_initial = deepcopy(w);
-  
-  global enable_weight_updates::Bool;
-#  if (use_ab_persistence)
-    global a = deepcopy(subjects_dat[subject_id].a);
-    global b = deepcopy(subjects_dat[subject_id].b);
-#=  else
-    initialise_pre_population()
-    subjects_dat[subject_id].a = deepcopy(a);
-    subjects_dat[subject_id].b = deepcopy(b);
-  end=#
 
   if(disable_learning_on_first_block)
-    global enable_weight_updates = false :: Bool;
+    enable_weight_updates = false :: Bool;
   end
 
   global average_reward;
@@ -286,21 +281,16 @@ end
 function perform_single_subject_experiment_trial_switching(subjects::Array{Subject,1}, subject_id::Int64=1)
   #global subject
   #subject[subject_id] = Subject(zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_pre_neurons,2),zeros(no_pre_neurons,2));
-  initialise_weight_matrix()
+  global enable_weight_updates::Bool;
+
+  global a = deepcopy(subjects[subject_id].a);
+  global b = deepcopy(subjects[subject_id].b);
+
+  initialise_weight_matrix() # must be called after a and b are setup
   subjects[subject_id].w_initial = deepcopy(w);
 
-  global enable_weight_updates::Bool;
-#  if (use_ab_persistence)
-    global a = deepcopy(subjects[subject_id].a)
-    global b = deepcopy(subjects[subject_id].b)
-#=  else
-    initialise_pre_population()
-    subjects[subject_id].a = deepcopy(a);
-    subjects[subject_id].b = deepcopy(b);
-  end=#
-
   if(disable_learning_on_first_block)
-    global enable_weight_updates = false :: Bool;
+    enable_weight_updates = false :: Bool;
   end
 
   global average_reward;

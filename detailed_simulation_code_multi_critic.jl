@@ -24,6 +24,7 @@ end
 
 
 function initialise_weight_matrix()
+  # Remember: always call this after a and b have been initialised!
   #set initial weights
   global w = rand(Uniform(0,1), (no_pre_neurons, no_post_neurons));
   w[:,1] += -initial_weight_bias*b;
@@ -54,6 +55,8 @@ function initialise()
   global proportion_2_correct = 0.0; 
 
   global exp_results = Array(RovingExperiment, 0);
+
+  global enable_weight_updates = true::Bool;
 
   print("RND seeded $random_seed\n")
 end

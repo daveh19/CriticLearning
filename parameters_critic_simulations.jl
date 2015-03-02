@@ -48,7 +48,7 @@ perform_detection_threshold = false::Bool;
 detection_threshold = 0.25;
 
 # this mimics the same subject in each experiment, rather than new subjects throughout
-use_ab_persistence = true :: Bool; 
+use_ab_persistence = false :: Bool; 
 
 # first block of each experiment is just used to build up a running average
 const disable_learning_on_first_block = false :: Bool;
