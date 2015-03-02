@@ -37,8 +37,12 @@ type Block
   average_choice :: Float64;
 end
 
-function initialise_empty_block(no_blocks, trials_per_block)
+function initialise_empty_block(no_blocks, trials_per_block, double_trials::Bool=false)
   block = Array(Block, no_blocks);
+
+  if (double_trials)
+    trials_per_block *= 2;
+  end
 
   for i = 1:no_blocks
     local_trial = initialise_empty_trials(trials_per_block);
@@ -62,8 +66,8 @@ type Subject
   w_final :: Array{Float64, 2}
 end
 
-function initialise_empty_subject(blocks_per_subject, trials_per_block)
-  blocks = initialise_empty_block(blocks_per_subject, trials_per_block);
+function initialise_empty_subject(blocks_per_subject, trials_per_block, double_trials::Bool=false)
+  blocks = initialise_empty_block(blocks_per_subject, trials_per_block, double_trials);
   subject = Subject( blocks, zeros(no_pre_neurons), zeros(no_pre_neurons), zeros(no_pre_neurons,2), zeros(no_pre_neurons, 2));
 
   return subject;
@@ -114,7 +118,7 @@ function initialise_empty_roving_experiment(no_subjects, blocks_per_subject, tri
   for i = 1:no_subjects
       subjects_task1[i] = initialise_empty_subject(blocks_per_subject, trials_per_block);
       subjects_task2[i] = initialise_empty_subject(blocks_per_subject, trials_per_block);
-      subjects_roving_task[i] = initialise_empty_subject(blocks_per_subject, trials_per_block);
+      subjects_roving_task[i] = initialise_empty_subject(blocks_per_subject, trials_per_block, double_no_of_trials_in_alternating_experiment);
   end
   experiment = RovingExperiment(subjects_task1, subjects_task2, subjects_roving_task, task1_correct, task2_correct, roving_correct, roving_task1_correct, roving_task2_correct, task1_error, task2_error, roving_error, task1_min, task2_min, roving_min);
 

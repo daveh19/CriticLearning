@@ -41,10 +41,11 @@ function initialise()
 
   global average_delta_reward = 0.0;
   global average_choice = 0.0;
-  global n = 0 :: Int; # use this to monitor trial ID per block
+  global n = 0 :: Int; # use this to monitor trial ID per block (very important: this is a block level counter!)
   # changing to multi-critic model
-  global n_critic = int(zeros(no_task_critics, no_choices_per_task_critics)); # use this to monitor trial ID per critic per block
-  global average_reward = zeros(no_task_critics, no_choices_per_task_critics);
+  #   critic can be per block or over entire learning history
+  global n_critic = int(zeros(no_task_critics, no_choices_per_task_critics)); # use this to monitor trial ID per critic
+  global average_reward = zeros(no_task_critics, no_choices_per_task_critics); # running average, stored values represent end of a block value
 
   global instance_correct = 0;
   global instance_incorrect = 0;

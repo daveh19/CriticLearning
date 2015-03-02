@@ -1,5 +1,5 @@
 ########## Parameters #############
-random_seed = 3;
+random_seed = 4;#3;
 
 # network parameters
 no_pre_neurons = 100::Int;
@@ -10,15 +10,16 @@ weights_lower_bound = -10;
 
 # trial length parameters
 no_trials_in_block = 80::Int; #80;
-no_blocks_in_experiment = 100::Int; #14;
-no_subjects = 10::Int; #10;
-double_no_of_trials_in_alternating_experiment = false::Bool;
+no_blocks_in_experiment = 50::Int; #14;
+no_subjects = 1::Int; #10;
+double_no_of_trials_in_alternating_experiment = true::Bool;
 
 # critic parameters
 no_task_critics = 2 :: Int;
-no_choices_per_task_critics = 2 :: Int;
+no_choices_per_task_critics = 1 :: Int;
 use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
+reset_average_reward_on_each_block = false :: Bool;
 
 # problem difficulty parameters
 problem_left_bound = -1; #-0.5;
@@ -26,7 +27,7 @@ problem_right_bound = 1; #0.5;
 
 running_av_window_length = 50::Int; #50::Int;
 
-learning_rate = 0.00012; # 0.001; #0.002;
+learning_rate = 0.00001; # 0.00012 was pretty good with Henning # 0.001; #0.002;
 output_noise = 10.0; #10.0;
 
 initial_weight_bias = (2.0); # 2.0
@@ -59,6 +60,7 @@ use_ab_persistence = false :: Bool;
 verbosity = (-1) :: Int;
 
 # plotting options
-plotting_scatter_plot_on = true :: Bool;
-plotting_error_bars_on = false :: Bool;
-plotting_individual_subjects_on = true :: Bool;
+plotting_scatter_plot_on = true :: Bool; # dots from scatter plot showing individual subject results 
+plotting_individual_subjects_on = true :: Bool; # lines joining the individual subject data points
+plotting_error_bars_on = false :: Bool; # standard deviation from the mean
+use_plot_mean = false :: Bool; # plot mean rather than median for proportions correct
