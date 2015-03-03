@@ -1124,11 +1124,15 @@ function plot_single_subject_final_weight_vs_bias(subject::Subject, is_task_1::B
   #legend()
 end
 
-function plot_multi_subject_final_weight_vs_bias(subjects::Array{Subject,1}, begin_id::Int=1, end_id::Int=no_subjects)
+function plot_multi_subject_final_weight_vs_bias(subjects::Array{Subject,1}, is_task_1::Bool=true, begin_id::Int=1, end_id::Int=no_subjects)
   figure(figsize=(4,20))
   for i = begin_id:end_id
     subplot(10,1,i)
-    plot_single_subject_final_weight_vs_bias(subjects[i]);
+    if(is_task_1)
+      plot_single_subject_final_weight_vs_bias(subjects[i],true, false);
+    else
+      plot_single_subject_final_weight_vs_bias(subjects[i],false,true);
+    end
   end
   legend()
 end
@@ -1150,11 +1154,15 @@ function plot_single_subject_initial_weight_vs_bias(subject::Subject, is_task_1:
   #legend()
 end
 
-function plot_multi_subject_initial_weight_vs_bias(subjects::Array{Subject,1}, begin_id::Int=1, end_id::Int=no_subjects)
+function plot_multi_subject_initial_weight_vs_bias(subjects::Array{Subject,1}, is_task_1::Bool=true, begin_id::Int=1, end_id::Int=no_subjects)
   figure(figsize=(4,20))
   for i = begin_id:end_id
     subplot(10,1,i)
-    plot_single_subject_initial_weight_vs_bias(subjects[i]);
+    if(is_task_1)
+      plot_single_subject_initial_weight_vs_bias(subjects[i], true, false);
+    else
+      plot_single_subject_initial_weight_vs_bias(subjects[i], false, true);
+    end
   end
   legend()
 end

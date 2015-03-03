@@ -194,10 +194,10 @@ function detect_threshold(is_problem_1::Bool=true, split_output::Bool=false)
 
   # do a sort to enforce increasing error rates
   A = [error_rate x];
-  A = sortrows(A, by=x->x[1], rev=false)
+  A = sortrows(A, by=x->(x[1],-x[2]), rev=false)
 
   # linear interpolator from target error rate back to value on input space producing this error rate
-  z = InterpIrregular(A[:,1], A[:,2], 1, InterpLinear);
+  z = InterpIrregular(A[:,1], A[:,2], 1, InterpLinear); # could also use BCnan as non-interp value
 
   if(!split_output)
     if(verbosity > 1)
@@ -206,11 +206,12 @@ function detect_threshold(is_problem_1::Bool=true, split_output::Bool=false)
     return z[detection_threshold];
   else
     Al = [split_error[:,1] x];
-    Al = sortrows(Al, by=x->x[1], rev=false);
+    Al = sortrows(Al, by=x->(x[1],-x[2]), rev=false); #sort by ascending error, and descending distance from 0
     zl = InterpIrregular(Al[:,1],Al[:,2], 1, InterpLinear);
-    Ar = [split_error[:,2] x];
-    Ar = sortrows(Ar, by=x->x[1], rev=false);
-    zr = InterpIrregular(Ar[:,1],Ar[:,2], -1, InterpLinear);
+    
+    Ar = [split_error[end:-1:1,2] x[end:-1:1]];
+    Ar = sortrows(Ar, by=x->(x[1],-x[2]), rev=false);
+    zr = InterpIrregular(Ar[:,1],Ar[:,2], 1, InterpLinear);
 
     print("Al: ",Al,"\n")
     print("Ar: ",Ar,"\n")
