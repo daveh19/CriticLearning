@@ -74,59 +74,58 @@ end
 
 function initialise_empty_subject(blocks_per_subject, trials_per_block, double_trials::Bool=false)
   blocks = initialise_empty_block(blocks_per_subject, trials_per_block, double_trials);
-  subject = Subject( blocks, zeros(no_pre_neurons, no_input_tasks), zeros(no_pre_neurons, no_input_tasks), zeros(no_pre_neurons, no_post_neurons, no_input_tasks), zeros(no_pre_neurons, no_post_neurons, no_input_tasks) );
+  subject = Subject( blocks, zeros(no_pre_neurons_per_task, no_input_tasks), zeros(no_pre_neurons_per_task, no_input_tasks), zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks), zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks) );
 
   return subject;
 end
 
 
 type RovingExperiment
+  # Second dimension of the arrays is for per task versions of results
+  #   we'll allow a second dimension also for roving tasks but there's
+  #   only one task type in that category so far
+
   # an array of subjects who participate in experiment
-  subjects_task1 :: Array{Subject, 1}
-  subjects_task2 :: Array{Subject, 1}
-  subjects_roving_task :: Array{Subject, 1}
+  subjects_task :: Array{Subject, 2}
+  subjects_roving_task :: Array{Subject, 2}
 
   # summary statistics of experiment
-  task1_correct :: Array{Float64,1}
-  task2_correct :: Array{Float64,1}
-  roving_correct :: Array{Float64,1}
-  roving_task1_correct :: Array{Float64,1}
-  roving_task2_correct :: Array{Float64,1}
+  task_correct :: Array{Float64,2}
+  roving_correct :: Array{Float64,2}
+  roving_task_correct :: Array{Float64,3} # 3 dimensions: individual trace, per task ID, per roving experiment
 
-  task1_error :: Array{Float64,1}
-  task2_error :: Array{Float64,1}
-  roving_error :: Array{Float64,1}
+  task_error :: Array{Float64,2}
+  roving_error :: Array{Float64,2}
 
-  task1_range :: Array{Float64,1}
-  task2_range :: Array{Float64,1}
-  roving_range :: Array{Float64,1}
+  task_range :: Array{Float64,2}
+  roving_range :: Array{Float64,2}
 end
 
 function initialise_empty_roving_experiment(no_subjects, blocks_per_subject, trials_per_block)
-  subjects_task1 = Array(Subject, no_subjects);
-  subjects_task2 = Array(Subject, no_subjects);
-  subjects_roving_task = Array(Subject, no_subjects);
+  no_roving_tasks = 1::Int;
 
-  task1_correct = zeros(blocks_per_subject);
-  task2_correct = zeros(blocks_per_subject);
-  roving_correct = zeros(blocks_per_subject);
-  roving_task1_correct = zeros(blocks_per_subject);
-  roving_task2_correct = zeros(blocks_per_subject);
+  subjects_task = Array(Subject, (no_subjects, no_input_tasks) );
+  subjects_roving_task = Array(Subject, (no_subjects, no_roving_tasks) );
 
-  task1_error = zeros(blocks_per_subject);
-  task2_error = zeros(blocks_per_subject);
-  roving_error = zeros(blocks_per_subject);
+  task_correct = zeros(blocks_per_subject, no_input_tasks);
+  roving_correct = zeros(blocks_per_subject, no_roving_tasks);
+  roving_task_correct = zeros(blocks_per_subject, no_input_tasks, no_roving_tasks);
 
-  task1_min = zeros(blocks_per_subject);
-  task2_min = zeros(blocks_per_subject);
-  roving_min = zeros(blocks_per_subject);
+  task_error = zeros(blocks_per_subject, no_input_tasks);
+  roving_error = zeros(blocks_per_subject, no_input_tasks);
+
+  task_range = zeros(blocks_per_subject, no_input_tasks);
+  roving_range = zeros(blocks_per_subject, no_input_tasks);
 
   for i = 1:no_subjects
-      subjects_task1[i] = initialise_empty_subject(blocks_per_subject, trials_per_block);
-      subjects_task2[i] = initialise_empty_subject(blocks_per_subject, trials_per_block);
-      subjects_roving_task[i] = initialise_empty_subject(blocks_per_subject, trials_per_block, double_no_of_trials_in_alternating_experiment);
+    for j = 1:no_input_tasks
+      subjects_task[i,j] = initialise_empty_subject(blocks_per_subject, trials_per_block);
+    end
+    for j = 1:no_roving_tasks
+      subjects_roving_task[i,j] = initialise_empty_subject(blocks_per_subject, trials_per_block, double_no_of_trials_in_alternating_experiment);
+    end
   end
-  experiment = RovingExperiment(subjects_task1, subjects_task2, subjects_roving_task, task1_correct, task2_correct, roving_correct, roving_task1_correct, roving_task2_correct, task1_error, task2_error, roving_error, task1_min, task2_min, roving_min);
+  experiment = RovingExperiment(subjects_task, subjects_roving_task, task_correct, roving_correct, roving_task_correct, task_error, roving_error, task_range, roving_range );
 
   return experiment;
 end
