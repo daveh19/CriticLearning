@@ -515,7 +515,7 @@ function compare_three_trial_types_with_multiple_subjects()
   #figure()
   #plot_multi_subject_experiment(latest_experiment_results);
   #restore next line
-  ##plot_multi_subject_experiment_as_subplots(latest_experiment_results);
+  plot_multi_subject_experiment_as_subplots(latest_experiment_results);
 
   global exp_results;
   resize!(exp_results, length(exp_results)+1);
@@ -535,9 +535,9 @@ function plot_multi_subject_experiment(latest_experiment_results::RovingExperime
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i, latest_experiment_results.subjects_task1[j].blocks[i].proportion_correct, marker="o", c="r")
-        scatter(i+0.1, latest_experiment_results.subjects_task2[j].blocks[i].proportion_correct, marker="o", c="g")
-        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j].blocks[i].proportion_correct, marker="o", c="b")
+        scatter(i, latest_experiment_results.subjects_task[j,1].blocks[i].proportion_correct, marker="o", c="r")
+        scatter(i+0.1, latest_experiment_results.subjects_task[j,2].blocks[i].proportion_correct, marker="o", c="g")
+        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct, marker="o", c="b")
       end
     end
   end
@@ -546,13 +546,13 @@ function plot_multi_subject_experiment(latest_experiment_results::RovingExperime
 
   if(plotting_error_bars_on)
     
-    errorbar(block_id, latest_experiment_results.task1_correct, latest_experiment_results.task1_range, ecolor="r", color="r", linewidth=2)
-    errorbar(block_id+0.1, latest_experiment_results.task2_correct, latest_experiment_results.task2_range, ecolor="g", color="g", linewidth=2)
-    errorbar(block_id-0.1, latest_experiment_results.roving_correct, latest_experiment_results.roving_range, ecolor="b", color="b", linewidth=2)
+    errorbar(block_id, latest_experiment_results.task_correct[:,1], latest_experiment_results.task_range[:,1], ecolor="r", color="r", linewidth=2)
+    errorbar(block_id+0.1, latest_experiment_results.task_correct[:,2], latest_experiment_results.task_range[:,2], ecolor="g", color="g", linewidth=2)
+    errorbar(block_id-0.1, latest_experiment_results.roving_correct[:,1], latest_experiment_results.roving_range[:,1], ecolor="b", color="b", linewidth=2)
 
-    errorbar(block_id, latest_experiment_results.task1_correct, latest_experiment_results.task1_error, ecolor="k", color="r", linewidth=2)
-    errorbar(block_id+0.1, latest_experiment_results.task2_correct, latest_experiment_results.task2_error, ecolor="k", color="g", linewidth=2)
-    errorbar(block_id-0.1, latest_experiment_results.roving_correct, latest_experiment_results.roving_error, ecolor="k", color="b", linewidth=2)
+    errorbar(block_id, latest_experiment_results.task_correct[:,1], latest_experiment_results.task_error[:,1], ecolor="k", color="r", linewidth=2)
+    errorbar(block_id+0.1, latest_experiment_results.task_correct[:,2], latest_experiment_results.task_error[:,2], ecolor="k", color="g", linewidth=2)
+    errorbar(block_id-0.1, latest_experiment_results.roving_correct[:,1], latest_experiment_results.roving_error[:,1], ecolor="k", color="b", linewidth=2)
   end
 
   if(plotting_individual_subjects_on)
@@ -561,9 +561,9 @@ function plot_multi_subject_experiment(latest_experiment_results::RovingExperime
       local_prop_2_correct = zeros(no_blocks_in_experiment);
       local_prop_roving_correct = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
-        local_prop_1_correct[i] = latest_experiment_results.subjects_task1[j].blocks[i].proportion_correct;
-        local_prop_2_correct[i] = latest_experiment_results.subjects_task2[j].blocks[i].proportion_correct;
-        local_prop_roving_correct[i] = latest_experiment_results.subjects_roving_task[j].blocks[i].proportion_correct;
+        local_prop_1_correct[i] = latest_experiment_results.subjects_task[j,1].blocks[i].proportion_correct;
+        local_prop_2_correct[i] = latest_experiment_results.subjects_task[j,2].blocks[i].proportion_correct;
+        local_prop_roving_correct[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct;
       end
       plot(block_id, local_prop_1_correct, "r")
       plot(block_id+0.1, local_prop_2_correct, "g")
@@ -571,11 +571,11 @@ function plot_multi_subject_experiment(latest_experiment_results::RovingExperime
     end
   end
 
-  plot(block_id, latest_experiment_results.task1_correct, "r", linewidth=2, label="Task 1")
-  plot(block_id+0.1, latest_experiment_results.task2_correct, "g", linewidth=2, label="Task 2")
-  plot(block_id-0.1, latest_experiment_results.roving_correct, "b", linewidth=3, label="Roving tasks")
-  plot(block_id-0.1, latest_experiment_results.roving_task1_correct, "k", linewidth=3, label="Task 1, from roving tasks")
-  plot(block_id-0.1, latest_experiment_results.roving_task2_correct, "k", linewidth=3, label="Task 2, from roving tasks")
+  plot(block_id, latest_experiment_results.task_correct[:,1], "r", linewidth=2, label="Task 1")
+  plot(block_id+0.1, latest_experiment_results.task_correct[:,2], "g", linewidth=2, label="Task 2")
+  plot(block_id-0.1, latest_experiment_results.roving_correct[:,1], "b", linewidth=3, label="Roving tasks")
+  plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,1,1], "k", linewidth=3, label="Task 1, from roving tasks")
+  plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,1], "k", linewidth=3, label="Task 2, from roving tasks")
   
   legend(loc=4)
 end
@@ -613,27 +613,27 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i, latest_experiment_results.subjects_task1[j].blocks[i].proportion_correct, marker="o", c="r")
+        scatter(i, latest_experiment_results.subjects_task[j,1].blocks[i].proportion_correct, marker="o", c="r")
       end
     end
   end
 
   if(plotting_error_bars_on)
-    errorbar(block_id, latest_experiment_results.task1_correct, latest_experiment_results.task1_range, ecolor="r", color="r", linewidth=2)
-    errorbar(block_id, latest_experiment_results.task1_correct, latest_experiment_results.task1_error, ecolor="k", color="r", linewidth=2)
+    errorbar(block_id, latest_experiment_results.task_correct[:,1], latest_experiment_results.task_range[:,1], ecolor="r", color="r", linewidth=2)
+    errorbar(block_id, latest_experiment_results.task_correct[:,1], latest_experiment_results.task_error[:,1], ecolor="k", color="r", linewidth=2)
   end
 
   if(plotting_individual_subjects_on)
     for j = 1:no_subjects
       local_prop_1_correct = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
-        local_prop_1_correct[i] = latest_experiment_results.subjects_task1[j].blocks[i].proportion_correct;
+        local_prop_1_correct[i] = latest_experiment_results.subjects_task[j,1].blocks[i].proportion_correct;
       end
       plot(block_id, local_prop_1_correct, "r")
     end
   end
 
-  plot(block_id, latest_experiment_results.task1_correct, "r", linewidth=2, label="Task 1")
+  plot(block_id, latest_experiment_results.task_correct[:,1], "r", linewidth=2, label="Task 1")
   legend(loc=4)
 
 
@@ -647,27 +647,27 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i+0.1, latest_experiment_results.subjects_task2[j].blocks[i].proportion_correct, marker="o", c="g")
+        scatter(i+0.1, latest_experiment_results.subjects_task[j,2].blocks[i].proportion_correct, marker="o", c="g")
       end
     end
   end
 
   if(plotting_error_bars_on)
-    errorbar(block_id+0.1, latest_experiment_results.task2_correct, latest_experiment_results.task2_range, ecolor="g", color="g", linewidth=2)
-    errorbar(block_id+0.1, latest_experiment_results.task2_correct, latest_experiment_results.task2_error, ecolor="k", color="g", linewidth=2)
+    errorbar(block_id+0.1, latest_experiment_results.task_correct[:,2], latest_experiment_results.task_range[:,2], ecolor="g", color="g", linewidth=2)
+    errorbar(block_id+0.1, latest_experiment_results.task_correct[:,2], latest_experiment_results.task_error[:,2], ecolor="k", color="g", linewidth=2)
   end
 
   if(plotting_individual_subjects_on)
     for j = 1:no_subjects
       local_prop_2_correct = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
-        local_prop_2_correct[i] = latest_experiment_results.subjects_task2[j].blocks[i].proportion_correct;
+        local_prop_2_correct[i] = latest_experiment_results.subjects_task[j,2].blocks[i].proportion_correct;
       end
       plot(block_id, local_prop_2_correct, "g")
     end
   end
 
-  plot(block_id+0.1, latest_experiment_results.task2_correct, "g", linewidth=2, label="Task 2")
+  plot(block_id+0.1, latest_experiment_results.task_correct[:,2], "g", linewidth=2, label="Task 2")
   legend(loc=4)
 
 
@@ -681,29 +681,29 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j].blocks[i].proportion_correct, marker="o", c="b")
+        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct, marker="o", c="b")
       end
     end
   end
 
   if(plotting_error_bars_on)
-    errorbar(block_id-0.1, latest_experiment_results.roving_correct, latest_experiment_results.roving_range, ecolor="b", color="b", linewidth=2)
-    errorbar(block_id-0.1, latest_experiment_results.roving_correct, latest_experiment_results.roving_error, ecolor="k", color="b", linewidth=2)
+    errorbar(block_id-0.1, latest_experiment_results.roving_correct[:,1], latest_experiment_results.roving_range[:,1], ecolor="b", color="b", linewidth=2)
+    errorbar(block_id-0.1, latest_experiment_results.roving_correct[:,1], latest_experiment_results.roving_error[:,1], ecolor="k", color="b", linewidth=2)
   end
 
   if(plotting_individual_subjects_on)
     for j = 1:no_subjects
       local_prop_roving_correct = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
-        local_prop_roving_correct[i] = latest_experiment_results.subjects_roving_task[j].blocks[i].proportion_correct;
+        local_prop_roving_correct[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct;
       end
       plot(block_id-0.1, local_prop_roving_correct, "b")
     end
   end
 
-  plot(block_id-0.1, latest_experiment_results.roving_correct, "b", linewidth=3, label="Roving tasks")
-  plot(block_id-0.1, latest_experiment_results.roving_task1_correct, "k", linewidth=3, label="Task 1, from roving tasks")
-  plot(block_id-0.1, latest_experiment_results.roving_task2_correct, "k", linewidth=3, label="Task 2, from roving tasks")
+  plot(block_id-0.1, latest_experiment_results.roving_correct[:,1], "b", linewidth=3, label="Roving tasks")
+  plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,1,1], "k", linewidth=3, label="Task 1, from roving tasks")
+  plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,1], "k", linewidth=3, label="Task 2, from roving tasks")
   
   
   legend(loc=4)
