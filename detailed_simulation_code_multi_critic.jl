@@ -42,7 +42,8 @@ function initialise()
 
   global average_delta_reward = 0.0;
   global average_choice = 0.0;
-  global n = 0 :: Int; # use this to monitor trial ID per block (very important: this is a block level counter!)
+  #global n = 0 :: Int; # use this to monitor trial ID per block (very important: this is a block level counter!)
+  global n_within_block = 0 :: Int; # use this to monitor trial ID per block (very important: this is a block level counter!)
   # changing to multi-critic model
   #   critic can be per block or over entire learning history
   global n_critic = int(zeros(no_task_critics, no_choices_per_task_critics)); # use this to monitor trial ID per critic
@@ -134,7 +135,7 @@ function post(x::Float64, is_problem_1::Bool, debug_on::Bool=false)
 
   if(debug_on)
     if(verbosity > 0)
-      print("n: $n, x: $x, left: $left, right: $right,\n noise_free_left: $noise_free_left, noise_free_right: $noise_free_right, trial_probability_left: $trial_probability_left ")
+      print("n_within_block: $n_within_block, x: $x, left: $left, right: $right,\n noise_free_left: $noise_free_left, noise_free_right: $noise_free_right, trial_probability_left: $trial_probability_left ")
     end
   end
 	return wta(left,right, debug_on)
@@ -201,7 +202,7 @@ function detect_threshold(is_problem_1::Bool=true, split_output::Bool=false)
 
   if(!split_output)
     if(verbosity > 1)
-      print("n: $n, z: ", z[detection_threshold], "\n");
+      print("n_within_block: $n_within_block, z: ", z[detection_threshold], "\n");
     end
     return z[detection_threshold];
   else
@@ -216,7 +217,7 @@ function detect_threshold(is_problem_1::Bool=true, split_output::Bool=false)
     print("Al: ",Al,"\n")
     print("Ar: ",Ar,"\n")
     if(verbosity > 1)
-      print("n: $n, z: ", z[detection_threshold], ", zl: ", zl[detection_threshold], ", zr: ", zr[detection_threshold],"\n");
+      print("n_within_block: $n_within_block, z: ", z[detection_threshold], ", zl: ", zl[detection_threshold], ", zr: ", zr[detection_threshold],"\n");
     end
 
     return [zl[detection_threshold] zr[detection_threshold]];
@@ -303,7 +304,7 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
     global instance_reward;
     global instance_average_reward;
   end
-  global n += 1;
+  global n_within_block += 1;
 
   # don't forget to update noise externally to this function on separate iterations
   local_pre = pre(x, is_problem_1);
@@ -327,7 +328,7 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   # monitor average choice per block here
   #   using n independent of critic, for now
   local_choice = (abs(local_post[1]) > 0 ? 1 : 2);
-  global average_choice = ( (n-1) * average_choice + local_choice ) / (n);
+  global average_choice = ( (n_within_block-1) * average_choice + local_choice ) / (n_within_block);
 
   #running_av_reward(local_reward); # Nicolas is doing this before dw update, so first timestep is less unstable...
   # TODO: need to improve critic response axis and task type bin logic here
@@ -377,7 +378,7 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
 
 
   if (verbosity > 3)
-    instance_average_reward[n] = local_average_reward;
+    instance_average_reward[n_within_block] = local_average_reward;
     reward_signal = (local_reward - local_average_reward)
     print("local_reward-average_reward: $local_reward - $average_reward = $reward_signal\n")
     #TODO: can I find a better measure of dw here?

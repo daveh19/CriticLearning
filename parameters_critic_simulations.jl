@@ -2,8 +2,10 @@
 random_seed = 4;#3;
 
 # network parameters
-no_pre_neurons = 100::Int;
+no_pre_neurons = 100;
+no_pre_neurons_per_task = 100::Int;
 no_post_neurons = 2::Int;
+no_input_tasks = 2::Int;
 
 weights_upper_bound = 10;
 weights_lower_bound = -10;

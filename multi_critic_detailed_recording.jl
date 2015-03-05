@@ -114,7 +114,7 @@ function perform_learning_block_single_problem(is_problem_1::Bool, block_dat::Bl
   end
   global average_delta_reward = 0;
   global average_choice = 0.0;
-  global n = 0;
+  global n_within_block = 0;
   #for(xi in x)
   for(i = 1:no_trials_in_block)
     update_noise()
@@ -177,7 +177,7 @@ function perform_learning_block_trial_switching(block_dat::Block)
   end
   global average_delta_reward = 0;
   global average_choice = 0.0;
-  global n = 0;
+  global n_within_block = 0;
   for(i = 1:no_trials_in_block)
     update_noise()
     local_reward = (update_weights(x[i], task[i], block_dat.trial[i]) / 2);
@@ -971,7 +971,8 @@ function print_single_block_performance(block::Block)
   local_av_correct = 0;
   local_av_reward = 0.;
   local_av_err_threshold = 0.;
-  for i = 1:length(block.trial)
+  local_av_n = length(block.trial);
+  for i = 1:local_av_n
     print("",block.trial[i].task_type," | ")
     print("",block.trial[i].chosen_answer," | ")
     print("",block.trial[i].correct_answer," | ")
@@ -985,7 +986,6 @@ function print_single_block_performance(block::Block)
     local_av_reward += block.trial[i].reward_received
     local_av_err_threshold += block.trial[i].error_threshold;
   end
-  local_av_n = length(block.trial);
   local_av_task /= local_av_n;
   local_av_choice /= local_av_n;
   local_av_x /= local_av_n;
@@ -1001,8 +1001,10 @@ function print_single_block_performance(block::Block)
   print("",local_av_err_threshold," \n ")
 end
 
+# I guess that the following should become my plot of threshold not reward received...
 function plot_single_block_performance(block::Block)
   #figure()
+  no_trials_in_block = length(block.trial); # may not be global value due to double length roving sims
   local_reward_received = zeros(no_trials_in_block);
   x = linspace(1, no_trials_in_block, no_trials_in_block);
   for i = 1:no_trials_in_block
@@ -1011,13 +1013,21 @@ function plot_single_block_performance(block::Block)
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
   plot(x, local_reward_received, linewidth=2)
+  return no_trials_in_block;
 end
 
 function plot_multi_block_performance(subject::Subject, begin_id::Int=1, end_id::Int=no_blocks_in_experiment)
   figure()
+  max_no_trials_in_block = 0::Int;
   for i = begin_id:end_id
-    plot_single_block_performance(subject.blocks[i])
+    no_trials = plot_single_block_performance(subject.blocks[i]);
+    if (no_trials > max_no_trials_in_block)
+      max_no_trials_in_block = no_trials;
+    end
   end
+  xlabel("Trial number")
+  ylabel("Reward received")
+  axis([0,max_no_trials_in_block,-2,2])
 end
 
 
@@ -1032,16 +1042,21 @@ function plot_single_block_reward_received(block::Block)
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
   plot(x, local_reward_received, linewidth=2)
+  return no_trials_in_block;
 end
 
 function plot_multi_block_reward_recived(subject::Subject, begin_id::Int=1, end_id::Int=no_blocks_in_experiment)
   figure()
+  max_no_trials_in_block = 0::Int;
   for i = begin_id:end_id
-    plot_single_block_reward_received(subject.blocks[i])
+    no_trials = plot_single_block_reward_received(subject.blocks[i])
+    if (no_trials > max_no_trials_in_block)
+      max_no_trials_in_block = no_trials;
+    end
   end
   xlabel("Trial number")
   ylabel("Reward received")
-  axis([0,no_trials_in_block,-2,2])
+  axis([0,max_no_trials_in_block,-2,2])
 end
 
 
@@ -1056,15 +1071,21 @@ function plot_single_block_mag_dw(block::Block)
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
   plot(x, local_mag_dw, linewidth=2)
+  return no_trials_in_block;
 end
 
 function plot_multi_block_mag_dw(subject::Subject, begin_id::Int=1, end_id::Int=no_blocks_in_experiment)
   figure()
+  max_no_trials_in_block = 0::Int;
   for i = begin_id:end_id
-    plot_single_block_mag_dw(subject.blocks[i])
+    no_trials = plot_single_block_mag_dw(subject.blocks[i]);
+    if (no_trials > max_no_trials_in_block)
+      max_no_trials_in_block = no_trials;
+    end
   end
   xlabel("Trial number")
   ylabel("Magnitude dw")
+  #axis([0,max_no_trials_in_block,-2,2])
 end
 
 
@@ -1085,6 +1106,9 @@ function plot_multi_subject_average_reward(subjects::Array{Subject,1}, begin_id:
   for i = begin_id:end_id
     plot_single_subject_average_reward(subjects[i])
   end
+  xlabel("Block number")
+  ylabel("Average reward")
+  axis([0,no_blocks_in_experiment,-1,1])
 end
 
 
@@ -1105,6 +1129,9 @@ function plot_multi_subject_average_choice(subjects::Array{Subject,1}, begin_id:
   for i = begin_id:end_id
     plot_single_subject_average_choice(subjects[i])
   end
+  xlabel("Block number")
+  ylabel("Average choice")
+  axis([0,no_blocks_in_experiment,-1,1])
 end
 
 
