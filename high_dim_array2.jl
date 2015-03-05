@@ -36,6 +36,7 @@ type Block
   average_reward :: Float64;
   average_choice :: Float64;
   proportion_task_correct :: Array{Float64, 1};
+  #TODO: implement monitoring and plotting of following two variables
   average_task_reward :: Array{Float64, 1};
   average_task_choice :: Array{Float64, 1};
   #proportion_1_correct :: Float64;

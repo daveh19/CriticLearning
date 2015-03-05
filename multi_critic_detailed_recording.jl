@@ -264,7 +264,7 @@ function perform_single_subject_experiment(task_id::Int, subjects_dat::Array{Sub
     subjects_dat[subject_id, task_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
     subjects_dat[subject_id, task_id].blocks[i].average_choice = average_choice;
     if(verbosity > -1)
-      print("Block $i completed. Type 1 task: $is_trial_1_task.\n") 
+      print("Block $i completed. Task_id: $task_id.\n") 
     end
     #=if(i == no_blocks_in_experiment && subject_id == 9)
       verbosity = local_old_verbosity;
@@ -1187,39 +1187,34 @@ end
 
 
 
-function who_doesnt_learn(subjects::Array{Subject,1}, threshold::Float64=10.0, begin_id::Int=1, end_id::Int=no_subjects)
+function who_doesnt_learn(subjects::Array{Subject,2}, task_id::Int=1, threshold::Float64=10.0, begin_id::Int=1, end_id::Int=no_subjects)
   print("Detection threshold: $threshold\n")
   for i = begin_id:end_id
-    if ( subjects[i].blocks[end].proportion_correct < threshold )
-      print("Subject $i proportion correct:", subjects[i].blocks[end].proportion_correct,"\n")
+    if ( subjects[i,task_id].blocks[end].proportion_correct < threshold )
+      print("Subject $i proportion correct:", subjects[i,task_id].blocks[end].proportion_correct,"\n")
     end
   end
 end
 
 
-function will_subject_learn(subjects::Array{Subject,1}, is_problem_1::Bool=true, begin_id::Int=1, end_id::Int=no_subjects)
+function will_subject_learn(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
   heuristic_threshold = 1e-3;
-  if(is_problem_1)
-    task_type = 1;
-  else
-    task_type = 2;
-  end
   print("Heuristic for who will learn based on inital weights and tuning curves, heuristic threshold $heuristic_threshold:\n") 
   for i = begin_id:end_id
-    global a = deepcopy(subjects[i].a);
-    global b = deepcopy(subjects[i].b);
-    global w = deepcopy(subjects[i].w_initial);
+    global a = deepcopy(subjects[i,task_id].a);
+    global b = deepcopy(subjects[i,task_id].b);
+    global w = deepcopy(subjects[i,task_id].w_initial);
 
-    pre_pos_1 = pre(1.0, is_problem_1);
-    pre_neg_1 = pre(-1.0, is_problem_1);
+    pre_pos_1 = pre(1.0, task_id);
+    pre_neg_1 = pre(-1.0, task_id);
 
     # calculate noise free post for +1
-    noise_free_post_pos_left = sum(pre_pos_1.*w[:,1]);
-    noise_free_post_pos_right = sum(pre_pos_1.*w[:,2]);
+    noise_free_post_pos_left = sum(pre_pos_1[:,task_id].*w[:,1,task_id]);
+    noise_free_post_pos_right = sum(pre_pos_1[:,task_id].*w[:,2,task_id]);
 
     # calculate noise free post for -1
-    noise_free_post_neg_left = sum(pre_neg_1.*w[:,1]);
-    noise_free_post_neg_right = sum(pre_neg_1.*w[:,2]);
+    noise_free_post_neg_left = sum(pre_neg_1[:,task_id].*w[:,1,task_id]);
+    noise_free_post_neg_right = sum(pre_neg_1[:,task_id].*w[:,2,task_id]);
 
     p_pos_left = 0.5 + 0.5 * erf( (noise_free_post_pos_left - noise_free_post_pos_right) / (output_noise / 2.0) );
     p_neg_left = 0.5 + 0.5 * erf( (noise_free_post_neg_left - noise_free_post_neg_right) / (output_noise / 2.0) );
@@ -1230,11 +1225,11 @@ function will_subject_learn(subjects::Array{Subject,1}, is_problem_1::Bool=true,
     end
 
     if ( ( abs(p_pos_left - 0) < heuristic_threshold ) && ( abs(p_neg_right - 1) < heuristic_threshold ) )
-      print("Subject $i: Probably not going to learn, biased left for task $task_type\n")
+      print("Subject $i: Probably not going to learn, biased left for task $task_id\n")
     elseif ( ( abs(p_pos_left - 1) < heuristic_threshold ) && ( abs(p_neg_right - 0) < heuristic_threshold ) )
-      print("Subject $i: Probably not going to learn, biased right for task $task_type\n")
+      print("Subject $i: Probably not going to learn, biased right for task $task_id\n")
     else
-      print("Subject $i, no bias, can learn for task $task_type\n")
+      print("Subject $i, no bias, can learn for task $task_id\n")
     end
   end
   print("\nWarning: function altered global variables a, b and w\n")
