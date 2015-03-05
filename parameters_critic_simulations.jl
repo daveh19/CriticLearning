@@ -2,8 +2,8 @@
 random_seed = 4;#3;
 
 # network parameters
-no_pre_neurons = 100;
-no_pre_neurons_per_task = 100::Int;
+#no_pre_neurons = 100;
+no_pre_neurons_per_task = 50::Int;
 no_post_neurons = 2::Int;
 no_input_tasks = 2::Int;
 
@@ -42,8 +42,11 @@ use_binary_alternating_inputs = false :: Bool;
 # selective tuning of input
 input_baseline = 2.0; #2.0;
 input_baseline_variance = 0.5; #0.5;
-task_slope_variance_easy = 0.375; #0.375;
-task_slope_variance_hard = 0.25; #0.25
+task_tuning_slope_variance = zeros(no_input_tasks);
+task_tuning_slope_variance[1] = 0.375; # easy task
+task_tuning_slope_variance[2] = 0.25; # hard task
+#task_slope_variance_easy = 0.375; #0.375;
+#task_slope_variance_hard = 0.25; #0.25
 
 # discrimination threshold calculation
 perform_detection_threshold = true::Bool;

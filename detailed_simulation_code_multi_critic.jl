@@ -4,32 +4,30 @@
 # putting noise updates in a function (which must be called!)
 #  rather than in the post() function, for debugging reasons
 function update_noise()
-  global ksi = rand(Normal(0,output_noise), no_post_neurons)
+  global ksi = rand(Normal(0,output_noise), no_post_neurons);
 end
 
 
 function initialise_pre_population()
   # I think that a and b only get set once for this paper!
   #   they are receptive fields rather than 'noise'
-  global a = rand(Normal(input_baseline,input_baseline_variance), no_pre_neurons);
-  beta = 0.375; # easier problem
-  pop1 = rand(Normal(0,beta), ((int)(no_pre_neurons/2)));
-  beta = 0.25; # harder problem
-  pop2 = rand(Normal(0,beta), (int)(no_pre_neurons/2));
-  global b = [pop1; pop2]
-  if(no_pre_neurons % 2 == 1)
-    print("An odd number of presynaptic neurons was selected, this is going to lead to trouble.\n")
+  global a = rand(Normal(input_baseline, input_baseline_variance), (no_pre_neurons_per_task, no_input_tasks));
+  global b = zeros(no_pre_neurons_per_task, no_input_tasks);
+
+  for i = 1:no_input_tasks
+    b[:,i] = rand(Normal(0, task_tuning_slope_variance[i]), no_pre_neurons_per_task);
   end
 end
 
 
 function initialise_weight_matrix()
-  # Remember: always call this after a and b have been initialised!
+  # Remember: always call this after a and b have already been initialised!
   #set initial weights
-  global w = rand(Uniform(0,1), (no_pre_neurons, no_post_neurons));
-  w[:,1] += -initial_weight_bias*b;
-  w[:,2] += initial_weight_bias*b;
-  #global w0 = deepcopy(w);
+  global w = rand(Uniform(0,1), (no_pre_neurons_per_task, no_post_neurons, no_input_tasks));
+  for i = 1:no_input_tasks
+    w[:,1,i] += -initial_weight_bias.*b[:,i];
+    w[:,2,i] += initial_weight_bias.*b[:,i];
+  end
 end
 
 
@@ -67,19 +65,10 @@ __init__ = initialise();
 
 
 # pre-synaptic firing rate upon presentation of pattern x
-function pre(x::Float64, is_problem_1::Bool)
-  # Problem/task 1 is presented to first half of pre neurons, second problem is presented
-  #  only to second half of pre neurons
-  # All pre neurons are linearly selective to their chosen input vector via: a+x.b
-  if (is_problem_1)
-    #print("DEBUG: p1 true\n")
-    #return [(a[1:no_pre_neurons/2] + b[1:no_pre_neurons/2] * x); a[no_pre_neurons/2 + 1 : end]]
-    return [(a[1:no_pre_neurons/2] + b[1:no_pre_neurons/2] * x); zeros(int(no_pre_neurons/2))]
-  else # problem_2
-    #print("DEBUG: p1 false\n")
-    #return [a[1:no_pre_neurons/2]; a[no_pre_neurons/2 + 1 : end] + b[no_pre_neurons/2 + 1: end] * x]
-    return [zeros(int(no_pre_neurons/2)); a[no_pre_neurons/2 + 1 : end] + b[no_pre_neurons/2 + 1: end] * x]
-  end
+function pre(x::Float64, task_id::Int)
+  local_pre = zeros(no_pre_neurons_per_task, no_input_tasks);
+  local_pre[:,task_id] = [(a[:,task_id] + b[:,task_id] .* x)];
+  return local_pre;
 end
 
 
@@ -120,11 +109,11 @@ end
 #  no longer generating a new noise value (ksi) on each call,
 #  this must be done externally to allow for repeatibility during debug
 # Note: local_post returns a tuple where one value is 0. All comparisons to find the non zero value should use absolute comparison.
-function post(x::Float64, is_problem_1::Bool, debug_on::Bool=false)
-	local_pre = pre(x, is_problem_1)
+function post(x::Float64, task_id::Int, debug_on::Bool=false)
+	local_pre = pre(x, task_id)
   
-  noise_free_left = sum(local_pre.*w[:,1]);
-  noise_free_right = sum(local_pre.*w[:,2]);
+  noise_free_left = sum(local_pre[:,task_id] .* w[:,1,task_id]);
+  noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
 	
   left = noise_free_left + ksi[1]
 	right = noise_free_right+ ksi[2]
@@ -142,7 +131,7 @@ function post(x::Float64, is_problem_1::Bool, debug_on::Bool=false)
 end
 
 
-function detect_threshold(is_problem_1::Bool=true, split_output::Bool=false)
+function detect_threshold(task_id::Int=1, split_output::Bool=false)
   # find the detection threshold with current weight matrix and current subject
   no_points = 30;
   error_rate = zeros(no_points);
@@ -151,18 +140,18 @@ function detect_threshold(is_problem_1::Bool=true, split_output::Bool=false)
   i = 1;
   for xi in x
     # calculate pre for +/- xi
-    local_pre_pos = pre(xi, is_problem_1);
-    local_pre_neg = pre(-xi, is_problem_1);
+    local_pre_pos = pre(xi, task_id);
+    local_pre_neg = pre(-xi, task_id;
 
     #print("DEBUG: $local_pre_pos, $local_pre_neg ")
 
     # calculate noise free post for xi
-    local_noise_free_post_pos_left = sum(local_pre_pos.*w[:,1]);
-    local_noise_free_post_pos_right = sum(local_pre_pos.*w[:,2]);
+    local_noise_free_post_pos_left = sum(local_pre_pos[:,task_id].*w[:,1,task_id]);
+    local_noise_free_post_pos_right = sum(local_pre_pos[:,task_id].*w[:,2,task_id]);
 
     # calculate noise free post for -xi
-    local_noise_free_post_neg_left = sum(local_pre_neg.*w[:,1]);
-    local_noise_free_post_neg_right = sum(local_pre_neg.*w[:,2]);
+    local_noise_free_post_neg_left = sum(local_pre_neg[:,task_id].*w[:,1,task_id]);
+    local_noise_free_post_neg_right = sum(local_pre_neg[:,task_id].*w[:,2,task_id]);
     if(verbosity > 2)
       print("DEBUG: $local_noise_free_post_pos_left, $local_noise_free_post_pos_right, ")
       print("$local_noise_free_post_neg_left, $local_noise_free_post_neg_right, ")
@@ -228,8 +217,8 @@ end
 # this is the only function which actually knows if things went right or wrong
 # instance_correct = 0;
 # instance_incorrect = 0;
-function reward(x, is_problem_1::Bool)
-	local_post = post(x, is_problem_1, true)
+function reward(x, task_id::Int)
+	local_post = post(x, task_id, true)
 
   # I've had some trouble with the logic here due to wta() accepting negative inputs
 	if ((x > 0) && (abs(local_post[2]) > 0))#right
@@ -254,52 +243,32 @@ function reward(x, is_problem_1::Bool)
 end
 
 
-# we use a mix of global and local variables here to cut down on function parameters
-#=average_reward = 0. :: Float64;
-average_delta_reward = 0. :: Float64;
-n = 0 :: Int;
-#Rn = 0. :: Float64;
-function running_av_reward(R)
-  global n += 1;
-
-  tau_r = running_av_window_length;
-	tau = min(tau_r, n)
-
-	Rn = ( (tau - 1) * average_reward + R ) / tau
-
-  global average_delta_reward = ((n-1) * average_delta_reward + (R - average_reward)) / n; # an attempt at a running average for (R-Rn), the weight update reward
-  global average_reward = Rn;
-
-	return Rn;
-end=#
-
-
 # individual critics for running rewards
 # no_task_critics = 2
 # no_choices_per_task_critics = 2
 # initialise
 #  n = 0
 #  average_reward = 0
-function multi_critic_running_av_reward(R::Int, taskID::Int, choiceID::Int)
+function multi_critic_running_av_reward(R::Int, task_id::Int, choice_id::Int)
   global n_critic;
   global average_reward;
 
-  n_critic[taskID,choiceID] += 1;
+  n_critic[task_id, choice_id] += 1;
 
   tau_r = running_av_window_length;
-  tau = min(tau_r, n_critic[taskID, choiceID]);
+  tau = min(tau_r, n_critic[task_id, choice_id]);
 
-  Rn = ( (tau - 1) * average_reward[taskID, choiceID] + R ) / tau;
+  Rn = ( (tau - 1) * average_reward[task_id, choice_id] + R ) / tau;
 
   # update average_reward monitor
-  average_reward[taskID, choiceID] = Rn;
+  average_reward[task_id, choice_id] = Rn;
 
   return Rn;
 end
 
 
 # average_choice = 0. :: Float64;
-function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
+function update_weights(x, task_id::Int, trial_dat::Trial)
   if(verbosity > 3)
     global instance_reward;
     global instance_average_reward;
@@ -307,12 +276,12 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   global n_within_block += 1;
 
   # don't forget to update noise externally to this function on separate iterations
-  local_pre = pre(x, is_problem_1);
+  local_pre = pre(x, task_id);
   # Note: local_post returns a tuple where one value is 0. All comparisons to find the non zero value should use absolute comparison.
-  local_post = post(x, is_problem_1);
-  local_reward = reward(x, is_problem_1) :: Int; # it is important that noise is not updated between calls to post() and reward()
+  local_post = post(x, task_id);
+  local_reward = reward(x, task_id) :: Int; # it is important that noise is not updated between calls to post() and reward()
   if(perform_detection_threshold)
-    local_threshold = detect_threshold(is_problem_1);
+    local_threshold = detect_threshold(task_id;
     trial_dat.error_threshold = local_threshold;
   end
   if(verbosity > 3)
@@ -320,7 +289,7 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   end
 
   # Save some data for later examination
-  trial_dat.task_type = (is_problem_1 ? 1 : 2);
+  trial_dat.task_type = task_id; #(is_problem_1 ? 1 : 2);
   trial_dat.correct_answer = x #(x > 0 ? 1 : -1);
   trial_dat.chosen_answer = ((abs(local_post[1]) > abs(local_post[2])) ? -1 : 1) # note sign reversal, to maintain greater than relationship
   trial_dat.got_it_right = ((local_reward > 0) ? true : false);
@@ -368,9 +337,9 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   end
 
   # the weight update matrix
-  dw = zeros(no_pre_neurons, no_post_neurons);
-  dw[:,1] = learning_rate * local_pre[:] * local_post[1] * (local_reward - local_average_reward);
-  dw[:,2] = learning_rate * local_pre[:] * local_post[2] * (local_reward - local_average_reward);
+  dw = zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks);
+  dw[:,1,task_id] = learning_rate * local_pre[:,task_id] * local_post[1] * (local_reward - local_average_reward);
+  dw[:,2,task_id] = learning_rate * local_pre[:,task_id] * local_post[2] * (local_reward - local_average_reward);
   # Save some data for later examination
   trial_dat.reward_received = (local_reward - local_average_reward);
   trial_dat.w = deepcopy(w);
@@ -397,9 +366,10 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
   if(enable_weight_updates)
     global w += dw;
   end
-  if (verbosity > 3)
-    left_sum_w = sum(w[:,1]);
-    right_sum_w = sum(w[:,2]);
+  if (verbosity > 3) 
+    #for now at least these sums are across all tasks, could make them task specific
+    left_sum_w = sum(w[:,1,:]);
+    right_sum_w = sum(w[:,2,:]);
     print("after weight change, sum w left: $left_sum_w, sum w right: $right_sum_w\n")
   end
   
