@@ -141,7 +141,7 @@ function detect_threshold(task_id::Int=1, split_output::Bool=false)
   for xi in x
     # calculate pre for +/- xi
     local_pre_pos = pre(xi, task_id);
-    local_pre_neg = pre(-xi, task_id;
+    local_pre_neg = pre(-xi, task_id);
 
     #print("DEBUG: $local_pre_pos, $local_pre_neg ")
 
@@ -160,6 +160,7 @@ function detect_threshold(task_id::Int=1, split_output::Bool=false)
     # probability, for a positive input (i) that we choose left
     p_pos_left = 0.5 + 0.5 * erf( (local_noise_free_post_pos_left - local_noise_free_post_pos_right) / (output_noise / 2.0) );
     p_pos_right = (1. - p_pos_left);
+    
     if(verbosity > 2)
       print("p_pos_left: $p_pos_left, p_pos_right: $p_pos_right ")
     end
@@ -281,7 +282,7 @@ function update_weights(x, task_id::Int, trial_dat::Trial)
   local_post = post(x, task_id);
   local_reward = reward(x, task_id) :: Int; # it is important that noise is not updated between calls to post() and reward()
   if(perform_detection_threshold)
-    local_threshold = detect_threshold(task_id;
+    local_threshold = detect_threshold(task_id);
     trial_dat.error_threshold = local_threshold;
   end
   if(verbosity > 3)

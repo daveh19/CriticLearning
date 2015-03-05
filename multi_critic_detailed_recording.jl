@@ -5,7 +5,7 @@ using Grid
 
 ########## Parameters #############
 
-include("parameters_critic_simulations.jl")
+include("parameters_critic_simulations.jl");
 
 
 ######### Data Storage ##############
@@ -17,10 +17,10 @@ include("high_dim_array2.jl");
 ########## Main simulation functions #############
 
 #include("detailed_simulation_code_herzog12.jl")
-include("detailed_simulation_code_multi_critic.jl")
+include("detailed_simulation_code_multi_critic.jl");
 
 function reload_source()
-  include("multi_critic_detailed_recording.jl")
+  include("multi_critic_detailed_recording.jl");
 end
 
 
@@ -71,18 +71,18 @@ function generate_task_sequence(seq_length::Int64)
     # x[i] = (i%2==0)
   # end
 
-  # random arrangement of true/false
-  x = Array(Bool, seq_length);
+  # random arrangement of 1/2
+  x = Array(Int, seq_length);
   choice = rand(Uniform(0,1), seq_length);
   for (i = 1:seq_length)
-    x[i] = (choice[i] < 0.5 ? true : false)
+    x[i] = (choice[i] < 0.5 ? 1 : 2)
   end
 
   return x;
 end
 
 
-function perform_learning_block_single_problem(is_problem_1::Bool, block_dat::Block)
+function perform_learning_block_single_problem(task_id::Int, block_dat::Block)
   # generate 80 trial values for x
   # loop through x: update_noise, update_weights
 
@@ -105,7 +105,7 @@ function perform_learning_block_single_problem(is_problem_1::Bool, block_dat::Bl
   global average_reward;
   global n_critic;
   if(reset_average_reward_on_each_block)
-    for i = 1: no_task_critics
+    for i = 1:no_task_critics
       for j = 1:no_choices_per_task_critics
         average_reward[i,j] = 0.;
         n_critic[i,j] = 0;
@@ -118,7 +118,7 @@ function perform_learning_block_single_problem(is_problem_1::Bool, block_dat::Bl
   #for(xi in x)
   for(i = 1:no_trials_in_block)
     update_noise()
-    monitor_reward += (update_weights(x[i], is_problem_1, block_dat.trial[i]) / 2);
+    monitor_reward += (update_weights(x[i], task_id, block_dat.trial[i]) / 2);
     if(verbosity > 0)
       print("\n")
     end
@@ -129,7 +129,7 @@ function perform_learning_block_single_problem(is_problem_1::Bool, block_dat::Bl
 
   if(verbosity > 2)
     # Note this changes how the final proportion_correct is calculated!
-    print("END of Learning Block, proportion correct: $proportion_correct, is problem 1: $is_problem_1\n")
+    print("END of Learning Block, proportion correct: $proportion_correct, task_id: $task_id\n")
     proportion_correct = instance_correct / (instance_correct + instance_incorrect);
     print("DEBUG: instance_correct: $instance_correct, instance_incorrect: $instance_incorrect, new proportion correct: $proportion_correct\n")
   end
@@ -182,16 +182,18 @@ function perform_learning_block_trial_switching(block_dat::Block)
     update_noise()
     local_reward = (update_weights(x[i], task[i], block_dat.trial[i]) / 2);
     monitor_reward += local_reward;
-    if (task[i])
+    if (task[i] == 1)
       task_1_count += 1;
       if (local_reward == 1)
         proportion_1_correct += 1;
       end
-    else 
+    elseif (task[i] == 2)
       task_2_count += 1;
       if (local_reward == 1)
         proportion_2_correct += 1;
       end
+    else
+      print("Whoops! You're running with a roving task type that we haven't prepared for yet\n")
     end
     if(verbosity > 0)
       print("\n")
@@ -216,23 +218,21 @@ function perform_learning_block_trial_switching(block_dat::Block)
 end
 
 
-function perform_single_subject_experiment(is_trial_1_task::Bool, subjects_dat::Array{Subject,1}, subject_id::Int64=1)
-  #global subject
-  #subject[subject_id] = Subject(zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_pre_neurons,2),zeros(no_pre_neurons,2));
+function perform_single_subject_experiment(task_id::Int, subjects_dat::Array{Subject,2}, subject_id::Int64=1)
   global enable_weight_updates :: Bool;
+  global average_reward;
+  global n_critic;
 
-  global a = deepcopy(subjects_dat[subject_id].a);
-  global b = deepcopy(subjects_dat[subject_id].b);
+  global a = deepcopy(subjects_dat[subject_id, task_id].a);
+  global b = deepcopy(subjects_dat[subject_id, task_id].b);
 
   initialise_weight_matrix() # must be called after a and b are setup
-  subjects_dat[subject_id].w_initial = deepcopy(w);
+  subjects_dat[subject_id, task_id].w_initial = deepcopy(w);
 
   if(disable_learning_on_first_block)
     enable_weight_updates = false :: Bool;
   end
 
-  global average_reward;
-  global n_critic;
   # these guys need to be reset here in case they're never
   #   initialised in perform_single_block...()
   #   slightly risky if not reset as they may contain values from
@@ -252,7 +252,7 @@ function perform_single_subject_experiment(is_trial_1_task::Bool, subjects_dat::
     if(verbosity > -1)
       print("------------------ Block number $i --------------------\n")
     end
-    subjects_dat[subject_id].blocks[i].proportion_correct = perform_learning_block_single_problem(is_trial_1_task, subjects_dat[subject_id].blocks[i])
+    subjects_dat[subject_id, task_id].blocks[i].proportion_correct = perform_learning_block_single_problem(task_id, subjects_dat[subject_id, task_id].blocks[i])
     local_average_reward = 0.;
     local_sum_critics = 0;
     for k = 1:no_task_critics
@@ -261,10 +261,8 @@ function perform_single_subject_experiment(is_trial_1_task::Bool, subjects_dat::
         local_sum_critics += n_critic[k,j];
       end
     end
-    #subjects[subject_id].blocks[i].average_reward = ( local_average_reward / (no_task_critics * no_choices_per_task_critics) );
-    subjects_dat[subject_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
-    #subjects[subject_id].blocks[i].average_delta_reward = average_delta_reward;
-    subjects_dat[subject_id].blocks[i].average_choice = average_choice;
+    subjects_dat[subject_id, task_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
+    subjects_dat[subject_id, task_id].blocks[i].average_choice = average_choice;
     if(verbosity > -1)
       print("Block $i completed. Type 1 task: $is_trial_1_task.\n") 
     end
@@ -273,28 +271,28 @@ function perform_single_subject_experiment(is_trial_1_task::Bool, subjects_dat::
     end=#
     enable_weight_updates = true;
   end
-  subjects_dat[subject_id].w_final = deepcopy(w);
+  subjects_dat[subject_id, task_id].w_final = deepcopy(w);
   return 0;
 end
 
 
-function perform_single_subject_experiment_trial_switching(subjects::Array{Subject,1}, subject_id::Int64=1)
-  #global subject
-  #subject[subject_id] = Subject(zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_pre_neurons,2),zeros(no_pre_neurons,2));
+function perform_single_subject_experiment_trial_switching(subjects::Array{Subject,2}, subject_id::Int64=1)
   global enable_weight_updates::Bool;
+  global average_reward;
+  global n_critic;
 
-  global a = deepcopy(subjects[subject_id].a);
-  global b = deepcopy(subjects[subject_id].b);
+  roving_experiment_id = 1::Int;
+
+  global a = deepcopy(subjects[subject_id, roving_experiment_id].a);
+  global b = deepcopy(subjects[subject_id, roving_experiment_id].b);
 
   initialise_weight_matrix() # must be called after a and b are setup
-  subjects[subject_id].w_initial = deepcopy(w);
+  subjects[subject_id, roving_experiment_id].w_initial = deepcopy(w);
 
   if(disable_learning_on_first_block)
     enable_weight_updates = false :: Bool;
   end
 
-  global average_reward;
-  global n_critic;
   # these guys need to be reset here in case they're never
   #   initialised in perform_single_block...()
   #   slightly risky if not reset as they may contain values from
@@ -314,7 +312,7 @@ function perform_single_subject_experiment_trial_switching(subjects::Array{Subje
     if(verbosity > -1)
       print("-------------------------------------------\n")
     end
-    subjects[subject_id].blocks[i].proportion_correct = perform_learning_block_trial_switching(subjects[subject_id].blocks[i])
+    subjects[subject_id, roving_experiment_id].blocks[i].proportion_correct = perform_learning_block_trial_switching(subjects[subject_id, roving_experiment_id].blocks[i])
     local_average_reward = 0.;
     local_sum_critics = 0;
     for k = 1:no_task_critics
@@ -323,12 +321,11 @@ function perform_single_subject_experiment_trial_switching(subjects::Array{Subje
         local_sum_critics += n_critic[k,j];
       end
     end
-    #subjects[subject_id].blocks[i].average_reward = ( local_average_reward / (no_task_critics * no_choices_per_task_critics) );
-    subjects[subject_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
-    #subjects[subject_id].blocks[i].average_delta_reward = average_delta_reward;
-    subjects[subject_id].blocks[i].proportion_1_correct = proportion_1_correct;
-    subjects[subject_id].blocks[i].proportion_2_correct = proportion_2_correct;
-    subjects[subject_id].blocks[i].average_choice = average_choice;
+    subjects[subject_id, roving_experiment_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
+    subjects[subject_id, roving_experiment_id].blocks[i].proportion_task_correct[1] = proportion_1_correct;
+    subjects[subject_id, roving_experiment_id].blocks[i].proportion_task_correct[2] = proportion_2_correct;
+    subjects[subject_id, roving_experiment_id].blocks[i].average_choice = average_choice;
+    #TODO: add per task average choice and average reward recording
     if(verbosity > -1)
       print("Block $i completed. Alternating tasks.\n") 
     end
@@ -337,19 +334,19 @@ function perform_single_subject_experiment_trial_switching(subjects::Array{Subje
   if(double_no_of_trials_in_alternating_experiment)
     no_trials_in_block = int(no_trials_in_block / 2);
   end
-  subjects[subject_id].w_final = deepcopy(w);
+  subjects[subject_id, roving_experiment_id].w_final = deepcopy(w);
   return 0;
 end
 
 
-function perform_multi_subject_experiment(is_trial_1_task::Bool, subjects::Array{Subject,1}, no_subjects::Int64=no_subjects)
+function perform_multi_subject_experiment(task_id::Int, subjects::Array{Subject,2}, no_subjects::Int64=no_subjects)
   #global subject = Array(Subject, no_subjects);
 
   for(i = 1:no_subjects)
     if(verbosity > -1)
       print("-----------Subject number $i------------\n")
     end
-    perform_single_subject_experiment(is_trial_1_task, subjects, i)
+    perform_single_subject_experiment(task_id, subjects, i)
   end
 
   if(verbosity > -1)
@@ -358,7 +355,7 @@ function perform_multi_subject_experiment(is_trial_1_task::Bool, subjects::Array
 end
 
 
-function perform_multi_subject_experiment_trial_switching(subjects::Array{Subject,1}, no_subjects::Int64=no_subjects)
+function perform_multi_subject_experiment_trial_switching(subjects::Array{Subject,2}, no_subjects::Int64=no_subjects)
   #global subject = Array(Subject, no_subjects);
 
   for(i = 1:no_subjects)
@@ -387,43 +384,42 @@ function compare_three_trial_types_with_multiple_subjects()
   if(use_ab_persistence)
     for i = 1:no_subjects
       initialise_pre_population();
-      latest_experiment_results.subjects_task1[i].a = deepcopy(a);
-      latest_experiment_results.subjects_task1[i].b = deepcopy(b);
-      latest_experiment_results.subjects_task2[i].a = deepcopy(a);
-      latest_experiment_results.subjects_task2[i].b = deepcopy(b);
-      latest_experiment_results.subjects_roving_task[i].a = deepcopy(a);
-      latest_experiment_results.subjects_roving_task[i].b = deepcopy(b);
+      for j = 1:no_input_tasks
+        latest_experiment_results.subjects_task[i,j].a = deepcopy(a);
+        latest_experiment_results.subjects_task[i,j].b = deepcopy(b);
+      end
+      latest_experiment_results.subjects_roving_task[i,1].a = deepcopy(a);
+      latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
       initialise_pre_population();
       initialise_pre_population();
     end
   else # experiment to have identical RND sequences
     for i = 1:no_subjects
       initialise_pre_population(); 
-      latest_experiment_results.subjects_task1[i].a = deepcopy(a);
-      latest_experiment_results.subjects_task1[i].b = deepcopy(b);
+      latest_experiment_results.subjects_task[i,1].a = deepcopy(a);
+      latest_experiment_results.subjects_task[i,1].b = deepcopy(b);
       initialise_pre_population(); 
-      latest_experiment_results.subjects_task2[i].a = deepcopy(a);
-      latest_experiment_results.subjects_task2[i].b = deepcopy(b);
+      latest_experiment_results.subjects_task[i,2].a = deepcopy(a);
+      latest_experiment_results.subjects_task[i,2].b = deepcopy(b);
       initialise_pre_population(); 
-      latest_experiment_results.subjects_roving_task[i].a = deepcopy(a);
-      latest_experiment_results.subjects_roving_task[i].b = deepcopy(b);
+      latest_experiment_results.subjects_roving_task[i,1].a = deepcopy(a);
+      latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
     end
   end
 
   print("-----Experiment: task 1------\n")
-  perform_multi_subject_experiment(true, latest_experiment_results.subjects_task1);
+  task_id = 1::Int;
+  perform_multi_subject_experiment(task_id, latest_experiment_results.subjects_task);
   mean_correct = zeros(no_blocks_in_experiment);
   range_correct = zeros(no_blocks_in_experiment);
   err_correct = zeros(no_blocks_in_experiment);
   for i = 1:no_blocks_in_experiment
     local_prop = zeros(no_subjects);
     for j = 1:no_subjects
-      #mean_correct[i] += latest_experiment_results.subjects_task1[j].blocks[i].proportion_correct;
-      local_prop[j] = latest_experiment_results.subjects_task1[j].blocks[i].proportion_correct;
+      local_prop[j] = latest_experiment_results.subjects_task[j,task_id].blocks[i].proportion_correct;
     end
     if(use_plot_mean)
       # mean calculation
-      #mean_correct[i] /= no_subjects;
       mean_correct[i] = mean(local_prop);
     else
       # median calculation
@@ -435,24 +431,23 @@ function compare_three_trial_types_with_multiple_subjects()
     range_correct[i] = (maximum(local_prop) - minimum(local_prop)) / 2.0; 
   end
   # plot(mean_correct, "r", linewidth=2, label="Task 1")
-  latest_experiment_results.task1_correct = mean_correct;
-  latest_experiment_results.task1_error = err_correct; #min_correct;
-  latest_experiment_results.task1_range = range_correct;
+  latest_experiment_results.task_correct[:,task_id] = mean_correct;
+  latest_experiment_results.task_error[:,task_id] = err_correct; 
+  latest_experiment_results.task_range[:,task_id] = range_correct;
 
   print("-----Experiment: task 2------\n")
-  perform_multi_subject_experiment(false, latest_experiment_results.subjects_task2);
+  task_id = 2::Int;
+  perform_multi_subject_experiment(task_id, latest_experiment_results.subjects_task);
   mean_correct = zeros(no_blocks_in_experiment);
   range_correct = zeros(no_blocks_in_experiment);
   err_correct = zeros(no_blocks_in_experiment);
   for i = 1:no_blocks_in_experiment
     local_prop = zeros(no_subjects);
     for j = 1:no_subjects
-      #mean_correct[i] += latest_experiment_results.subjects_task2[j].blocks[i].proportion_correct;
-      local_prop[j] = latest_experiment_results.subjects_task2[j].blocks[i].proportion_correct;
+      local_prop[j] = latest_experiment_results.subjects_task[j,task_id].blocks[i].proportion_correct;
     end
     if(use_plot_mean)
       # mean calculation
-      #mean_correct[i] /= no_subjects;
       mean_correct[i] = mean(local_prop);
     else
       # median calculation
@@ -464,11 +459,13 @@ function compare_three_trial_types_with_multiple_subjects()
     range_correct[i] = (maximum(local_prop) - minimum(local_prop)) / 2.0;
   end
   # plot(mean_correct, "g", linewidth=2, label="Task 2")
-  latest_experiment_results.task2_correct = mean_correct;
-  latest_experiment_results.task2_error = err_correct;
-  latest_experiment_results.task2_range = range_correct;
+  latest_experiment_results.task_correct[:,task_id] = mean_correct;
+  latest_experiment_results.task_error[:,task_id] = err_correct;
+  latest_experiment_results.task_range[:,task_id] = range_correct;
 
   print("-----Experiment: roving task------\n")
+  roving_experiment_id = 1 :: Int;
+  # there's no point expanding the following to generic multiple roving pop experiments until I have such an experiment
   perform_multi_subject_experiment_trial_switching(latest_experiment_results.subjects_roving_task);
   mean_correct = zeros(no_blocks_in_experiment);
   mean_task_1_correct = zeros(no_blocks_in_experiment);
@@ -480,20 +477,13 @@ function compare_three_trial_types_with_multiple_subjects()
     local_prop_1 = zeros(no_subjects);
     local_prop_2 = zeros(no_subjects);
     for j = 1:no_subjects
-      #mean_correct[i] += latest_experiment_results.subjects_roving_task[j].blocks[i].proportion_correct;
-      # mean calculation
-      #=mean_task_1_correct[i] += latest_experiment_results.subjects_roving_task[j].blocks[i].proportion_1_correct;
-      mean_task_2_correct[i] += latest_experiment_results.subjects_roving_task[j].blocks[i].proportion_2_correct;
-      local_prop[j] = latest_experiment_results.subjects_roving_task[j].blocks[i].proportion_correct;=#
       # save the proportions so that mean or median can be called
-      local_prop[j] = latest_experiment_results.subjects_roving_task[j].blocks[i].proportion_correct;
-      local_prop_1[j] = latest_experiment_results.subjects_roving_task[j].blocks[i].proportion_1_correct;
-      local_prop_2[j] = latest_experiment_results.subjects_roving_task[j].blocks[i].proportion_2_correct;
+      local_prop[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_correct;
+      local_prop_1[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_task_correct[1];
+      local_prop_2[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_task_correct[2];
     end
     if(use_plot_mean)
       # mean calculation
-      #=mean_task_1_correct[i] /= no_subjects;
-      mean_task_2_correct[i] /= no_subjects;=#
       mean_correct[i] = mean(local_prop)
       mean_task_1_correct[i] = mean(local_prop_1)
       mean_task_2_correct[i] = mean(local_prop_2)
@@ -514,17 +504,18 @@ function compare_three_trial_types_with_multiple_subjects()
   # plot(mean_task_1_correct, "k", linewidth=3, label="Task 1, from alternating tasks")
   # plot(mean_task_2_correct, "k", linewidth=3, label="Task 2, from alternating tasks")
 
-  latest_experiment_results.roving_correct = mean_correct;
-  latest_experiment_results.roving_task1_correct = mean_task_1_correct;
-  latest_experiment_results.roving_task2_correct = mean_task_2_correct;
-  latest_experiment_results.roving_error = err_correct;
-  latest_experiment_results.roving_range = range_correct;
+  latest_experiment_results.roving_correct[:,roving_experiment_id] = mean_correct;
+  latest_experiment_results.roving_task_correct[:,1,roving_experiment_id] = mean_task_1_correct;
+  latest_experiment_results.roving_task_correct[:,2,roving_experiment_id] = mean_task_2_correct;
+  latest_experiment_results.roving_error[:,roving_experiment_id] = err_correct;
+  latest_experiment_results.roving_range[:,roving_experiment_id] = range_correct;
 
   print("Plotting...\n")
   # legend(loc=4)
   #figure()
   #plot_multi_subject_experiment(latest_experiment_results);
-  plot_multi_subject_experiment_as_subplots(latest_experiment_results);
+  #restore next line
+  ##plot_multi_subject_experiment_as_subplots(latest_experiment_results);
 
   global exp_results;
   resize!(exp_results, length(exp_results)+1);

@@ -36,8 +36,8 @@ initial_weight_bias = (2.0); # 2.0
 
 # choose input sequence
 use_cts_random_inputs = false :: Bool;
-use_binary_random_inputs = true :: Bool;
 use_binary_alternating_inputs = false :: Bool;
+use_binary_random_inputs = true :: Bool;
 
 # selective tuning of input
 input_baseline = 2.0; #2.0;
