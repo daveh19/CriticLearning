@@ -13,6 +13,14 @@ dw = zeros(no_pre_neurons, no_post_neurons);
 dw[:,1] = learning_rate * local_pre[:] * local_post[1] * (local_reward - local_average_reward);
 dw[:,2] = learning_rate * local_pre[:] * local_post[2] * (local_reward - local_average_reward);
 
+
+## LLVM code
+:(2 + 2) # abstract-syntax-tree
+code_lowered(generic_function, (types_arg_list,))
+code_typed(generic_function, (types_arg_list,))
+code_llvm(generic_function, (types_arg_list,))
+code_native(generic_function, (types_arg_list,))
+code_typed(sort, ( Array{Float64,1}, ) )
 end
 
 

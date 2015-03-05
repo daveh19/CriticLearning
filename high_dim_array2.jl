@@ -8,17 +8,20 @@ type Trial
   chosen_answer :: Float64;
   got_it_right :: Bool;
   reward_received :: Float64;
-  w :: Array{Float64, 2};
-  dw :: Array{Float64, 2};
   mag_dw :: Float64;
   error_threshold :: Float64;
+  # Note: dimension of w is 3, first dimension are the elements corresponding
+  #   a set of unified inputs, second dimension the output directions, third
+  #   dimension the separate input tasks
+  w :: Array{Float64, 3}; 
+  dw :: Array{Float64, 3};
 end
 
 function initialise_empty_trials(no_trials)
   trial = Array(Trial, no_trials);
 
   for i = 1:no_trials
-    trial[i] = Trial( 0, 0, 0, false, 0, zeros(no_pre_neurons,2), zeros(no_pre_neurons,2), 0, 0 );
+    trial[i] = Trial( 0, 0., 0., false, 0., 0., 0., zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks), zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks) );
   end
 
   return trial;
@@ -30,11 +33,14 @@ type Block
   trial :: Array{Trial, 1};
   # summary statistics
   proportion_correct :: Float64;
-  proportion_1_correct :: Float64;
-  proportion_2_correct :: Float64;
   average_reward :: Float64;
-  average_delta_reward :: Float64;
   average_choice :: Float64;
+  proportion_task_correct :: Array{Float64, 1};
+  average_task_reward :: Array{Float64, 1};
+  average_task_choice :: Array{Float64, 1};
+  #proportion_1_correct :: Float64;
+  #proportion_2_correct :: Float64;
+  #average_delta_reward :: Float64;
 end
 
 function initialise_empty_block(no_blocks, trials_per_block, double_trials::Bool=false)
@@ -46,7 +52,7 @@ function initialise_empty_block(no_blocks, trials_per_block, double_trials::Bool
 
   for i = 1:no_blocks
     local_trial = initialise_empty_trials(trials_per_block);
-    block[i] = Block( local_trial, 0, 0, 0, 0, 0, 0);
+    block[i] = Block( local_trial, 0., 0., 0., zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks) );
   end  
 
   return block;
@@ -58,17 +64,17 @@ type Subject
   blocks :: Array{Block, 1}
   # summary information for this subject
   # inherent receptive field, this is unique per subject and does not change
-  a :: Array{Float64, 1} 
-  b :: Array{Float64, 1}
+  a :: Array{Float64, 2} 
+  b :: Array{Float64, 2}
   # initial weights at beginning of experiment
-  w_initial :: Array{Float64, 2}
+  w_initial :: Array{Float64, 3}
   # final weights at end of experiment
-  w_final :: Array{Float64, 2}
+  w_final :: Array{Float64, 3}
 end
 
 function initialise_empty_subject(blocks_per_subject, trials_per_block, double_trials::Bool=false)
   blocks = initialise_empty_block(blocks_per_subject, trials_per_block, double_trials);
-  subject = Subject( blocks, zeros(no_pre_neurons), zeros(no_pre_neurons), zeros(no_pre_neurons,2), zeros(no_pre_neurons, 2));
+  subject = Subject( blocks, zeros(no_pre_neurons, no_input_tasks), zeros(no_pre_neurons, no_input_tasks), zeros(no_pre_neurons, no_post_neurons, no_input_tasks), zeros(no_pre_neurons, no_post_neurons, no_input_tasks) );
 
   return subject;
 end
