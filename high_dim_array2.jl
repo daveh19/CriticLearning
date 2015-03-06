@@ -33,11 +33,11 @@ type Block
   trial :: Array{Trial, 1};
   # summary statistics
   proportion_correct :: Float64;
-  average_reward :: Float64;
+  average_reward :: Float64; # this is the state of the running average at the end of the block
   average_choice :: Float64;
   proportion_task_correct :: Array{Float64, 1};
   #TODO: implement monitoring and plotting of following two variables
-  average_task_reward :: Array{Float64, 1};
+  average_task_reward :: Array{Float64, 1}; # this is a true per task average for the block
   average_task_choice :: Array{Float64, 1};
   #proportion_1_correct :: Float64;
   #proportion_2_correct :: Float64;

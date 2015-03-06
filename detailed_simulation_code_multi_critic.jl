@@ -42,11 +42,12 @@ function initialise()
   global average_choice = 0.0;
   #global n = 0 :: Int; # use this to monitor trial ID per block (very important: this is a block level counter!)
   global n_within_block = 0 :: Int; # use this to monitor trial ID per block (very important: this is a block level counter!)
+  global n_task_within_block = zeros(Int, no_input_tasks) :: Array{Int,1};
   # changing to multi-critic model
   #   critic can be per block or over entire learning history
-  global n_critic = int(zeros(no_task_critics, no_choices_per_task_critics)); # use this to monitor trial ID per critic
+  global n_critic = zeros(Int, no_task_critics, no_choices_per_task_critics); # use this to monitor trial ID per critic
   global average_reward = zeros(no_task_critics, no_choices_per_task_critics); # running average, stored values represent end of a block value
-
+  global average_block_reward = 0.0;
   global instance_correct = 0;
   global instance_incorrect = 0;
 
@@ -250,19 +251,19 @@ end
 # initialise
 #  n = 0
 #  average_reward = 0
-function multi_critic_running_av_reward(R::Int, task_id::Int, choice_id::Int)
+function multi_critic_running_av_reward(R::Int, task_critic_id::Int, choice_critic_id::Int)
   global n_critic;
   global average_reward;
 
-  n_critic[task_id, choice_id] += 1;
+  n_critic[task_critic_id, choice_critic_id] += 1;
 
   tau_r = running_av_window_length;
-  tau = min(tau_r, n_critic[task_id, choice_id]);
+  tau = min(tau_r, n_critic[task_critic_id, choice_critic_id]);
 
-  Rn = ( (tau - 1) * average_reward[task_id, choice_id] + R ) / tau;
+  Rn = ( (tau - 1) * average_reward[task_critic_id, choice_critic_id] + R ) / tau;
 
   # update average_reward monitor
-  average_reward[task_id, choice_id] = Rn;
+  average_reward[task_critic_id, choice_critic_id] = Rn;
 
   return Rn;
 end
@@ -275,6 +276,8 @@ function update_weights(x, task_id::Int, trial_dat::Trial)
     global instance_average_reward;
   end
   global n_within_block += 1;
+  global n_task_within_block;
+  n_task_within_block[task_id] += 1;
 
   # don't forget to update noise externally to this function on separate iterations
   local_pre = pre(x, task_id);
@@ -299,6 +302,9 @@ function update_weights(x, task_id::Int, trial_dat::Trial)
   #   using n independent of critic, for now
   local_choice = (abs(local_post[1]) > 0 ? 1 : 2);
   global average_choice = ( (n_within_block-1) * average_choice + local_choice ) / (n_within_block);
+  global average_block_reward = ( ( n_within_block - 1) * average_block_reward + local_reward ) / (n_within_block);
+  global average_task_reward;
+  average_task_reward[task_id] = ( (n_task_within_block[task_id] - 1) * average_task_reward[task_id] + local_reward) / (n_task_within_block[task_id]);
 
   #running_av_reward(local_reward); # Nicolas is doing this before dw update, so first timestep is less unstable...
   # TODO: need to improve critic response axis and task type bin logic here

@@ -55,6 +55,10 @@ detection_threshold = 0.25;
 # this mimics the same subject in each experiment, rather than new subjects throughout
 use_ab_persistence = false :: Bool; 
 
+# Reward can be saved from the state of the running average or on a per block basis
+#	reward averaging on a per task basis is only on a per block basis
+save_reward_from_running_average = true :: Bool;
+
 # first block of each experiment is just used to build up a running average
 const disable_learning_on_first_block = false :: Bool;
 

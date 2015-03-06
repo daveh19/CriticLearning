@@ -104,6 +104,9 @@ function perform_learning_block_single_problem(task_id::Int, block_dat::Block)
   monitor_reward = 0;
   global average_reward;
   global n_critic;
+  global average_block_reward = 0.0
+  global average_task_reward;
+  average_task_reward = zeros(no_input_tasks);
   if(reset_average_reward_on_each_block)
     for i = 1:no_task_critics
       for j = 1:no_choices_per_task_critics
@@ -115,6 +118,7 @@ function perform_learning_block_single_problem(task_id::Int, block_dat::Block)
   global average_delta_reward = 0;
   global average_choice = 0.0;
   global n_within_block = 0;
+  global n_task_within_block = zeros(Int, no_input_tasks);
   #for(xi in x)
   for(i = 1:no_trials_in_block)
     update_noise()
@@ -133,6 +137,13 @@ function perform_learning_block_single_problem(task_id::Int, block_dat::Block)
     proportion_correct = instance_correct / (instance_correct + instance_incorrect);
     print("DEBUG: instance_correct: $instance_correct, instance_incorrect: $instance_incorrect, new proportion correct: $proportion_correct\n")
   end
+
+  block_dat.proportion_correct = proportion_correct;
+  block_dat.proportion_task_correct[task_id] = proportion_correct;
+  block_dat.average_choice = average_choice;
+  
+  block_dat.average_reward = average_block_reward;
+  block_dat.average_task_reward = average_task_reward;
 
   return proportion_correct;
 end
@@ -159,10 +170,8 @@ function perform_learning_block_trial_switching(block_dat::Block)
   x = generate_test_sequence(no_trials_in_block);
   task = generate_task_sequence(no_trials_in_block);
 
-  global proportion_1_correct = 0;
-  global proportion_2_correct = 0;
-  task_1_count = 0;
-  task_2_count = 0;
+  proportion_task_correct = zeros(no_input_tasks);
+  task_count = zeros(no_input_tasks);
 
   monitor_reward = 0;
   global average_reward;
@@ -178,41 +187,43 @@ function perform_learning_block_trial_switching(block_dat::Block)
   global average_delta_reward = 0;
   global average_choice = 0.0;
   global n_within_block = 0;
+  global n_task_within_block = zeros(Int, no_input_tasks);
+  global average_task_reward;
+  global average_block_reward = 0.0;
+  average_task_reward = zeros(no_input_tasks);
+  local_average_task_choice = zeros(no_input_tasks);
   for(i = 1:no_trials_in_block)
     update_noise()
     local_reward = (update_weights(x[i], task[i], block_dat.trial[i]) / 2);
     monitor_reward += local_reward;
-    if (task[i] == 1)
-      task_1_count += 1;
-      if (local_reward == 1)
-        proportion_1_correct += 1;
-      end
-    elseif (task[i] == 2)
-      task_2_count += 1;
-      if (local_reward == 1)
-        proportion_2_correct += 1;
-      end
-    else
-      print("Whoops! You're running with a roving task type that we haven't prepared for yet\n")
-    end
+    task_count[task[i]] += 1;
+    proportion_task_correct[task[i]] += local_reward; # local_reward = {0,1}
+    local_average_task_choice[task[i]] += block_dat.trial[i].chosen_answer;
     if(verbosity > 0)
       print("\n")
     end
   end
   proportion_correct = monitor_reward / no_trials_in_block;
-
-  proportion_1_correct = proportion_1_correct / task_1_count;
-  proportion_2_correct = proportion_2_correct / task_2_count;
+  proportion_task_correct = proportion_task_correct ./ task_count;
+  local_average_task_choice = local_average_task_choice ./ task_count;
 
   #global wfinal = deepcopy(w)
 
   if(verbosity > 2)
     # Note this changes how the final proportion_correct is calculated!
-    print("END of Learning Block, proportion correct: $proportion_correct, alternating task set.\nProportion 1 correct: $proportion_1_correct, proportion 2 correct: $proportion_2_correct.\n")
+    print("END of Learning Block, proportion correct: $proportion_correct, alternating task set.\nProportion task correct: $proportion_task_correct.\n")
     print("DEBUG: task_1_count: $task_1_count, task_2_count: $task_2_count.\n")
     proportion_correct = instance_correct / (instance_correct + instance_incorrect);
     print("DEBUG: instance_correct: $instance_correct, instance_incorrect: $instance_incorrect, new proportion correct: $proportion_correct\n")
   end
+
+  block_dat.proportion_correct = proportion_correct;
+  block_dat.proportion_task_correct = proportion_task_correct;
+  block_dat.average_choice = average_choice;
+  block_dat.average_task_choice = local_average_task_choice;
+
+  block_dat.average_reward = average_block_reward;
+  block_dat.average_task_reward = average_task_reward;
 
   return proportion_correct;
 end
@@ -252,17 +263,19 @@ function perform_single_subject_experiment(task_id::Int, subjects_dat::Array{Sub
     if(verbosity > -1)
       print("------------------ Block number $i --------------------\n")
     end
-    subjects_dat[subject_id, task_id].blocks[i].proportion_correct = perform_learning_block_single_problem(task_id, subjects_dat[subject_id, task_id].blocks[i])
-    local_average_reward = 0.;
-    local_sum_critics = 0;
-    for k = 1:no_task_critics
-      for j = 1:no_choices_per_task_critics
-        local_average_reward += average_reward[k,j] * n_critic[k,j];
-        local_sum_critics += n_critic[k,j];
+    perform_learning_block_single_problem(task_id, subjects_dat[subject_id, task_id].blocks[i])
+    if (save_reward_from_running_average)
+      # Remember, average_reward is a running average not a block average
+      local_average_reward = 0.;
+      local_sum_critics = 0;
+      for k = 1:no_task_critics
+        for j = 1:no_choices_per_task_critics
+          local_average_reward += average_reward[k,j] * n_critic[k,j];
+          local_sum_critics += n_critic[k,j];
+        end
       end
+      subjects_dat[subject_id, task_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
     end
-    subjects_dat[subject_id, task_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
-    subjects_dat[subject_id, task_id].blocks[i].average_choice = average_choice;
     if(verbosity > -1)
       print("Block $i completed. Task_id: $task_id.\n") 
     end
@@ -271,7 +284,9 @@ function perform_single_subject_experiment(task_id::Int, subjects_dat::Array{Sub
     end=#
     enable_weight_updates = true;
   end
+
   subjects_dat[subject_id, task_id].w_final = deepcopy(w);
+  
   return 0;
 end
 
@@ -312,29 +327,34 @@ function perform_single_subject_experiment_trial_switching(subjects::Array{Subje
     if(verbosity > -1)
       print("-------------------------------------------\n")
     end
-    subjects[subject_id, roving_experiment_id].blocks[i].proportion_correct = perform_learning_block_trial_switching(subjects[subject_id, roving_experiment_id].blocks[i])
-    local_average_reward = 0.;
-    local_sum_critics = 0;
-    for k = 1:no_task_critics
-      for j = 1:no_choices_per_task_critics
-        local_average_reward += average_reward[k,j] * n_critic[k,j];
-        local_sum_critics += n_critic[k,j];
+    
+    perform_learning_block_trial_switching(subjects[subject_id, roving_experiment_id].blocks[i])
+    
+    if (save_reward_from_running_average)
+      # Remember, average_reward is a running average, not a block average.
+      local_average_reward = 0.;
+      local_sum_critics = 0;
+      for k = 1:no_task_critics
+        for j = 1:no_choices_per_task_critics
+          local_average_reward += average_reward[k,j] * n_critic[k,j];
+          local_sum_critics += n_critic[k,j];
+        end
       end
+      subjects[subject_id, roving_experiment_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
     end
-    subjects[subject_id, roving_experiment_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
-    subjects[subject_id, roving_experiment_id].blocks[i].proportion_task_correct[1] = proportion_1_correct;
-    subjects[subject_id, roving_experiment_id].blocks[i].proportion_task_correct[2] = proportion_2_correct;
-    subjects[subject_id, roving_experiment_id].blocks[i].average_choice = average_choice;
-    #TODO: add per task average choice and average reward recording
+
     if(verbosity > -1)
       print("Block $i completed. Alternating tasks.\n") 
     end
     enable_weight_updates = true;
   end
+  
   if(double_no_of_trials_in_alternating_experiment)
     no_trials_in_block = int(no_trials_in_block / 2);
   end
+  
   subjects[subject_id, roving_experiment_id].w_final = deepcopy(w);
+  
   return 0;
 end
 
@@ -1081,16 +1101,47 @@ function plot_multi_block_mag_dw(subject::Subject, begin_id::Int=1, end_id::Int=
 end
 
 
-function plot_single_subject_average_reward(subject::Subject)
+function plot_single_subject_proportion_correct(subject::Subject)
   #figure()
   local_av_reward = zeros(no_blocks_in_experiment);
+  local_av_task_reward = zeros(no_blocks_in_experiment, no_input_tasks);
   x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
   for i = 1:no_blocks_in_experiment
-    local_av_reward[i] = subject.blocks[i].average_reward;
+    local_av_reward[i] = subject.blocks[i].proportion_correct; #average_reward;
+    local_av_task_reward[i,:] = subject.blocks[i].proportion_task_correct; 
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
-  plot(x, local_av_reward, linewidth=2)
+  plot(x, local_av_task_reward[:,1], linewidth=2, c="k")
+  plot(x, local_av_task_reward[:,2], linewidth=2, c="g")
+  plot(x, local_av_reward, linewidth=2, c="r")
+end
+
+function plot_multi_subject_proportion_correct(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
+  figure()
+  for i = begin_id:end_id
+    plot_single_subject_proportion_correct(subjects[i,task_id])
+  end
+  xlabel("Block number")
+  ylabel("Proportion correct")
+  axis([0,no_blocks_in_experiment,0,1])
+end
+
+
+function plot_single_subject_average_reward(subject::Subject)
+  #figure()
+  local_av_reward = zeros(no_blocks_in_experiment);
+  local_av_task_reward = zeros(no_blocks_in_experiment, no_input_tasks);
+  x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
+  for i = 1:no_blocks_in_experiment
+    local_av_reward[i] = subject.blocks[i].average_reward;
+    local_av_task_reward[i,:] = subject.blocks[i].average_task_reward; 
+    #print("", x[i], " ", local_reward_received[i], "\n")
+  end
+  #print("", size(local_reward_received), " ", size(x),"\n")
+  plot(x, local_av_task_reward[:,1], linewidth=2, c="k")
+  plot(x, local_av_task_reward[:,2], linewidth=2, c="g")
+  plot(x, local_av_reward, linewidth=2, c="r")
 end
 
 function plot_multi_subject_average_reward(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
@@ -1107,13 +1158,17 @@ end
 function plot_single_subject_average_choice(subject::Subject)
   #figure()
   local_av_choice = zeros(no_blocks_in_experiment);
+  local_av_task_choice= zeros(no_blocks_in_experiment, no_input_tasks);
   x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
   for i = 1:no_blocks_in_experiment
     local_av_choice[i] = (subject.blocks[i].average_choice - 1.5) * 2;
+    local_av_task_choice[i,:] = (subject.blocks[i].average_task_choice );
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
-  plot(x, local_av_choice, linewidth=2)
+  plot(x, local_av_task_choice[:,1], linewidth=2, c="k")
+  plot(x, local_av_task_choice[:,2], linewidth=2, c="g")
+  plot(x, local_av_choice, linewidth=2, c="r")
 end
 
 function plot_multi_subject_average_choice(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
