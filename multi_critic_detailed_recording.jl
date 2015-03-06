@@ -473,6 +473,7 @@ function compare_three_trial_types_with_multiple_subjects()
   err_correct = zeros(no_blocks_in_experiment);
   range_correct = zeros(no_blocks_in_experiment);
   for i = 1:no_blocks_in_experiment
+    # can increase dimensionality of the following when I want to expand task space
     local_prop = zeros(no_subjects);
     local_prop_1 = zeros(no_subjects);
     local_prop_2 = zeros(no_subjects);
@@ -742,7 +743,7 @@ function plot_multi_subject_experiment_reward_as_subplots(latest_experiment_resu
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i, latest_experiment_results.subjects_task1[j].blocks[i].average_reward, marker="o", c="r")
+        scatter(i, latest_experiment_results.subjects_task[j,1].blocks[i].average_reward, marker="o", c="r")
       end
     end
   end
@@ -751,7 +752,7 @@ function plot_multi_subject_experiment_reward_as_subplots(latest_experiment_resu
     for j = 1:no_subjects
       local_1_reward = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
-        local_1_reward[i] = latest_experiment_results.subjects_task1[j].blocks[i].average_reward;
+        local_1_reward[i] = latest_experiment_results.subjects_task[j,1].blocks[i].average_reward;
       end
       plot(block_id, local_1_reward, "r")
     end
@@ -770,7 +771,7 @@ function plot_multi_subject_experiment_reward_as_subplots(latest_experiment_resu
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i+0.1, latest_experiment_results.subjects_task2[j].blocks[i].average_reward, marker="o", c="g")
+        scatter(i+0.1, latest_experiment_results.subjects_task[j,2].blocks[i].average_reward, marker="o", c="g")
       end
     end
   end
@@ -779,7 +780,7 @@ function plot_multi_subject_experiment_reward_as_subplots(latest_experiment_resu
     for j = 1:no_subjects
       local_1_reward = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
-        local_1_reward[i] = latest_experiment_results.subjects_task2[j].blocks[i].average_reward;
+        local_1_reward[i] = latest_experiment_results.subjects_task[j,2].blocks[i].average_reward;
       end
       plot(block_id, local_1_reward, "g")
     end
@@ -798,7 +799,7 @@ function plot_multi_subject_experiment_reward_as_subplots(latest_experiment_resu
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j].blocks[i].average_reward, marker="o", c="b")
+        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_reward, marker="o", c="b")
       end
     end
   end
@@ -807,7 +808,7 @@ function plot_multi_subject_experiment_reward_as_subplots(latest_experiment_resu
     for j = 1:no_subjects
       local_roving_reward = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
-        local_roving_reward[i] = latest_experiment_results.subjects_roving_task[j].blocks[i].average_reward;
+        local_roving_reward[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_reward;
       end
       plot(block_id-0.1, local_roving_reward, "b")
     end
@@ -849,7 +850,7 @@ function plot_multi_subject_experiment_choice_as_subplots(latest_experiment_resu
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i, latest_experiment_results.subjects_task1[j].blocks[i].average_choice, marker="o", c="r")
+        scatter(i, latest_experiment_results.subjects_task[j,1].blocks[i].average_choice, marker="o", c="r")
       end
     end
   end
@@ -858,7 +859,7 @@ function plot_multi_subject_experiment_choice_as_subplots(latest_experiment_resu
     for j = 1:no_subjects
       local_1_choice = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
-        local_1_choice[i] = latest_experiment_results.subjects_task1[j].blocks[i].average_choice;
+        local_1_choice[i] = latest_experiment_results.subjects_task[j,1].blocks[i].average_choice;
       end
       plot(block_id, local_1_choice, "r")
     end
@@ -877,7 +878,7 @@ function plot_multi_subject_experiment_choice_as_subplots(latest_experiment_resu
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i+0.1, latest_experiment_results.subjects_task2[j].blocks[i].average_choice, marker="o", c="g")
+        scatter(i+0.1, latest_experiment_results.subjects_task[j,2].blocks[i].average_choice, marker="o", c="g")
       end
     end
   end
@@ -886,7 +887,7 @@ function plot_multi_subject_experiment_choice_as_subplots(latest_experiment_resu
     for j = 1:no_subjects
       local_1_choice = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
-        local_1_choice[i] = latest_experiment_results.subjects_task2[j].blocks[i].average_choice;
+        local_1_choice[i] = latest_experiment_results.subjects_task[j,2].blocks[i].average_choice;
       end
       plot(block_id, local_1_choice, "g")
     end
@@ -905,7 +906,7 @@ function plot_multi_subject_experiment_choice_as_subplots(latest_experiment_resu
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j].blocks[i].average_choice, marker="o", c="b")
+        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_choice, marker="o", c="b")
       end
     end
   end
@@ -914,7 +915,7 @@ function plot_multi_subject_experiment_choice_as_subplots(latest_experiment_resu
     for j = 1:no_subjects
       local_roving_choice = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
-        local_roving_choice[i] = latest_experiment_results.subjects_roving_task[j].blocks[i].average_choice;
+        local_roving_choice[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_choice;
       end
       plot(block_id-0.1, local_roving_choice, "b")
     end
@@ -938,11 +939,11 @@ function plot_multiplot(results::Array{RovingExperiment})
       ylim((0,1))
       xlabel("Block number")
       ylabel("Proportion correct")
-      plot(latest_experiment_results.task1_correct, "r", linewidth=2, label="Task 1")
-      plot(latest_experiment_results.task2_correct, "g", linewidth=2, label="Task 2")
-      plot(latest_experiment_results.roving_correct, "b", linewidth=3, label="Roving tasks")
-      plot(latest_experiment_results.roving_task1_correct, "k", linewidth=3, label="Task 1, from roving tasks")
-      plot(latest_experiment_results.roving_task2_correct, "k", linewidth=3, label="Task 2, from roving tasks")
+      plot(latest_experiment_results.task_correct[:,1], "r", linewidth=2, label="Task 1")
+      plot(latest_experiment_results.task_correct[:,2], "g", linewidth=2, label="Task 2")
+      plot(latest_experiment_results.roving_correct[:,1], "b", linewidth=3, label="Roving tasks")
+      plot(latest_experiment_results.roving_task_correct[:,1,1], "k", linewidth=3, label="Task 1, from roving tasks")
+      plot(latest_experiment_results.roving_task_correct[:,2,1], "k", linewidth=3, label="Task 2, from roving tasks")
       i+=1;
     end
     
@@ -1092,10 +1093,10 @@ function plot_single_subject_average_reward(subject::Subject)
   plot(x, local_av_reward, linewidth=2)
 end
 
-function plot_multi_subject_average_reward(subjects::Array{Subject,1}, begin_id::Int=1, end_id::Int=no_subjects)
+function plot_multi_subject_average_reward(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
   figure()
   for i = begin_id:end_id
-    plot_single_subject_average_reward(subjects[i])
+    plot_single_subject_average_reward(subjects[i,task_id])
   end
   xlabel("Block number")
   ylabel("Average reward")
@@ -1115,10 +1116,10 @@ function plot_single_subject_average_choice(subject::Subject)
   plot(x, local_av_choice, linewidth=2)
 end
 
-function plot_multi_subject_average_choice(subjects::Array{Subject,1}, begin_id::Int=1, end_id::Int=no_subjects)
+function plot_multi_subject_average_choice(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
   figure()
   for i = begin_id:end_id
-    plot_single_subject_average_choice(subjects[i])
+    plot_single_subject_average_choice(subjects[i,task_id])
   end
   xlabel("Block number")
   ylabel("Average choice")
@@ -1126,61 +1127,60 @@ function plot_multi_subject_average_choice(subjects::Array{Subject,1}, begin_id:
 end
 
 
-function plot_single_subject_final_weight_vs_bias(subject::Subject, is_task_1::Bool=true, is_task_2::Bool=false)
+function plot_single_subject_final_weight_vs_bias(subject::Array{Subject,2}, task_ids::Array{Int,1}=[1])
+  # subject array should contain subject i with each of his task instances
   #figure()
-  easy_size = length(subject.b) / 2 :: Int;
-  if (is_task_1)
-    scatter(subject.b[1:easy_size], subject.w_final[1:easy_size,1], marker="o", c="g", label="left, easy")
-    scatter(subject.b[1:easy_size], subject.w_final[1:easy_size,2], marker="o", c="y", label="right, easy")
-  end
-  if (is_task_2)
-    scatter(subject.b[easy_size+1:end], subject.w_final[easy_size+1:end,1], marker="o", c="r", label="left, hard")
-    scatter(subject.b[easy_size+1:end], subject.w_final[easy_size+1:end,2], marker="o", c="k", label="right, hard")
+  for task_id in task_ids
+    if (task_id == 1)
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_final[:,1,task_id], marker="o", c="g", label="left, easy")
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_final[:,2,task_id], marker="o", c="y", label="right, easy")
+    elseif (task_id == 2)
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_final[:,1,task_id], marker="o", c="r", label="left, hard")
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_final[:,2,task_id], marker="o", c="k", label="right, hard")
+    else
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_final[:,1,task_id], marker="o", c="c", label="left, other")
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_final[:,2,task_id], marker="o", c="m", label="right, other")
+    end
   end
   xlim([-1.2,1.2])
   ylim([-12,12])
   #legend()
 end
 
-function plot_multi_subject_final_weight_vs_bias(subjects::Array{Subject,1}, is_task_1::Bool=true, begin_id::Int=1, end_id::Int=no_subjects)
-  figure(figsize=(4,20))
+function plot_multi_subject_final_weight_vs_bias(subjects::Array{Subject,2}, task_ids::Array{Int,1}=[1], begin_id::Int=1, end_id::Int=no_subjects)
+  figure(figsize=(6,20))
   for i = begin_id:end_id
     subplot(10,1,i)
-    if(is_task_1)
-      plot_single_subject_final_weight_vs_bias(subjects[i],true, false);
-    else
-      plot_single_subject_final_weight_vs_bias(subjects[i],false,true);
-    end
+    plot_single_subject_final_weight_vs_bias(subjects[i,:],task_ids);
   end
   legend()
 end
 
 
-function plot_single_subject_initial_weight_vs_bias(subject::Subject, is_task_1::Bool=true, is_task_2::Bool=false)
+function plot_single_subject_initial_weight_vs_bias(subject::Array{Subject,2}, task_ids::Array{Int,1}=[1])
   #figure()
-  easy_size = length(subject.b) / 2 :: Int;
-  if (is_task_1)
-    scatter(subject.b[1:easy_size], subject.w_initial[1:easy_size,1], marker="o", c="g", label="left, easy")
-    scatter(subject.b[1:easy_size], subject.w_initial[1:easy_size,2], marker="o", c="y", label="right, easy")
-  end
-  if (is_task_2)
-    scatter(subject.b[easy_size+1:end], subject.w_initial[easy_size+1:end,1], marker="o", c="r", label="left, hard")
-    scatter(subject.b[easy_size+1:end], subject.w_initial[easy_size+1:end,2], marker="o", c="k", label="right, hard")
+  for task_id in task_ids
+    if (task_id == 1)
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_initial[:,1,task_id], marker="o", c="g", label="left, easy")
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_initial[:,2,task_id], marker="o", c="y", label="right, easy")
+    elseif (task_id == 2)
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_initial[:,1,task_id], marker="o", c="r", label="left, hard")
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_initial[:,2,task_id], marker="o", c="k", label="right, hard")
+    else
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_initial[:,1,task_id], marker="o", c="c", label="left, other")
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_initial[:,2,task_id], marker="o", c="m", label="right, other")
+    end
   end
   xlim([-1.2,1.2])
   ylim([-12,12])
   #legend()
 end
 
-function plot_multi_subject_initial_weight_vs_bias(subjects::Array{Subject,1}, is_task_1::Bool=true, begin_id::Int=1, end_id::Int=no_subjects)
-  figure(figsize=(4,20))
+function plot_multi_subject_initial_weight_vs_bias(subjects::Array{Subject,2}, task_ids::Array{Int,1}=[1], begin_id::Int=1, end_id::Int=no_subjects)
+  figure(figsize=(6,20))
   for i = begin_id:end_id
     subplot(10,1,i)
-    if(is_task_1)
-      plot_single_subject_initial_weight_vs_bias(subjects[i], true, false);
-    else
-      plot_single_subject_initial_weight_vs_bias(subjects[i], false, true);
-    end
+    plot_single_subject_initial_weight_vs_bias(subjects[i,:], task_ids);
   end
   legend()
 end
