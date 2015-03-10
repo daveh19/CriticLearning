@@ -7,7 +7,7 @@ no_pre_neurons_per_task = 50::Int;
 no_post_neurons = 2::Int;
 no_input_tasks = 2::Int;
 
-no_tuning_curves_per_input_neuron = 1::Int;
+no_tuning_curves_per_input_neuron = 1::Int; # as this increases the inputs increase in magnitude!
 
 weights_upper_bound = 10;
 weights_lower_bound = -10;

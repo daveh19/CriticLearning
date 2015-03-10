@@ -2,11 +2,17 @@
 
 # Gaussian tuning function definition parameters
 #    for a single presynaptic input neuron
-type tc_type
+type gaussian_tc_type
   no_curves :: Int;
   mu :: Array{Float64, 1};
   sigma :: Array{Float64, 1};
   height :: Array{Float64, 1};
+end
+
+# empty constructor to utilise multiple dispatch
+type gaussian_tc # use gaussian basis functions
+end
+type linear_tc  # use linear tuning functions
 end
 
 # putting noise updates in a function (which must be called!)
@@ -16,7 +22,7 @@ function update_noise()
 end
 
 
-function initialise_pre_population()
+function initialise_pre_population(tuning_type::linear_tc)
   # I think that a and b only get set once for this paper!
   #   they are receptive fields rather than 'noise'
   global a = rand(Normal(input_baseline, input_baseline_variance), (no_pre_neurons_per_task, no_input_tasks));
@@ -27,21 +33,21 @@ function initialise_pre_population()
   end
 end
 
-function initialise_pre_population(gaussian_tuning::Bool)
+function initialise_pre_population(tuning_type::gaussian_tc)
   # Multiple dispatch should use this function rather than the linear
   #   receptive fields function if a boolean is passed as a parameter
   global a;
+  # there is no b after this function!
 
-  a = Array(tc_type, (no_pre_neurons_per_task, no_input_tasks) );
+  a = Array(gaussian_tc_type, (no_pre_neurons_per_task, no_input_tasks) );
   for i = 1:no_input_tasks;
     figure()
     for j=1:no_pre_neurons;
-      no_tuning_curves_per_input_neuron = 1;
       tuning_mu = rand(Uniform(-1,1), no_tuning_curves_per_input_neuron);
       tuning_sigma = ones(no_tuning_curves_per_input_neuron);
       tuning_sigma *= 0.25;
       tuning_height = rand(Normal(2,0.25), no_tuning_curves_per_input_neuron);
-      a[j,i] = tc_type(no_tuning_curves_per_input_neuron, tuning_mu, tuning_sigma, tuning_height);
+      a[j,i] = gaussian_tc_type(no_tuning_curves_per_input_neuron, tuning_mu, tuning_sigma, tuning_height);
   
       scatter(tuning_mu, tuning_height, c="r");
       scatter(tuning_mu, tuning_sigma, c="b");
