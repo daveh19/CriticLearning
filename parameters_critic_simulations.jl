@@ -7,8 +7,12 @@ no_pre_neurons_per_task = 50::Int;
 no_post_neurons = 2::Int;
 no_input_tasks = 2::Int;
 
+# input tuning
 no_tuning_curves_per_input_neuron = 1::Int; # as this increases the inputs increase in magnitude!
+tuning_type = gaussian_tc();
+#tuning_type = linear_tc();
 
+# weight constraints
 weights_upper_bound = 10;
 weights_lower_bound = -10;
 
@@ -35,6 +39,7 @@ learning_rate = 0.00012; #0.00001 for debugging # 0.00012 was pretty good with H
 output_noise = 10.0; #10.0;
 
 initial_weight_bias = (2.0); # 2.0
+gaussian_weight_bias = (0.5);
 
 # choose input sequence
 use_cts_random_inputs = false :: Bool;
