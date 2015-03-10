@@ -1,3 +1,10 @@
+# empty constructors to utilise multiple dispatch
+abstract TuningSelector
+type gaussian_tc <: TuningSelector # use gaussian basis functions
+end
+type linear_tc <: TuningSelector # use linear tuning functions
+end
+
 ########## Parameters #############
 random_seed = 4;#3;
 

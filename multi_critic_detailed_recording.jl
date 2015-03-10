@@ -82,7 +82,7 @@ function generate_task_sequence(seq_length::Int64)
 end
 
 
-function perform_learning_block_single_problem(task_id::Int, block_dat::Block)
+function perform_learning_block_single_problem(task_id::Int, tuning_type::TuningSelector, block_dat::Block)
   # generate 80 trial values for x
   # loop through x: update_noise, update_weights
 
@@ -122,7 +122,7 @@ function perform_learning_block_single_problem(task_id::Int, block_dat::Block)
   #for(xi in x)
   for(i = 1:no_trials_in_block)
     update_noise()
-    monitor_reward += (update_weights(x[i], task_id, block_dat.trial[i]) / 2);
+    monitor_reward += (update_weights(x[i], task_id, tuning_type, block_dat.trial[i]) / 2);
     if(verbosity > 0)
       print("\n")
     end
@@ -149,7 +149,7 @@ function perform_learning_block_single_problem(task_id::Int, block_dat::Block)
 end
 
 
-function perform_learning_block_trial_switching(block_dat::Block)
+function perform_learning_block_trial_switching(tuning_type::TuningSelector, block_dat::Block)
   # generate 80 trial values for x
   # loop through x: update_noise, update_weights
 
@@ -194,7 +194,7 @@ function perform_learning_block_trial_switching(block_dat::Block)
   local_average_task_choice = zeros(no_input_tasks);
   for(i = 1:no_trials_in_block)
     update_noise()
-    local_reward = (update_weights(x[i], task[i], block_dat.trial[i]) / 2);
+    local_reward = (update_weights(x[i], task[i], tuning_type, block_dat.trial[i]) / 2);
     monitor_reward += local_reward;
     task_count[task[i]] += 1;
     proportion_task_correct[task[i]] += local_reward; # local_reward = {0,1}
@@ -229,7 +229,7 @@ function perform_learning_block_trial_switching(block_dat::Block)
 end
 
 
-function perform_single_subject_experiment(task_id::Int, subjects_dat::Array{Subject,2}, subject_id::Int64=1)
+function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSelector, subjects_dat::Array{Subject,2}, subject_id::Int64=1)
   global enable_weight_updates :: Bool;
   global average_reward;
   global n_critic;
@@ -237,7 +237,7 @@ function perform_single_subject_experiment(task_id::Int, subjects_dat::Array{Sub
   global a = deepcopy(subjects_dat[subject_id, task_id].a);
   global b = deepcopy(subjects_dat[subject_id, task_id].b);
 
-  initialise_weight_matrix() # must be called after a and b are setup
+  initialise_weight_matrix(tuning_type) # must be called after a and b are setup
   subjects_dat[subject_id, task_id].w_initial = deepcopy(w);
 
   if(disable_learning_on_first_block)
@@ -263,7 +263,7 @@ function perform_single_subject_experiment(task_id::Int, subjects_dat::Array{Sub
     if(verbosity > -1)
       print("------------------ Block number $i --------------------\n")
     end
-    perform_learning_block_single_problem(task_id, subjects_dat[subject_id, task_id].blocks[i])
+    perform_learning_block_single_problem(task_id, tuning_type, subjects_dat[subject_id, task_id].blocks[i])
     if (save_reward_from_running_average)
       # Remember, average_reward is a running average not a block average
       local_average_reward = 0.;
@@ -291,7 +291,7 @@ function perform_single_subject_experiment(task_id::Int, subjects_dat::Array{Sub
 end
 
 
-function perform_single_subject_experiment_trial_switching(subjects::Array{Subject,2}, subject_id::Int64=1)
+function perform_single_subject_experiment_trial_switching(tuning_type::TuningSelector, subjects::Array{Subject,2}, subject_id::Int64=1)
   global enable_weight_updates::Bool;
   global average_reward;
   global n_critic;
@@ -301,7 +301,7 @@ function perform_single_subject_experiment_trial_switching(subjects::Array{Subje
   global a = deepcopy(subjects[subject_id, roving_experiment_id].a);
   global b = deepcopy(subjects[subject_id, roving_experiment_id].b);
 
-  initialise_weight_matrix() # must be called after a and b are setup
+  initialise_weight_matrix(tuning_type) # must be called after a and b are setup
   subjects[subject_id, roving_experiment_id].w_initial = deepcopy(w);
 
   if(disable_learning_on_first_block)
@@ -328,7 +328,7 @@ function perform_single_subject_experiment_trial_switching(subjects::Array{Subje
       print("-------------------------------------------\n")
     end
     
-    perform_learning_block_trial_switching(subjects[subject_id, roving_experiment_id].blocks[i])
+    perform_learning_block_trial_switching(tuning_type, subjects[subject_id, roving_experiment_id].blocks[i])
     
     if (save_reward_from_running_average)
       # Remember, average_reward is a running average, not a block average.
@@ -359,14 +359,14 @@ function perform_single_subject_experiment_trial_switching(subjects::Array{Subje
 end
 
 
-function perform_multi_subject_experiment(task_id::Int, subjects::Array{Subject,2}, no_subjects::Int64=no_subjects)
+function perform_multi_subject_experiment(task_id::Int, tuning_type::TuningSelector, subjects::Array{Subject,2}, no_subjects::Int64=no_subjects)
   #global subject = Array(Subject, no_subjects);
 
   for(i = 1:no_subjects)
     if(verbosity > -1)
       print("-----------Subject number $i------------\n")
     end
-    perform_single_subject_experiment(task_id, subjects, i)
+    perform_single_subject_experiment(task_id, tuning_type, subjects, i)
   end
 
   if(verbosity > -1)
@@ -375,14 +375,14 @@ function perform_multi_subject_experiment(task_id::Int, subjects::Array{Subject,
 end
 
 
-function perform_multi_subject_experiment_trial_switching(subjects::Array{Subject,2}, no_subjects::Int64=no_subjects)
+function perform_multi_subject_experiment_trial_switching(tuning_type::TuningSelector, subjects::Array{Subject,2}, no_subjects::Int64=no_subjects)
   #global subject = Array(Subject, no_subjects);
 
   for(i = 1:no_subjects)
     if(verbosity > -1)
       print("-----------Subject number $i------------\n")
     end
-    perform_single_subject_experiment_trial_switching(subjects, i)
+    perform_single_subject_experiment_trial_switching(tuning_type, subjects, i)
   end
 end
 
@@ -403,25 +403,25 @@ function compare_three_trial_types_with_multiple_subjects()
 
   if(use_ab_persistence)
     for i = 1:no_subjects
-      initialise_pre_population();
+      initialise_pre_population(tuning_type);
       for j = 1:no_input_tasks
         latest_experiment_results.subjects_task[i,j].a = deepcopy(a);
         latest_experiment_results.subjects_task[i,j].b = deepcopy(b);
       end
       latest_experiment_results.subjects_roving_task[i,1].a = deepcopy(a);
       latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
-      initialise_pre_population();
-      initialise_pre_population();
+      initialise_pre_population(tuning_type);
+      initialise_pre_population(tuning_type);
     end
   else # experiment to have identical RND sequences
     for i = 1:no_subjects
-      initialise_pre_population(); 
+      initialise_pre_population(tuning_type); 
       latest_experiment_results.subjects_task[i,1].a = deepcopy(a);
       latest_experiment_results.subjects_task[i,1].b = deepcopy(b);
-      initialise_pre_population(); 
+      initialise_pre_population(tuning_type); 
       latest_experiment_results.subjects_task[i,2].a = deepcopy(a);
       latest_experiment_results.subjects_task[i,2].b = deepcopy(b);
-      initialise_pre_population(); 
+      initialise_pre_population(tuning_type); 
       latest_experiment_results.subjects_roving_task[i,1].a = deepcopy(a);
       latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
     end
@@ -429,7 +429,7 @@ function compare_three_trial_types_with_multiple_subjects()
 
   print("-----Experiment: task 1------\n")
   task_id = 1::Int;
-  perform_multi_subject_experiment(task_id, latest_experiment_results.subjects_task);
+  perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_task);
   mean_correct = zeros(no_blocks_in_experiment);
   range_correct = zeros(no_blocks_in_experiment);
   err_correct = zeros(no_blocks_in_experiment);
@@ -457,7 +457,7 @@ function compare_three_trial_types_with_multiple_subjects()
 
   print("-----Experiment: task 2------\n")
   task_id = 2::Int;
-  perform_multi_subject_experiment(task_id, latest_experiment_results.subjects_task);
+  perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_task);
   mean_correct = zeros(no_blocks_in_experiment);
   range_correct = zeros(no_blocks_in_experiment);
   err_correct = zeros(no_blocks_in_experiment);
@@ -486,7 +486,7 @@ function compare_three_trial_types_with_multiple_subjects()
   print("-----Experiment: roving task------\n")
   roving_experiment_id = 1 :: Int;
   # there's no point expanding the following to generic multiple roving pop experiments until I have such an experiment
-  perform_multi_subject_experiment_trial_switching(latest_experiment_results.subjects_roving_task);
+  perform_multi_subject_experiment_trial_switching(tuning_type, latest_experiment_results.subjects_roving_task);
   mean_correct = zeros(no_blocks_in_experiment);
   mean_task_1_correct = zeros(no_blocks_in_experiment);
   mean_task_2_correct = zeros(no_blocks_in_experiment);
@@ -1260,8 +1260,8 @@ function will_subject_learn(subjects::Array{Subject,2}, task_id::Int=1, begin_id
     global b = deepcopy(subjects[i,task_id].b);
     global w = deepcopy(subjects[i,task_id].w_initial);
 
-    pre_pos_1 = pre(1.0, task_id);
-    pre_neg_1 = pre(-1.0, task_id);
+    pre_pos_1 = pre(1.0, task_id, tuning_type);
+    pre_neg_1 = pre(-1.0, task_id, tuning_type);
 
     # calculate noise free post for +1
     noise_free_post_pos_left = sum(pre_pos_1[:,task_id].*w[:,1,task_id]);

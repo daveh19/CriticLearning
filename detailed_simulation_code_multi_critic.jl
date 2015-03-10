@@ -9,11 +9,6 @@ type gaussian_tc_type
   height :: Array{Float64, 1};
 end
 
-# empty constructor to utilise multiple dispatch
-type gaussian_tc # use gaussian basis functions
-end
-type linear_tc  # use linear tuning functions
-end
 
 # putting noise updates in a function (which must be called!)
 #  rather than in the post() function, for debugging reasons
@@ -44,7 +39,7 @@ function initialise_pre_population(tuning_type::gaussian_tc)
   a = Array(gaussian_tc_type, (no_pre_neurons_per_task, no_input_tasks) );
   for i = 1:no_input_tasks;
     figure()
-    for j=1:no_pre_neurons;
+    for j=1:no_pre_neurons_per_task;
       tuning_mu = rand(Uniform(-1,1), no_tuning_curves_per_input_neuron);
       tuning_sigma = ones(no_tuning_curves_per_input_neuron);
       tuning_sigma *= 0.25;
@@ -63,6 +58,8 @@ function plot_gaussian_tuning_single_input(neuron_id::Int=1, task_id::Int=1)
   x = linspace(-1,1,101);
   y = zeros(101);
   for i = 1:101
+    #local_pre = pre(x[i], task_id, gaussian_tc() );
+    #y[i] = sum(local_pre);
     for j = 1:a[neuron_id, task_id].no_curves
       f(x) = a[neuron_id, task_id].height[j] .* exp( -(x - a[neuron_id,task_id].mu[j]).^2 ./ (2 * ( a[neuron_id, task_id].sigma[j] .^2 ) ) );
       y[i] += f(x[i]);
@@ -140,7 +137,7 @@ function initialise()
   global proportion_1_correct = 0.0;
   global proportion_2_correct = 0.0; 
 
-  global exp_results = Array(RovingExperiment, 0);
+  #global exp_results = Array(RovingExperiment, 0);
 
   global enable_weight_updates = true::Bool;
 
@@ -212,8 +209,8 @@ end
 #  no longer generating a new noise value (ksi) on each call,
 #  this must be done externally to allow for repeatibility during debug
 # Note: local_post returns a tuple where one value is 0. All comparisons to find the non zero value should use absolute comparison.
-function post(x::Float64, task_id::Int, debug_on::Bool=false)
-	local_pre = pre(x, task_id)
+function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::Bool=false)
+	local_pre = pre(x, task_id, tuning_type)
   
   noise_free_left = sum(local_pre[:,task_id] .* w[:,1,task_id]);
   noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
@@ -234,7 +231,7 @@ function post(x::Float64, task_id::Int, debug_on::Bool=false)
 end
 
 
-function detect_threshold(task_id::Int=1, split_output::Bool=false)
+function detect_threshold(tuning_type::TuningSelector, task_id::Int=1, split_output::Bool=false)
   # find the detection threshold with current weight matrix and current subject
   no_points = 30;
   error_rate = zeros(no_points);
@@ -243,8 +240,8 @@ function detect_threshold(task_id::Int=1, split_output::Bool=false)
   i = 1;
   for xi in x
     # calculate pre for +/- xi
-    local_pre_pos = pre(xi, task_id);
-    local_pre_neg = pre(-xi, task_id);
+    local_pre_pos = pre(xi, task_id, tuning_type);
+    local_pre_neg = pre(-xi, task_id, tuning_type);
 
     #print("DEBUG: $local_pre_pos, $local_pre_neg ")
 
@@ -321,8 +318,8 @@ end
 # this is the only function which actually knows if things went right or wrong
 # instance_correct = 0;
 # instance_incorrect = 0;
-function reward(x, task_id::Int)
-	local_post = post(x, task_id, true)
+function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
+	local_post = post(x, task_id, tuning_type, true)
 
   # I've had some trouble with the logic here due to wta() accepting negative inputs
 	if ((x > 0) && (abs(local_post[2]) > 0))#right
@@ -372,7 +369,7 @@ end
 
 
 # average_choice = 0. :: Float64;
-function update_weights(x, task_id::Int, trial_dat::Trial)
+function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, trial_dat::Trial)
   if(verbosity > 3)
     global instance_reward;
     global instance_average_reward;
@@ -382,12 +379,12 @@ function update_weights(x, task_id::Int, trial_dat::Trial)
   n_task_within_block[task_id] += 1;
 
   # don't forget to update noise externally to this function on separate iterations
-  local_pre = pre(x, task_id);
+  local_pre = pre(x, task_id, tuning_type);
   # Note: local_post returns a tuple where one value is 0. All comparisons to find the non zero value should use absolute comparison.
-  local_post = post(x, task_id);
-  local_reward = reward(x, task_id) :: Int; # it is important that noise is not updated between calls to post() and reward()
+  local_post = post(x, task_id, tuning_type);
+  local_reward = reward(x, task_id, tuning_type) :: Int; # it is important that noise is not updated between calls to post() and reward()
   if(perform_detection_threshold)
-    local_threshold = detect_threshold(task_id);
+    local_threshold = detect_threshold(task_id, tuning_type);
     trial_dat.error_threshold = local_threshold;
   end
   if(verbosity > 3)
