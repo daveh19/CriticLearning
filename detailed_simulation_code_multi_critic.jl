@@ -71,6 +71,9 @@ function plot_gaussian_tuning_multi_inputs(task_id::Int=1, begin_id::Int=1, end_
   end
   xlim([-1,1])
   ylim([0,3])
+  title("Input layer tuning curves, direction $task_id")
+  xlabel("Input range")
+  ylabel("Neuronal firing rate")
 end
 
 
