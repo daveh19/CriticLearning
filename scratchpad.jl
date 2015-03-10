@@ -21,7 +21,40 @@ code_typed(generic_function, (types_arg_list,))
 code_llvm(generic_function, (types_arg_list,))
 code_native(generic_function, (types_arg_list,))
 code_typed(sort, ( Array{Float64,1}, ) )
+
+# developing gaussian tuning curves
+type plain_tc_type
+           no_curves :: Int;
+           mu
+           sigma
+           height
 end
+type tc_type
+	no_curves :: Int;
+	mu :: Array{Float64, 1};
+	sigma :: Array{Float64, 1};
+	height :: Array{Float64, 1};
+end
+d = plain_tc_type(1, Array(Float64, (3,1)), Array(Float64, (3,1)), Array(Float64, (3,1)) );
+
+figure()
+no_pre_neurons = 50;
+a = Array(tc_type, no_pre_neurons);
+for i=1:no_pre_neurons;
+	no_curves = 1;
+	tuning_mu = rand(Uniform(-1,1), no_curves);
+	tuning_sigma = ones(no_curves);
+	tuning_sigma *= 0.25;
+	tuning_height = rand(Normal(2,0.25), no_curves);
+	c = tc_type(no_curves, tuning_mu, tuning_sigma, tuning_height);
+	
+	scatter(tuning_mu, tuning_height, c="r");
+	scatter(tuning_mu, tuning_sigma, c="b");
+	a[i] = c;
+end
+
+
+end # end of 'false'
 
 
 ## check RND statistics

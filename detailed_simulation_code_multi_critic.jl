@@ -1,5 +1,13 @@
 ########## Main simulation functions #############
 
+# Gaussian tuning function definition parameters
+#    for a single presynaptic input neuron
+type tc_type
+  no_curves :: Int;
+  mu :: Array{Float64, 1};
+  sigma :: Array{Float64, 1};
+  height :: Array{Float64, 1};
+end
 
 # putting noise updates in a function (which must be called!)
 #  rather than in the post() function, for debugging reasons
@@ -19,8 +27,64 @@ function initialise_pre_population()
   end
 end
 
+function initialise_pre_population(gaussian_tuning::Bool)
+  # Multiple dispatch should use this function rather than the linear
+  #   receptive fields function if a boolean is passed as a parameter
+  global a;
+
+  a = Array(tc_type, (no_pre_neurons_per_task, no_input_tasks) );
+  for i = 1:no_input_tasks;
+    figure()
+    for j=1:no_pre_neurons;
+      no_tuning_curves_per_input_neuron = 1;
+      tuning_mu = rand(Uniform(-1,1), no_tuning_curves_per_input_neuron);
+      tuning_sigma = ones(no_tuning_curves_per_input_neuron);
+      tuning_sigma *= 0.25;
+      tuning_height = rand(Normal(2,0.25), no_tuning_curves_per_input_neuron);
+      a[j,i] = tc_type(no_tuning_curves_per_input_neuron, tuning_mu, tuning_sigma, tuning_height);
+  
+      scatter(tuning_mu, tuning_height, c="r");
+      scatter(tuning_mu, tuning_sigma, c="b");
+    end
+  end
+end
+
+
+function plot_gaussian_tuning_single_input(neuron_id::Int=1, task_id::Int=1)
+  #figure();
+  x = linspace(-1,1,101);
+  y = zeros(101);
+  for i = 1:101
+    for j = 1:a[neuron_id, task_id].no_curves
+      f(x) = a[neuron_id, task_id].height[j] .* exp( -(x - a[neuron_id,task_id].mu[j]).^2 ./ (2 * ( a[neuron_id, task_id].sigma[j] .^2 ) ) );
+      y[i] += f(x[i]);
+    end
+  end
+
+  plot(x,y);
+end
+
+function plot_gaussian_tuning_multi_inputs(task_id::Int=1, begin_id::Int=1, end_id::Int=no_pre_neurons_per_task)
+  figure()
+  for i = begin_id:end_id
+    plot_gaussian_tuning_single_input(i, task_id);
+  end
+  xlim([-1,1])
+  ylim([0,3])
+end
+
 
 function initialise_weight_matrix()
+  # Remember: always call this after a and b have already been initialised!
+  #set initial weights
+  global w = rand(Uniform(0,1), (no_pre_neurons_per_task, no_post_neurons, no_input_tasks));
+  for i = 1:no_input_tasks
+    w[:,1,i] += -initial_weight_bias.*b[:,i];
+    w[:,2,i] += initial_weight_bias.*b[:,i];
+  end
+end
+
+function initialise_weight_matrix(gaussian_tuning::Bool)
   # Remember: always call this after a and b have already been initialised!
   #set initial weights
   global w = rand(Uniform(0,1), (no_pre_neurons_per_task, no_post_neurons, no_input_tasks));
