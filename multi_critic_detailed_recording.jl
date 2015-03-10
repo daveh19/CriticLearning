@@ -235,7 +235,9 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
   global n_critic;
 
   global a = deepcopy(subjects_dat[subject_id, task_id].a);
-  global b = deepcopy(subjects_dat[subject_id, task_id].b);
+  if( isa(tuning_type, linear_tc) )
+    global b = deepcopy(subjects_dat[subject_id, task_id].b);
+  end
 
   initialise_weight_matrix(tuning_type) # must be called after a and b are setup
   subjects_dat[subject_id, task_id].w_initial = deepcopy(w);
@@ -299,7 +301,9 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
   roving_experiment_id = 1::Int;
 
   global a = deepcopy(subjects[subject_id, roving_experiment_id].a);
-  global b = deepcopy(subjects[subject_id, roving_experiment_id].b);
+  if( isa(tuning_type, linear_tc) )
+    global b = deepcopy(subjects[subject_id, roving_experiment_id].b);
+  end
 
   initialise_weight_matrix(tuning_type) # must be called after a and b are setup
   subjects[subject_id, roving_experiment_id].w_initial = deepcopy(w);
@@ -399,17 +403,32 @@ function compare_three_trial_types_with_multiple_subjects()
 
   #latest_experiment_results = Multi_subject_experiment_results(zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment), zeros(no_blocks_in_experiment));
 
-  latest_experiment_results = initialise_empty_roving_experiment(no_subjects, no_blocks_in_experiment, no_trials_in_block);
+  if(use_gaussian_tuning_function)
+    # use gaussian basis functions
+    tuning_type = gaussian_tc();
+  elseif(use_linear_tuning_function)
+    # use linear tuning functions
+    tuning_type = linear_tc();
+  else
+    print("ERROR: you need to define a tuning function\n");
+    error(1);
+  end
+
+  latest_experiment_results = initialise_empty_roving_experiment(tuning_type, no_subjects, no_blocks_in_experiment, no_trials_in_block);
 
   if(use_ab_persistence)
     for i = 1:no_subjects
       initialise_pre_population(tuning_type);
       for j = 1:no_input_tasks
         latest_experiment_results.subjects_task[i,j].a = deepcopy(a);
-        latest_experiment_results.subjects_task[i,j].b = deepcopy(b);
+        if( isa(tuning_type, linear_tc) )
+          latest_experiment_results.subjects_task[i,j].b = deepcopy(b);
+        end
       end
       latest_experiment_results.subjects_roving_task[i,1].a = deepcopy(a);
-      latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
+      if( isa(tuning_type, linear_tc) )
+        latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
+      end
       initialise_pre_population(tuning_type);
       initialise_pre_population(tuning_type);
     end
@@ -417,13 +436,19 @@ function compare_three_trial_types_with_multiple_subjects()
     for i = 1:no_subjects
       initialise_pre_population(tuning_type); 
       latest_experiment_results.subjects_task[i,1].a = deepcopy(a);
-      latest_experiment_results.subjects_task[i,1].b = deepcopy(b);
+      if( isa(tuning_type, linear_tc) )
+        latest_experiment_results.subjects_task[i,1].b = deepcopy(b);
+      end
       initialise_pre_population(tuning_type); 
       latest_experiment_results.subjects_task[i,2].a = deepcopy(a);
-      latest_experiment_results.subjects_task[i,2].b = deepcopy(b);
+      if( isa(tuning_type, linear_tc) )
+        latest_experiment_results.subjects_task[i,2].b = deepcopy(b);
+      end
       initialise_pre_population(tuning_type); 
       latest_experiment_results.subjects_roving_task[i,1].a = deepcopy(a);
-      latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
+      if( isa(tuning_type, linear_tc) )
+        latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
+      end
     end
   end
 
@@ -1257,7 +1282,9 @@ function will_subject_learn(subjects::Array{Subject,2}, task_id::Int=1, begin_id
   print("Heuristic for who will learn based on inital weights and tuning curves, heuristic threshold $heuristic_threshold:\n") 
   for i = begin_id:end_id
     global a = deepcopy(subjects[i,task_id].a);
-    global b = deepcopy(subjects[i,task_id].b);
+    if( isa(tuning_type, linear_tc) )
+      global b = deepcopy(subjects[i,task_id].b);
+    end
     global w = deepcopy(subjects[i,task_id].w_initial);
 
     pre_pos_1 = pre(1.0, task_id, tuning_type);
@@ -1293,7 +1320,9 @@ end
 
 function restore_subject(subject::Subject, initial_weights::Bool=true)
   global a = deepcopy(subject.a);
-  global b = deepcopy(subject.b);
+  if( isa(tuning_type, linear_tc) )
+    global b = deepcopy(subject.b);
+  end
   if (initial_weights)
     global w = deepcopy(subject.w_initial);
   else

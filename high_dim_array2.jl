@@ -1,4 +1,13 @@
 
+# Gaussian tuning function definition parameters
+#    for a single presynaptic input neuron
+type gaussian_tc_type
+  no_curves :: Int;
+  mu :: Array{Float64, 1};
+  sigma :: Array{Float64, 1};
+  height :: Array{Float64, 1};
+end
+
 ######### Data Storage ##############
 
 type Trial
@@ -17,7 +26,7 @@ type Trial
   dw :: Array{Float64, 3};
 end
 
-function initialise_empty_trials(no_trials)
+function initialise_empty_trials(no_trials::Int)
   trial = Array(Trial, no_trials);
 
   for i = 1:no_trials
@@ -44,7 +53,7 @@ type Block
   #average_delta_reward :: Float64;
 end
 
-function initialise_empty_block(no_blocks, trials_per_block, double_trials::Bool=false)
+function initialise_empty_block(no_blocks::Int, trials_per_block::Int, double_trials::Bool=false)
   block = Array(Block, no_blocks);
 
   if (double_trials)
@@ -60,7 +69,8 @@ function initialise_empty_block(no_blocks, trials_per_block, double_trials::Bool
 end
 
 
-type Subject
+abstract Subject
+type LinearInputsSubject <: Subject
   # an array of blocks for this subject
   blocks :: Array{Block, 1}
   # summary information for this subject
@@ -72,10 +82,31 @@ type Subject
   # final weights at end of experiment
   w_final :: Array{Float64, 3}
 end
+type GaussianInputsSubject <: Subject
+  # an array of blocks for this subject
+  blocks :: Array{Block, 1}
+  # summary information for this subject
+  # inherent receptive field, this is unique per subject and does not change
+  a :: Array{gaussian_tc_type, 2} 
+  #b :: Array{Float64, 2}
+  # initial weights at beginning of experiment
+  w_initial :: Array{Float64, 3}
+  # final weights at end of experiment
+  w_final :: Array{Float64, 3}
+end
 
-function initialise_empty_subject(blocks_per_subject, trials_per_block, double_trials::Bool=false)
+# linear tuning function on inputs
+function initialise_empty_subject(tuning_type::linear_tc, blocks_per_subject::Int, trials_per_block::Int, double_trials::Bool=false)
   blocks = initialise_empty_block(blocks_per_subject, trials_per_block, double_trials);
-  subject = Subject( blocks, zeros(no_pre_neurons_per_task, no_input_tasks), zeros(no_pre_neurons_per_task, no_input_tasks), zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks), zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks) );
+  subject = LinearInputsSubject( blocks, zeros(no_pre_neurons_per_task, no_input_tasks), zeros(no_pre_neurons_per_task, no_input_tasks), zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks), zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks) );
+
+  return subject;
+end
+# gaussian tuning function on inputs
+function initialise_empty_subject(tuning_type::gaussian_tc, blocks_per_subject::Int, trials_per_block::Int, double_trials::Bool=false)
+  blocks = initialise_empty_block(blocks_per_subject, trials_per_block, double_trials);
+  a = Array(gaussian_tc_type, (no_pre_neurons_per_task, no_input_tasks) );
+  subject = GaussianInputsSubject( blocks, a, zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks), zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks) );
 
   return subject;
 end
@@ -102,7 +133,7 @@ type RovingExperiment
   roving_range :: Array{Float64,2}
 end
 
-function initialise_empty_roving_experiment(no_subjects, blocks_per_subject, trials_per_block)
+function initialise_empty_roving_experiment(tuning_type::TuningSelector, no_subjects::Int, blocks_per_subject::Int, trials_per_block::Int)
   no_roving_tasks = 1::Int;
 
   subjects_task = Array(Subject, (no_subjects, no_input_tasks) );
@@ -120,10 +151,10 @@ function initialise_empty_roving_experiment(no_subjects, blocks_per_subject, tri
 
   for i = 1:no_subjects
     for j = 1:no_input_tasks
-      subjects_task[i,j] = initialise_empty_subject(blocks_per_subject, trials_per_block);
+      subjects_task[i,j] = initialise_empty_subject(tuning_type, blocks_per_subject, trials_per_block);
     end
     for j = 1:no_roving_tasks
-      subjects_roving_task[i,j] = initialise_empty_subject(blocks_per_subject, trials_per_block, double_no_of_trials_in_alternating_experiment);
+      subjects_roving_task[i,j] = initialise_empty_subject(tuning_type, blocks_per_subject, trials_per_block, double_no_of_trials_in_alternating_experiment);
     end
   end
   experiment = RovingExperiment(subjects_task, subjects_roving_task, task_correct, roving_correct, roving_task_correct, task_error, roving_error, task_range, roving_range );

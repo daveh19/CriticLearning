@@ -1,15 +1,5 @@
 ########## Main simulation functions #############
 
-# Gaussian tuning function definition parameters
-#    for a single presynaptic input neuron
-type gaussian_tc_type
-  no_curves :: Int;
-  mu :: Array{Float64, 1};
-  sigma :: Array{Float64, 1};
-  height :: Array{Float64, 1};
-end
-
-
 # putting noise updates in a function (which must be called!)
 #  rather than in the post() function, for debugging reasons
 function update_noise()
@@ -38,7 +28,7 @@ function initialise_pre_population(tuning_type::gaussian_tc)
   #CONSIDER: should I reduce height by no_tuning_curves_per_input_neuron?
   a = Array(gaussian_tc_type, (no_pre_neurons_per_task, no_input_tasks) );
   for i = 1:no_input_tasks;
-    figure()
+    #figure()
     for j=1:no_pre_neurons_per_task;
       tuning_mu = rand(Uniform(-1,1), no_tuning_curves_per_input_neuron);
       tuning_sigma = ones(no_tuning_curves_per_input_neuron);
@@ -46,8 +36,8 @@ function initialise_pre_population(tuning_type::gaussian_tc)
       tuning_height = rand(Normal(2,0.25), no_tuning_curves_per_input_neuron);
       a[j,i] = gaussian_tc_type(no_tuning_curves_per_input_neuron, tuning_mu, tuning_sigma, tuning_height);
   
-      scatter(tuning_mu, tuning_height, c="r");
-      scatter(tuning_mu, tuning_sigma, c="b");
+      #scatter(tuning_mu, tuning_height, c="r");
+      #scatter(tuning_mu, tuning_sigma, c="b");
     end
   end
 end
@@ -137,7 +127,7 @@ function initialise()
   global proportion_1_correct = 0.0;
   global proportion_2_correct = 0.0; 
 
-  #global exp_results = Array(RovingExperiment, 0);
+  global exp_results = Array(RovingExperiment, 0);
 
   global enable_weight_updates = true::Bool;
 
@@ -149,7 +139,7 @@ __init__ = initialise();
 
 
 # pre-synaptic firing rate upon presentation of pattern x
-function pre(x::Float64, task_id::Int)
+function pre(x::Float64, task_id::Int, tuning_type::linear_tc)
   local_pre = zeros(no_pre_neurons_per_task, no_input_tasks);
   local_pre[:,task_id] = [(a[:,task_id] + b[:,task_id] .* x)];
   return local_pre;
@@ -384,7 +374,7 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   local_post = post(x, task_id, tuning_type);
   local_reward = reward(x, task_id, tuning_type) :: Int; # it is important that noise is not updated between calls to post() and reward()
   if(perform_detection_threshold)
-    local_threshold = detect_threshold(task_id, tuning_type);
+    local_threshold = detect_threshold(tuning_type, task_id);
     trial_dat.error_threshold = local_threshold;
   end
   if(verbosity > 3)
