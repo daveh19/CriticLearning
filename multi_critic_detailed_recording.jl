@@ -119,16 +119,25 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   global average_choice = 0.0;
   global n_within_block = 0;
   global n_task_within_block = zeros(Int, no_input_tasks);
+  local_average_threshold = 0.0;
+  local_average_task_threshold = zeros(no_input_tasks);
   #for(xi in x)
   for(i = 1:no_trials_in_block)
     update_noise()
     monitor_reward += (update_weights(x[i], task_id, tuning_type, block_dat.trial[i]) / 2);
+    if(perform_detection_threshold)
+      local_average_threshold += block_dat.trial[i].error_threshold;
+      local_average_task_threshold[task_id] += block_dat.trial[i].error_threshold;
+    end
     if(verbosity > 0)
       print("\n")
     end
   end
   proportion_correct = monitor_reward / no_trials_in_block;
-
+  if(perform_detection_threshold)
+    local_average_threshold /= no_trials_in_block;
+    local_average_task_threshold[task_id] = local_average_task_threshold[task_id] ./ no_trials_in_block;
+  end
   #global wfinal = deepcopy(w)
 
   if(verbosity > 2)
@@ -144,6 +153,9 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   
   block_dat.average_reward = average_block_reward;
   block_dat.average_task_reward = average_task_reward;
+
+  block_dat.average_threshold = local_average_threshold;
+  block_dat.average_task_threshold = local_average_task_threshold;
 
   return proportion_correct;
 end
@@ -1056,14 +1068,14 @@ end
 function plot_single_block_threshold_performance(block::Block)
   #figure()
   no_trials_in_block = length(block.trial); # may not be global value due to double length roving sims
-  local_reward_received = zeros(no_trials_in_block);
+  local_error_threshold = zeros(no_trials_in_block);
   x = linspace(1, no_trials_in_block, no_trials_in_block);
   for i = 1:no_trials_in_block
-    local_reward_received[i] = block.trial[i].reward_received;
+    local_error_threshold[i] = block.trial[i].error_threshold;
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
-  plot(x, local_reward_received, linewidth=2)
+  plot(x, local_error_threshold, linewidth=2)
   return no_trials_in_block;
 end
 
@@ -1071,14 +1083,14 @@ function plot_multi_block_threshold_performance(subject::Subject, begin_id::Int=
   figure()
   max_no_trials_in_block = 0::Int;
   for i = begin_id:end_id
-    no_trials = plot_single_block_performance(subject.blocks[i]);
+    no_trials = plot_single_block_threshold_performance(subject.blocks[i]);
     if (no_trials > max_no_trials_in_block)
       max_no_trials_in_block = no_trials;
     end
   end
   xlabel("Trial number")
-  ylabel("Reward received")
-  axis([0,max_no_trials_in_block,-2,2])
+  ylabel("Error threshold")
+  axis([0,max_no_trials_in_block,0,1])
 end
 
 
@@ -1163,6 +1175,33 @@ function plot_multi_subject_proportion_correct(subjects::Array{Subject,2}, task_
   end
   xlabel("Block number")
   ylabel("Proportion correct")
+  axis([0,no_blocks_in_experiment,0,1])
+end
+
+
+function plot_single_subject_average_threshold(subject::Subject)
+  #figure()
+  local_av_threshold = zeros(no_blocks_in_experiment);
+  local_av_task_threshold = zeros(no_blocks_in_experiment, no_input_tasks);
+  x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
+  for i = 1:no_blocks_in_experiment
+    local_av_threshold[i] = subject.blocks[i].average_threshold; #average_reward;
+    local_av_task_threshold[i,:] = subject.blocks[i].average_task_threshold; 
+    #print("", x[i], " ", local_reward_received[i], "\n")
+  end
+  #print("", size(local_reward_received), " ", size(x),"\n")
+  plot(x, local_av_task_threshold[:,1], linewidth=2, c="k")
+  plot(x, local_av_task_threshold[:,2], linewidth=2, c="g")
+  plot(x, local_av_threshold, linewidth=2, c="r")
+end
+
+function plot_multi_subject_average_threshold(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
+  figure()
+  for i = begin_id:end_id
+    plot_single_subject_average_threshold(subjects[i,task_id])
+  end
+  xlabel("Block number")
+  ylabel("Average error threshold (x | error = 0.25)")
   axis([0,no_blocks_in_experiment,0,1])
 end
 

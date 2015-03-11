@@ -45,8 +45,8 @@ type Block
   average_reward :: Float64; # this is the state of the running average at the end of the block
   average_choice :: Float64;
   average_threshold :: Float64;
+
   proportion_task_correct :: Array{Float64, 1};
-  #TODO: implement monitoring and plotting of following two variables
   average_task_reward :: Array{Float64, 1}; # this is a true per task average for the block
   average_task_choice :: Array{Float64, 1};
   average_task_threshold :: Array{Float64, 1};
