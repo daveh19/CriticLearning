@@ -117,7 +117,7 @@ function initialise()
     print("ERROR: you need to define a tuning function\n");
     error(1);
   end
-  
+
   initialise_pre_population(tuning_type);
   update_noise();
   initialise_weight_matrix(tuning_type);
@@ -354,10 +354,13 @@ end
 function multi_critic_running_av_reward(R::Int, task_critic_id::Int, choice_critic_id::Int)
   global n_critic;
   global average_reward;
-
-  n_critic[task_critic_id, choice_critic_id] += 1;
-
+  
   tau_r = running_av_window_length;
+
+  if (n_critic[task_critic_id, choice_critic_id] < tau_r)
+    n_critic[task_critic_id, choice_critic_id] += 1;
+  end
+  
   tau = min(tau_r, n_critic[task_critic_id, choice_critic_id]);
 
   Rn = ( (tau - 1) * average_reward[task_critic_id, choice_critic_id] + R ) / tau;
@@ -422,7 +425,7 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   multi_critic_running_av_reward(local_reward, local_critic_task_bin, local_critic_response_bin);
 
   # decide which form of average reward we're using here:
-  if( use_multi_critic)
+  if( use_multi_critic )
     #   multi critic:
     #     currently expanding logic to use number of critics declared in params
     local_average_reward = average_reward[local_critic_task_bin, local_critic_response_bin];
