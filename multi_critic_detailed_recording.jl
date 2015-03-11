@@ -173,6 +173,7 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
   proportion_task_correct = zeros(no_input_tasks);
   task_count = zeros(no_input_tasks);
 
+
   monitor_reward = 0;
   global average_reward;
   global n_critic;
@@ -192,6 +193,8 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
   global average_block_reward = 0.0;
   average_task_reward = zeros(no_input_tasks);
   local_average_task_choice = zeros(no_input_tasks);
+  local_average_threshold = 0.0;
+  local_average_task_threshold = zeros(no_input_tasks);
   for(i = 1:no_trials_in_block)
     update_noise()
     local_reward = (update_weights(x[i], task[i], tuning_type, block_dat.trial[i]) / 2);
@@ -199,6 +202,10 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
     task_count[task[i]] += 1;
     proportion_task_correct[task[i]] += local_reward; # local_reward = {0,1}
     local_average_task_choice[task[i]] += block_dat.trial[i].chosen_answer;
+    if(perform_detection_threshold)
+      local_average_threshold += block_dat.trial[i].error_threshold;
+      local_average_task_threshold[task[i]] += block_dat.trial[i].error_threshold;
+    end
     if(verbosity > 0)
       print("\n")
     end
@@ -206,6 +213,10 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
   proportion_correct = monitor_reward / no_trials_in_block;
   proportion_task_correct = proportion_task_correct ./ task_count;
   local_average_task_choice = local_average_task_choice ./ task_count;
+  if(perform_detection_threshold)
+    local_average_threshold /= no_trials_in_block;
+    local_average_task_threshold = local_average_task_threshold ./ task_count;
+  end
 
   #global wfinal = deepcopy(w)
 
@@ -224,6 +235,9 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
 
   block_dat.average_reward = average_block_reward;
   block_dat.average_task_reward = average_task_reward;
+
+  block_dat.average_threshold = local_average_threshold;
+  block_dat.average_task_threshold = local_average_task_threshold;
 
   return proportion_correct;
 end
@@ -1039,7 +1053,7 @@ function print_single_block_performance(block::Block)
 end
 
 # I guess that the following should become my plot of threshold not reward received...
-function plot_single_block_performance(block::Block)
+function plot_single_block_threshold_performance(block::Block)
   #figure()
   no_trials_in_block = length(block.trial); # may not be global value due to double length roving sims
   local_reward_received = zeros(no_trials_in_block);
@@ -1053,7 +1067,7 @@ function plot_single_block_performance(block::Block)
   return no_trials_in_block;
 end
 
-function plot_multi_block_performance(subject::Subject, begin_id::Int=1, end_id::Int=no_blocks_in_experiment)
+function plot_multi_block_threshold_performance(subject::Subject, begin_id::Int=1, end_id::Int=no_blocks_in_experiment)
   figure()
   max_no_trials_in_block = 0::Int;
   for i = begin_id:end_id

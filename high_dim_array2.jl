@@ -44,10 +44,12 @@ type Block
   proportion_correct :: Float64;
   average_reward :: Float64; # this is the state of the running average at the end of the block
   average_choice :: Float64;
+  average_threshold :: Float64;
   proportion_task_correct :: Array{Float64, 1};
   #TODO: implement monitoring and plotting of following two variables
   average_task_reward :: Array{Float64, 1}; # this is a true per task average for the block
   average_task_choice :: Array{Float64, 1};
+  average_task_threshold :: Array{Float64, 1};
   #proportion_1_correct :: Float64;
   #proportion_2_correct :: Float64;
   #average_delta_reward :: Float64;
@@ -62,7 +64,7 @@ function initialise_empty_block(no_blocks::Int, trials_per_block::Int, double_tr
 
   for i = 1:no_blocks
     local_trial = initialise_empty_trials(trials_per_block);
-    block[i] = Block( local_trial, 0., 0., 0., zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks) );
+    block[i] = Block( local_trial, 0., 0., 0., 0., zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks) );
   end  
 
   return block;
