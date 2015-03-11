@@ -13,8 +13,8 @@ abstract TuningSelector
 type gaussian_tc <: TuningSelector end
 type linear_tc <: TuningSelector end
 no_tuning_curves_per_input_neuron = 1::Int; # as this increases the inputs increase in magnitude!
-use_gaussian_tuning_function = true::Bool;
-use_linear_tuning_function = false::Bool;
+use_gaussian_tuning_function = false::Bool;
+use_linear_tuning_function = true::Bool;
 
 # weight constraints
 weights_upper_bound = 10.0 :: Float64;
@@ -22,16 +22,16 @@ weights_lower_bound = (-10.0) :: Float64;
 
 # trial length parameters
 no_trials_in_block = 80::Int; #80;
-no_blocks_in_experiment = 50::Int; #20::Int; #14;
+no_blocks_in_experiment = 20::Int; #20::Int; #14;
 no_subjects = 10::Int; #10;
-double_no_of_trials_in_alternating_experiment = true::Bool;
+double_no_of_trials_in_alternating_experiment = false::Bool;
 
 # critic parameters
 no_task_critics = 2 :: Int;
 no_choices_per_task_critics = 1 :: Int;
 use_multi_critic = false :: Bool;
 use_single_global_critic = true :: Bool;
-reset_average_reward_on_each_block = false :: Bool;
+reset_average_reward_on_each_block = true :: Bool;
 
 # problem difficulty parameters
 problem_left_bound = (-1.) :: Float64; #-0.5;
