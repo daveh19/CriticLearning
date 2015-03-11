@@ -30,10 +30,17 @@ function initialise_pre_population(tuning_type::gaussian_tc)
   for i = 1:no_input_tasks;
     #figure()
     for j=1:no_pre_neurons_per_task;
-      tuning_mu = rand(Uniform(-1,1), no_tuning_curves_per_input_neuron);
-      tuning_sigma = ones(no_tuning_curves_per_input_neuron);
-      tuning_sigma *= 0.25;
-      tuning_height = rand(Normal(2,0.25), no_tuning_curves_per_input_neuron);
+      tuning_mu = rand(Uniform(gaussian_tuning_mu_lower_bound,gaussian_tuning_mu_upper_bound), no_tuning_curves_per_input_neuron);
+      if (fix_tuning_gaussian_width)
+        tuning_sigma = ones(no_tuning_curves_per_input_neuron);
+        tuning_sigma *= gaussian_tuning_sigma;
+      else
+        tuning_sigma = rand(Normal(gaussian_tuning_sigma, gaussian_tuning_sigma_width), no_tuning_curves_per_input_neuron);
+      end
+      tuning_height = rand(Normal(gaussian_tuning_height,gaussian_tuning_height_variance), no_tuning_curves_per_input_neuron);
+      if ( normalise_height_of_multiple_gaussian_inputs )
+        tuning_height = tuning_height ./ no_tuning_curves_per_input_neuron;
+      end
       a[j,i] = gaussian_tc_type(no_tuning_curves_per_input_neuron, tuning_mu, tuning_sigma, tuning_height);
   
       #scatter(tuning_mu, tuning_height, c="r");

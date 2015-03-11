@@ -12,9 +12,17 @@ no_input_tasks = 2::Int;
 abstract TuningSelector
 type gaussian_tc <: TuningSelector end
 type linear_tc <: TuningSelector end
-no_tuning_curves_per_input_neuron = 1::Int; # as this increases the inputs increase in magnitude!
-use_gaussian_tuning_function = false::Bool;
-use_linear_tuning_function = true::Bool;
+no_tuning_curves_per_input_neuron = 2::Int; # as this increases the inputs increase in magnitude!
+use_gaussian_tuning_function = true::Bool;
+use_linear_tuning_function = false::Bool;
+normalise_height_of_multiple_gaussian_inputs = true::Bool;
+gaussian_tuning_mu_lower_bound = (-1.0) :: Float64;
+gaussian_tuning_mu_upper_bound = 1.0 :: Float64;
+fix_tuning_gaussian_width = true :: Bool;
+gaussian_tuning_sigma = 0.25 :: Float64;
+gaussian_tuning_sigma_width = 0.1 :: Float64;
+gaussian_tuning_height = 2.0 :: Float64;
+gaussian_tuning_height_variance = 0.25 :: Float64;
 
 # weight constraints
 weights_upper_bound = 10.0 :: Float64;
@@ -22,7 +30,7 @@ weights_lower_bound = (-10.0) :: Float64;
 
 # trial length parameters
 no_trials_in_block = 80::Int; #80;
-no_blocks_in_experiment = 20::Int; #20::Int; #14;
+no_blocks_in_experiment = 5::Int; #20::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = false::Bool;
 
@@ -59,7 +67,7 @@ task_tuning_slope_variance[2] = 0.25 :: Float64; # hard task
 
 
 # discrimination threshold calculation
-perform_detection_threshold = false :: Bool;
+perform_detection_threshold = true :: Bool;
 detection_threshold = 0.25 :: Float64;
 
 # this mimics the same subject in each experiment, rather than new subjects throughout
