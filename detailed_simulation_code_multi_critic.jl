@@ -107,6 +107,17 @@ end
 function initialise()
   srand(random_seed);
 
+  if(use_gaussian_tuning_function)
+    # use gaussian basis functions
+    tuning_type = gaussian_tc();
+  elseif(use_linear_tuning_function)
+    # use linear tuning functions
+    tuning_type = linear_tc();
+  else
+    print("ERROR: you need to define a tuning function\n");
+    error(1);
+  end
+  
   initialise_pre_population(tuning_type);
   update_noise();
   initialise_weight_matrix(tuning_type);

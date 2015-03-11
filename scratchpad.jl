@@ -29,13 +29,14 @@ type plain_tc_type
            sigma
            height
 end
+d = plain_tc_type(1, Array(Float64, (3,1)), Array(Float64, (3,1)), Array(Float64, (3,1)) );
+
 type tc_type
 	no_curves :: Int;
 	mu :: Array{Float64, 1};
 	sigma :: Array{Float64, 1};
 	height :: Array{Float64, 1};
 end
-d = plain_tc_type(1, Array(Float64, (3,1)), Array(Float64, (3,1)), Array(Float64, (3,1)) );
 
 figure()
 no_pre_neurons = 50;
