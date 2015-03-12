@@ -9,7 +9,7 @@ no_input_tasks = 2::Int;
 
 # trial length parameters
 no_trials_in_block = 80::Int; #80;
-no_blocks_in_experiment = 10::Int; #20::Int; #14;
+no_blocks_in_experiment = 30::Int; #20::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = false::Bool;
 
@@ -18,7 +18,7 @@ no_task_critics = 2 :: Int;
 no_choices_per_task_critics = 1 :: Int;
 use_multi_critic = false :: Bool;
 use_single_global_critic = true :: Bool;
-reset_average_reward_on_each_block = true :: Bool;
+reset_average_reward_on_each_block = false :: Bool;
 
 # problem difficulty parameters
 problem_left_bound = (-1.) :: Float64; #-0.5;
@@ -66,7 +66,8 @@ task_tuning_slope_variance[1] = 0.375 :: Float64; # easy task
 task_tuning_slope_variance[2] = 0.25 :: Float64; # hard task
 
 # discrimination threshold calculation
-perform_detection_threshold = true :: Bool;
+perform_detection_threshold = false :: Bool;
+perform_post_hoc_detection_threshold = true :: Bool;
 detection_threshold = 0.25 :: Float64;
 
 # this mimics the same subject in each experiment, rather than new subjects throughout

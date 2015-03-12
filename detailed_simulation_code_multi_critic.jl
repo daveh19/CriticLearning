@@ -250,7 +250,7 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
   #   to make it stand out
   (local_no_subjects, local_no_experimental_tasks_dimension) = size(subjects);
   no_points = 30;
-  
+  #x = linspace(0,1,no_points); # not sure if this is memory safe (scope rules)
 
   for j = 1:local_no_experimental_tasks_dimension
     #print("j: $j")
@@ -261,7 +261,7 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
         b = deepcopy(subjects[i,j].b);
       end
 
-      x = linspace(0,1,no_points);
+      x = linspace(0,1,no_points); #check scope rules before switching to out of loop declaration of x
       # Calculate pre() for an entire linspace of inputs for this subject
       #   This is the heavy part of the processing which I wanted to reduce
       (no_pre_neurons_per_task, no_input_tasks) = size(a);
@@ -375,10 +375,10 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
           local_n_task_within_block[task_id] += 1;
         end # loop over trials per block
 
-        print("av_threshold: $local_average_threshold, ")
+        #print("av_threshold: $local_average_threshold, ")
         # save statistics at block level
         local_average_threshold = local_average_threshold / local_no_trials_per_block;
-        print("local_no_trials_per_block: $local_no_trials_per_block, av_threshold: $local_average_threshold\n")
+        #print("local_no_trials_per_block: $local_no_trials_per_block, av_threshold: $local_average_threshold\n")
         local_average_task_threshold = local_average_task_threshold ./ local_n_task_within_block;
         subjects[i,j].blocks[k].average_threshold = local_average_threshold;
         subjects[i,j].blocks[k].average_task_threshold = local_average_task_threshold;

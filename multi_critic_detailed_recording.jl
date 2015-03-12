@@ -589,6 +589,12 @@ function compare_three_trial_types_with_multiple_subjects()
   #restore next line
   plot_multi_subject_experiment_as_subplots(latest_experiment_results);
 
+  if(perform_post_hoc_detection_threshold)
+    print("Calculating error detection thresholds...\n");
+    post_hoc_calculate_thresholds(tuning_type, latest_experiment_results.subjects_task);
+    post_hoc_calculate_thresholds(tuning_type, latest_experiment_results.subjects_roving_task);
+  end
+  
   global exp_results;
   resize!(exp_results, length(exp_results)+1);
   exp_results[length(exp_results)] = latest_experiment_results;
