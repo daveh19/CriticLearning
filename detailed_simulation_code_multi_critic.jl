@@ -239,6 +239,46 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
 end
 
 
+function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Array{Subject,2})
+  global a,b,w;
+  global no_pre_neurons_per_task;
+  global no_input_tasks;
+  # subjects_task and subjects_roving_task use their second dimension
+  #   differently, in the former case it is for separate 'tasks' in
+  #   the latter it is for separate 'roving protocols'
+  # Call this variable no_task_dimension to make it stand out
+  (local_no_subjects, local_no_experimental_tasks_dimension) = size(subjects);
+  no_points = 30;
+  x = linspace(0,1,no_points);
+
+  for j = 1:local_no_experimental_tasks_dimension
+    for i = 1:local_no_subjects
+      a = deepcopy(subjects[i,j].a);
+      if( isa(tuning_type, gaussian_tc) )
+        b = deepcopy(subjects[i,j].b);
+      end
+
+      (no_pre_neurons_per_task, no_input_tasks) = size(a);
+      local_pre = zeros(no_pre_neurons_per_task, no_input_tasks, no_points);
+
+      local_no_blocks_per_experiment = length(subjects[i,j].blocks);
+      local_no_trials_per_block = length(subjects[i,j].blocks[1].trial);
+
+      for k = 1:local_no_blocks_per_experiment
+        for l = 1:local_no_trials_per_block
+          for m = 1:no_points
+            task_id = subjects[i,j].blocks[k].trial[l].task_type;
+            local_pre[:,:,m] = pre(x[m], task_id, tuning_type);
+          end
+        end
+      end
+
+      w = deepcopy(subjects[i,j].blocks[k].trial[l].w);
+
+    end
+  end
+end
+
 function detect_threshold(tuning_type::TuningSelector, task_id::Int=1, split_output::Bool=false)
   # find the detection threshold with current weight matrix and current subject
   no_points = 30;

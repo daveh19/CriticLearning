@@ -67,7 +67,7 @@ task_tuning_slope_variance[2] = 0.25 :: Float64; # hard task
 
 
 # discrimination threshold calculation
-perform_detection_threshold = true :: Bool;
+perform_detection_threshold = false :: Bool;
 detection_threshold = 0.25 :: Float64;
 
 # this mimics the same subject in each experiment, rather than new subjects throughout
