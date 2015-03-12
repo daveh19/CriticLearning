@@ -594,7 +594,7 @@ function compare_three_trial_types_with_multiple_subjects()
     post_hoc_calculate_thresholds(tuning_type, latest_experiment_results.subjects_task);
     post_hoc_calculate_thresholds(tuning_type, latest_experiment_results.subjects_roving_task);
   end
-  
+
   global exp_results;
   resize!(exp_results, length(exp_results)+1);
   exp_results[length(exp_results)] = latest_experiment_results;
@@ -1338,7 +1338,18 @@ end
 
 function will_subject_learn(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
   heuristic_threshold = 1e-3;
-  print("Heuristic for who will learn based on inital weights and tuning curves, heuristic threshold $heuristic_threshold:\n") 
+  weight_sum_threshold = 11.0;
+
+  if(use_gaussian_tuning_function)
+    tuning_type = gaussian_tc();
+  elseif(use_linear_tuning_function)
+    tuning_type = linear_tc();
+  else
+    print("Undefined tuning function type!\n")
+    error(1);
+  end
+
+  print("Heuristic for who will learn based on inital weights and tuning curves, error heuristic threshold $heuristic_threshold, weight sum threshold $weight_sum_threshold:\n") 
   for i = begin_id:end_id
     global a = deepcopy(subjects[i,task_id].a);
     if( isa(tuning_type, linear_tc) )
@@ -1362,15 +1373,15 @@ function will_subject_learn(subjects::Array{Subject,2}, task_id::Int=1, begin_id
     p_neg_right = (1. - p_neg_left);
 
     if (verbosity > 1)
-      print("Subject $i, p_pos_left: $p_pos_left, p_neg_right: $p_neg_right\n")
+      print("Subject $i, p_pos_left: $p_pos_left, p_neg_right: $p_neg_right, sum wts left: ", sum(w[:,1,task_id]), ", sum wts right: ", sum(w[:,2,task_id]),"\n")
     end
 
-    if ( ( abs(p_pos_left - 0) < heuristic_threshold ) && ( abs(p_neg_right - 1) < heuristic_threshold ) )
-      print("Subject $i: Probably not going to learn, biased left for task $task_id\n")
+    if ( ( ( abs(p_pos_left - 0) < heuristic_threshold ) && ( abs(p_neg_right - 1) < heuristic_threshold ) ) || ( abs( sum(w[:,1,task_id]) - sum(w[:,2,task_id]) ) > weight_sum_threshold ) )
+      print("Subject $i: Probably not going to learn, biased left for task $task_id. p_pos_left: $p_pos_left, p_neg_right: $p_neg_right, sum wts left: ", sum(w[:,1,task_id]), ", sum wts right: ", sum(w[:,2,task_id]),"\n")
     elseif ( ( abs(p_pos_left - 1) < heuristic_threshold ) && ( abs(p_neg_right - 0) < heuristic_threshold ) )
-      print("Subject $i: Probably not going to learn, biased right for task $task_id\n")
+      print("Subject $i: Probably not going to learn, biased right for task $task_id. p_pos_left: $p_pos_left, p_neg_right: $p_neg_right, sum wts left: ", sum(w[:,1,task_id]), ", sum wts right: ", sum(w[:,2,task_id]),"\n")
     else
-      print("Subject $i, no bias, can learn for task $task_id\n")
+      print("Subject $i, no bias, can learn for task $task_id. sum wts left: ", sum(w[:,1,task_id]), ", sum wts right: ", sum(w[:,2,task_id]),"\n")
     end
   end
   print("\nWarning: function altered global variables a, b and w\n")
@@ -1378,6 +1389,15 @@ end
 
 
 function restore_subject(subject::Subject, initial_weights::Bool=true)
+  if(use_gaussian_tuning_function)
+    tuning_type = gaussian_tc();
+  elseif(use_linear_tuning_function)
+    tuning_type = linear_tc();
+  else
+    print("Undefined tuning function type!\n")
+    error(1);
+  end
+
   global a = deepcopy(subject.a);
   if( isa(tuning_type, linear_tc) )
     global b = deepcopy(subject.b);

@@ -3,18 +3,21 @@
 # putting noise updates in a function (which must be called!)
 #  rather than in the post() function, for debugging reasons
 function update_noise()
-  global ksi = rand(Normal(0,output_noise), no_post_neurons);
+  #global ksi = rand(Normal(0,output_noise), no_post_neurons);
+  global ksi = rand(Normal(0,1), no_post_neurons) .* sqrt(output_noise);
 end
 
 
 function initialise_pre_population(tuning_type::linear_tc)
   # a and b only get set once for this paper
   #   they are receptive fields rather than 'noise'
-  global a = rand(Normal(input_baseline, input_baseline_variance), (no_pre_neurons_per_task, no_input_tasks));
+  #global a = rand(Normal(input_baseline, input_baseline_variance), (no_pre_neurons_per_task, no_input_tasks));
+  global a = rand(Normal(0,1), (no_pre_neurons_per_task,no_input_tasks)) .* sqrt(input_baseline_variance) + input_baseline;
   global b = zeros(no_pre_neurons_per_task, no_input_tasks);
 
   for i = 1:no_input_tasks
-    b[:,i] = rand(Normal(0, task_tuning_slope_variance[i]), no_pre_neurons_per_task);
+    #b[:,i] = rand(Normal(0, task_tuning_slope_variance[i]), no_pre_neurons_per_task);
+    b[:,i] = rand(Normal(0,1), no_pre_neurons_per_task) .* sqrt(task_tuning_slope_variance[i]);
   end
 end
 
@@ -33,11 +36,12 @@ function initialise_pre_population(tuning_type::gaussian_tc)
       tuning_mu = rand(Uniform(gaussian_tuning_mu_lower_bound,gaussian_tuning_mu_upper_bound), no_tuning_curves_per_input_neuron);
       if (fix_tuning_gaussian_width)
         tuning_sigma = ones(no_tuning_curves_per_input_neuron);
-        tuning_sigma *= gaussian_tuning_sigma;
+        tuning_sigma *= gaussian_tuning_sigma_mean;
       else
-        tuning_sigma = rand(Normal(gaussian_tuning_sigma, gaussian_tuning_sigma_width), no_tuning_curves_per_input_neuron);
+        #tuning_sigma = rand(Normal(gaussian_tuning_sigma, gaussian_tuning_sigma_width), no_tuning_curves_per_input_neuron);
+        tuning_sigma = rand(Normal(0, 1), no_tuning_curves_per_input_neuron) .* sqrt(gaussian_tuning_sigma_variance) + gaussian_tuning_sigma_mean;
       end
-      tuning_height = rand(Normal(gaussian_tuning_height,gaussian_tuning_height_variance), no_tuning_curves_per_input_neuron);
+      tuning_height = rand(Normal(0,1), no_tuning_curves_per_input_neuron) .* sqrt(gaussian_tuning_height_variance) + gaussian_tuning_height_mean;
       if ( normalise_height_of_multiple_gaussian_inputs )
         tuning_height = tuning_height ./ no_tuning_curves_per_input_neuron;
       end

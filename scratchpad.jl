@@ -54,6 +54,49 @@ for i=1:no_pre_neurons;
 	a[i] = c;
 end
 
+# fixing subjects who don't learn
+for i = 1:no_subjects
+    restore_subject(exp_results[1].subjects_task[i,1]);
+    print("Subject $i, left: ", sum(w[:,1,1]), ", right: ", sum(w[:,2,1]),"\n")
+end
+Subject restored
+Subject 1, left: 29.929715336783776, right: 14.681446176525938
+Subject restored
+Subject 2, left: 22.07651633118477, right: 31.45468877498815
+Subject restored
+Subject 3, left: 23.673822228646394, right: 27.05970223473139
+Subject restored
+Subject 4, left: 33.33160050234709, right: 22.84921345900872
+Subject restored
+Subject 5, left: 26.546413463743338, right: 26.4222037778666
+Subject restored
+Subject 6, left: 22.67275763527978, right: 26.929372831385127
+Subject restored
+Subject 7, left: 28.58124434653703, right: 25.46907869470326
+Subject restored
+Subject 8, left: 27.163487195103343, right: 24.24119733686835
+Subject restored
+Subject 9, left: 18.670667687673983, right: 32.057128550437774
+Subject restored
+Subject 10, left: 28.81075674459314, right: 19.680580385954322
+
+function plot_subjects_initial_weight_distributions(subjects::Array{Subject,2}, task_id::Int=1)
+	(no_subjects, no_tasks) = size(subjects);
+
+	inter_subject_gap = 0.1;
+	lr_gap = (no_subjects+2) * inter_subject_gap;
+	figure()
+	x1 = ones(no_pre_neurons_per_task);
+	x2 = ones(no_pre_neurons_per_task) * lr_gap;
+	
+	for i = 1:no_subjects
+		restore_subject(subjects[i,task_id]);
+		#=scatter(x1+( (i-1) * inter_subject_gap), w[:,1,1], c="b")
+		scatter(x2+( (i-1) * inter_subject_gap), w[:,2,1], c="g")=#
+		scatter( (i * x1) , w[:,1,1], c="b")
+		scatter( (i * x1) + 0.5, w[:,2,1], c="g")
+	end
+end
 
 end # end of 'false'
 
