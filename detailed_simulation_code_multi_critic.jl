@@ -277,6 +277,11 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
       local_no_blocks_per_experiment = length(subjects[i,j].blocks);
       local_no_trials_per_block = length(subjects[i,j].blocks[1].trial);
       for k = 1:local_no_blocks_per_experiment
+        # block level statistical variables
+        local_average_threshold = 0.0;
+        local_average_task_threshold = zeros(no_input_tasks);
+        n_task_within_block = zeros(no_input_tasks);
+
         for l = 1:local_no_trials_per_block
           # finally we get to processing a single threshold calculation
           task_id = subjects[i,j].blocks[k].trial[l].task_type;
@@ -357,7 +362,17 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
             #return [zl[detection_threshold] zr[detection_threshold]];
           end
 
+          # update statistics
+          local_average_threshold += z[detection_threshold];
+          local_average_task_threshold[task_id] += z[detection_threshold];
+          n_task_within_block[task_id] += 1;
         end # loop over trials per block
+
+        # save statistics at block level
+        local_average_threshold = local_average_threshold / local_no_blocks_per_experiment;
+        local_average_task_threshold = local_average_task_threshold ./ n_task_within_block;
+        subjects[i,j].blocks[k].average_threshold = local_average_threshold;
+        subjects[i,j].blocks[k].average_task_threshold = local_average_task_threshold;
       end # loop over blocks per experiment
 
     end # loop over subjects in an experiment class
