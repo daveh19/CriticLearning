@@ -240,13 +240,14 @@ end
 
 
 function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Array{Subject,2})
+  # globals required for correct processing of pre()
   global a,b,w;
   global no_pre_neurons_per_task;
   global no_input_tasks;
-  # subjects_task and subjects_roving_task use their second dimension
-  #   differently, in the former case it is for separate 'tasks' in
-  #   the latter it is for separate 'roving protocols'
-  # Call this variable no_task_dimension to make it stand out
+
+  # The second dimension of subjects is basically a separate experimental
+  #   protocol. Call this variable no_experimental_tasks_dimension
+  #   to make it stand out
   (local_no_subjects, local_no_experimental_tasks_dimension) = size(subjects);
   no_points = 30;
   x = linspace(0,1,no_points);
@@ -254,29 +255,43 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
   for j = 1:local_no_experimental_tasks_dimension
     for i = 1:local_no_subjects
       a = deepcopy(subjects[i,j].a);
-      if( isa(tuning_type, gaussian_tc) )
+      if( isa(tuning_type, linear_tc) )
         b = deepcopy(subjects[i,j].b);
       end
 
+      # Calculate pre() for an entire linspace of inputs for this subject
+      #   This is the heavy part of the processing which I wanted to reduce
       (no_pre_neurons_per_task, no_input_tasks) = size(a);
-      local_pre = zeros(no_pre_neurons_per_task, no_input_tasks, no_points);
-
+      local_pre_pos = zeros(no_pre_neurons_per_task, no_input_tasks, no_points);
+      local_pre_neg = zeros(no_pre_neurons_per_task, no_input_tasks, no_points);
+      for task_id = 1:no_input_tasks
+        for m = 1:no_points
+          # Assuming that pre returns zero entries for all non task specific entries
+          local_pre_pos[:,task_id,m] = pre(x[m], task_id, tuning_type)[task_id];
+          local_pre_neg[:,task_id,m] = pre(-x[m], task_id, tuning_type)[task_id];
+        end
+      end
+      
+      # Calculate threshold for this subject using his trial by trial
+      #   weight matrix and the associated task_id
       local_no_blocks_per_experiment = length(subjects[i,j].blocks);
       local_no_trials_per_block = length(subjects[i,j].blocks[1].trial);
-
       for k = 1:local_no_blocks_per_experiment
         for l = 1:local_no_trials_per_block
-          for m = 1:no_points
-            task_id = subjects[i,j].blocks[k].trial[l].task_type;
-            local_pre[:,:,m] = pre(x[m], task_id, tuning_type);
-          end
+          # finally we get to processing a single threshold calculation
+          task_id = subjects[i,j].blocks[k].trial[l].task_type;
+          w = deepcopy(subjects[i,j].blocks[k].trial[l].w);
+
+          # calculate noise free post for xi
+          local_noise_free_post_pos_left = sum(local_pre_pos[:,task_id].*w[:,1,task_id]);
+          local_noise_free_post_pos_right = sum(local_pre_pos[:,task_id].*w[:,2,task_id]);
+
         end
       end
 
-      w = deepcopy(subjects[i,j].blocks[k].trial[l].w);
-
     end
   end
+  print("Post-hoc calculation of thresholds completed.\n\nNote: subject currently in memory has changed\n");
 end
 
 function detect_threshold(tuning_type::TuningSelector, task_id::Int=1, split_output::Bool=false)
