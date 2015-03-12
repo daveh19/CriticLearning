@@ -250,39 +250,46 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
   #   to make it stand out
   (local_no_subjects, local_no_experimental_tasks_dimension) = size(subjects);
   no_points = 30;
-  x = linspace(0,1,no_points);
+  
 
   for j = 1:local_no_experimental_tasks_dimension
+    #print("j: $j")
     for i = 1:local_no_subjects
+      #print(", i: $i")
       a = deepcopy(subjects[i,j].a);
       if( isa(tuning_type, linear_tc) )
         b = deepcopy(subjects[i,j].b);
       end
 
+      x = linspace(0,1,no_points);
       # Calculate pre() for an entire linspace of inputs for this subject
       #   This is the heavy part of the processing which I wanted to reduce
       (no_pre_neurons_per_task, no_input_tasks) = size(a);
       local_pre_pos = zeros(no_pre_neurons_per_task, no_input_tasks, no_points);
       local_pre_neg = zeros(no_pre_neurons_per_task, no_input_tasks, no_points);
+      #print(", generating pre(xi)...")
       for task_id = 1:no_input_tasks
         for m = 1:no_points
           # Assuming that pre returns zero entries for all non task specific entries
-          local_pre_pos[:,task_id,m] = pre(x[m], task_id, tuning_type)[task_id];
-          local_pre_neg[:,task_id,m] = pre(-x[m], task_id, tuning_type)[task_id];
+          local_pre_pos[:,task_id,m] = pre(x[m], task_id, tuning_type)[:,task_id];
+          local_pre_neg[:,task_id,m] = pre(-x[m], task_id, tuning_type)[:,task_id];
         end
       end
-      
+      #print("done\n");
+
       # Calculate threshold for this subject using his trial by trial
       #   weight matrix and the associated task_id
       local_no_blocks_per_experiment = length(subjects[i,j].blocks);
       local_no_trials_per_block = length(subjects[i,j].blocks[1].trial);
       for k = 1:local_no_blocks_per_experiment
+        #print("block: $k, ")
         # block level statistical variables
         local_average_threshold = 0.0;
         local_average_task_threshold = zeros(no_input_tasks);
-        n_task_within_block = zeros(no_input_tasks);
+        local_n_task_within_block = zeros(no_input_tasks);
 
         for l = 1:local_no_trials_per_block
+          #print("trial: $l \n")
           # finally we get to processing a single threshold calculation
           task_id = subjects[i,j].blocks[k].trial[l].task_type;
           w = deepcopy(subjects[i,j].blocks[k].trial[l].w);
@@ -365,12 +372,14 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
           # update statistics
           local_average_threshold += z[detection_threshold];
           local_average_task_threshold[task_id] += z[detection_threshold];
-          n_task_within_block[task_id] += 1;
+          local_n_task_within_block[task_id] += 1;
         end # loop over trials per block
 
+        print("av_threshold: $local_average_threshold, ")
         # save statistics at block level
-        local_average_threshold = local_average_threshold / local_no_blocks_per_experiment;
-        local_average_task_threshold = local_average_task_threshold ./ n_task_within_block;
+        local_average_threshold = local_average_threshold / local_no_trials_per_block;
+        print("local_no_trials_per_block: $local_no_trials_per_block, av_threshold: $local_average_threshold\n")
+        local_average_task_threshold = local_average_task_threshold ./ local_n_task_within_block;
         subjects[i,j].blocks[k].average_threshold = local_average_threshold;
         subjects[i,j].blocks[k].average_task_threshold = local_average_task_threshold;
       end # loop over blocks per experiment
