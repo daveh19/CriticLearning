@@ -239,7 +239,7 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
 end
 
 
-function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Array{Subject,2})
+function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Array{Subject,2}, split_output::Bool=false)
   # globals required for correct processing of pre()
   global a,b,w;
   global no_pre_neurons_per_task;
@@ -281,16 +281,87 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
           # finally we get to processing a single threshold calculation
           task_id = subjects[i,j].blocks[k].trial[l].task_type;
           w = deepcopy(subjects[i,j].blocks[k].trial[l].w);
+          
+          x = linspace(0,1,no_points); # re-initialise due to sorting in loop below
+          error_rate = zeros(no_points);
+          split_error = zeros(no_points,2)
 
-          # calculate noise free post for xi
-          local_noise_free_post_pos_left = sum(local_pre_pos[:,task_id].*w[:,1,task_id]);
-          local_noise_free_post_pos_right = sum(local_pre_pos[:,task_id].*w[:,2,task_id]);
+          # Loop over the xi in x, current implementation not really amenable
+          #   to non-loop slicing
+          for m = 1:no_points
+            # calculate noise free post for xi
+            local_noise_free_post_pos_left = sum(local_pre_pos[:,task_id,m].*w[:,1,task_id]);
+            local_noise_free_post_pos_right = sum(local_pre_pos[:,task_id,m].*w[:,2,task_id]);
 
-        end
-      end
+            # calculate noise free post for -xi
+            local_noise_free_post_neg_left = sum(local_pre_neg[:,task_id,m].*w[:,1,task_id]);
+            local_noise_free_post_neg_right = sum(local_pre_neg[:,task_id,m].*w[:,2,task_id]);
+            if(verbosity > 2)
+              print("DEBUG: $local_noise_free_post_pos_left, $local_noise_free_post_pos_right, ")
+              print("$local_noise_free_post_neg_left, $local_noise_free_post_neg_right, ")
+            end
 
-    end
-  end
+            # probability, for a positive input (i) that we choose left
+            p_pos_left = 0.5 + 0.5 * erf( (local_noise_free_post_pos_left - local_noise_free_post_pos_right) / (output_noise / 2.0) );
+            p_pos_right = (1. - p_pos_left);
+    
+            if(verbosity > 2)
+              print("p_pos_left: $p_pos_left, p_pos_right: $p_pos_right ")
+            end
+
+            # probability, for a negative input (-i) that we choose left
+            p_neg_left = 0.5 + 0.5 * erf( (local_noise_free_post_neg_left - local_noise_free_post_neg_right) / (output_noise / 2.0) );
+            p_neg_right = (1. - p_neg_left);
+            if(verbosity > 2)
+              print("p_neg_left: $p_neg_left, p_neg_right: $p_neg_right,")
+            end
+
+            # probability of choosing the wrong side
+            error_rate[m] = ( p_pos_left + p_neg_right ) / 2.0;
+            split_error[m,1] = p_pos_left;
+            split_error[m,2] = p_neg_right; # prob for a negative input we falsely choose right of zero
+
+            if(verbosity > 1)
+              print(" m: $m, error_rate: ", error_rate[m],", error_left: ", split_error[m,1], ", error_right: ", split_error[m,2], "\n")
+            end
+          end # loop over m:no_points
+
+          # do a sort to enforce increasing error rates
+          A = [error_rate x];
+          A = sortrows(A, by=x->(x[1],-x[2]), rev=false)
+
+          # linear interpolator from target error rate back to value on input space producing this error rate
+          z = InterpIrregular(A[:,1], A[:,2], 1, InterpLinear); # could also use BCnan as non-interp value
+
+          if(!split_output)
+            if(verbosity > 1)
+              print("n_within_block: $n_within_block, z: ", z[detection_threshold], "\n");
+            end
+            subjects[i,j].blocks[k].trial[l].error_threshold = z[detection_threshold];
+            #return z[detection_threshold];
+          else # not currently in use
+            Al = [split_error[:,1] x];
+            Al = sortrows(Al, by=x->(x[1],-x[2]), rev=false); #sort by ascending error, and descending distance from 0
+            zl = InterpIrregular(Al[:,1],Al[:,2], 1, InterpLinear);
+    
+            Ar = [split_error[end:-1:1,2] x[end:-1:1]];
+            Ar = sortrows(Ar, by=x->(x[1],-x[2]), rev=false);
+            zr = InterpIrregular(Ar[:,1],Ar[:,2], 1, InterpLinear);
+
+            print("Al: ",Al,"\n")
+            print("Ar: ",Ar,"\n")
+            if(verbosity > 1)
+              print("n_within_block: $n_within_block, z: ", z[detection_threshold], ", zl: ", zl[detection_threshold], ", zr: ", zr[detection_threshold],"\n");
+            end
+
+            #return [zl[detection_threshold] zr[detection_threshold]];
+          end
+
+        end # loop over trials per block
+      end # loop over blocks per experiment
+
+    end # loop over subjects in an experiment class
+  end # loop over experiments classes for a group of subjects
   print("Post-hoc calculation of thresholds completed.\n\nNote: subject currently in memory has changed\n");
 end
 
