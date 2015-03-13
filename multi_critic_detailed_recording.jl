@@ -1196,9 +1196,9 @@ function plot_single_subject_average_threshold(subject::Subject)
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
-  plot(x, local_av_task_threshold[:,1], linewidth=2, c="k")
+  plot(x, local_av_task_threshold[:,1], linewidth=2, c="r")
   plot(x, local_av_task_threshold[:,2], linewidth=2, c="g")
-  plot(x, local_av_threshold, linewidth=2, c="r")
+  plot(x, local_av_threshold, linewidth=2, c="k")
 end
 
 function plot_multi_subject_average_threshold(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
@@ -1223,9 +1223,9 @@ function plot_single_subject_average_reward(subject::Subject)
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
-  plot(x, local_av_task_reward[:,1], linewidth=2, c="k")
+  plot(x, local_av_task_reward[:,1], linewidth=2, c="r")
   plot(x, local_av_task_reward[:,2], linewidth=2, c="g")
-  plot(x, local_av_reward, linewidth=2, c="r")
+  plot(x, local_av_reward, linewidth=2, c="k")
 end
 
 function plot_multi_subject_average_reward(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
@@ -1250,9 +1250,9 @@ function plot_single_subject_average_choice(subject::Subject)
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
-  plot(x, local_av_task_choice[:,1], linewidth=2, c="k")
+  plot(x, local_av_task_choice[:,1], linewidth=2, c="r")
   plot(x, local_av_task_choice[:,2], linewidth=2, c="g")
-  plot(x, local_av_choice, linewidth=2, c="r")
+  plot(x, local_av_choice, linewidth=2, c="k")
 end
 
 function plot_multi_subject_average_choice(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
@@ -1324,6 +1324,24 @@ function plot_multi_subject_initial_weight_vs_bias(subjects::Array{Subject,2}, t
   legend()
 end
 
+
+function plot_subjects_initial_weight_distributions(subjects::Array{Subject,2}, task_id::Int=1)
+  (no_subjects, no_tasks) = size(subjects);
+
+  inter_subject_gap = 0.1;
+  lr_gap = (no_subjects+2) * inter_subject_gap;
+  figure()
+  x1 = ones(no_pre_neurons_per_task);
+  x2 = ones(no_pre_neurons_per_task) * lr_gap;
+  
+  for i = 1:no_subjects
+    restore_subject(subjects[i,task_id]);
+    #=scatter(x1+( (i-1) * inter_subject_gap), w[:,1,1], c="b")
+    scatter(x2+( (i-1) * inter_subject_gap), w[:,2,1], c="g")=#
+    scatter( (i * x1) , w[:,1,1], c="b")
+    scatter( (i * x1) + 0.5, w[:,2,1], c="g")
+  end
+end
 
 
 function who_doesnt_learn(subjects::Array{Subject,2}, task_id::Int=1, threshold::Float64=10.0, begin_id::Int=1, end_id::Int=no_subjects)

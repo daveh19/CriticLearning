@@ -4,7 +4,7 @@
 #  rather than in the post() function, for debugging reasons
 function update_noise()
   #global ksi = rand(Normal(0,output_noise), no_post_neurons);
-  global ksi = rand(Normal(0,1), no_post_neurons) .* sqrt(output_noise);
+  global ksi = rand(Normal(0,1), no_post_neurons) .* sqrt(output_noise_variance);
 end
 
 
