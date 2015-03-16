@@ -9,12 +9,12 @@ no_input_tasks = 2::Int;
 
 # trial length parameters
 no_trials_in_block = 80::Int; #80;
-no_blocks_in_experiment = 30::Int; #20::Int; #14;
+no_blocks_in_experiment = 60::Int; #20::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = true ::Bool;
 
 # critic parameters
-no_task_critics = 1 :: Int;
+no_task_critics = 2 :: Int;
 no_choices_per_task_critics = 1 :: Int;
 use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
@@ -26,8 +26,8 @@ problem_right_bound = (1.) :: Float64; #0.5;
 
 running_av_window_length = 50 :: Int; #50::Int;
 
-learning_rate = (0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
-output_noise_variance = sqrt(10.0); #3.5; #sqrt(10.0) :: Float64; #10.0;
+learning_rate = (0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
+output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 
 initial_weight_bias = (2.0); #(2.0) :: Float64; # 2.0
 gaussian_weight_bias = (0.5) :: Float64;
@@ -43,7 +43,7 @@ type gaussian_tc <: TuningSelector end
 type linear_tc <: TuningSelector end
 use_gaussian_tuning_function = false ::Bool;
 use_linear_tuning_function = true ::Bool;
-no_tuning_curves_per_input_neuron = 2::Int; # as this increases the inputs increase in magnitude! (consider using normalise option)
+no_tuning_curves_per_input_neuron = 1::Int; # as this increases the inputs increase in magnitude! (consider using normalise option)
 normalise_height_of_multiple_gaussian_inputs = true::Bool;
 gaussian_tuning_mu_lower_bound = (-1.0) :: Float64;
 gaussian_tuning_mu_upper_bound = (1.0) :: Float64;
@@ -60,10 +60,10 @@ use_binary_random_inputs = false :: Bool;
 
 # selective tuning of input
 input_baseline = 2.0 :: Float64; #2.0;
-input_baseline_variance = sqrt(0.5); #0.25; #0.5 :: Float64; #0.5;
+input_baseline_variance = 0.5^2; #0.25; #0.5 :: Float64; #0.5;
 task_tuning_slope_variance = zeros(no_input_tasks) :: Array{Float64,1};
-task_tuning_slope_variance[1] = sqrt(0.375); #0.4; #0.375; #0.25; #0.375 :: Float64; # easy task
-task_tuning_slope_variance[2] = sqrt(0.25); #0.25; #0.0625; #0.25 :: Float64; # hard task
+task_tuning_slope_variance[1] = 0.5^2; #0.4; #0.375; #0.25; #0.375 :: Float64; # easy task
+task_tuning_slope_variance[2] = 0.2^2; #0.25^2; #0.25; #0.0625; #0.25 :: Float64; # hard task
 
 # discrimination threshold calculation
 perform_detection_threshold = false :: Bool;
@@ -90,7 +90,7 @@ const disable_learning_on_first_block = false :: Bool;
 verbosity = (-1) :: Int;
 
 # plotting options
-plotting_scatter_plot_on = true :: Bool; # dots from scatter plot showing individual subject results 
-plotting_individual_subjects_on = true :: Bool; # lines joining the individual subject data points
+plotting_scatter_plot_on = true; #true :: Bool; # dots from scatter plot showing individual subject results 
+plotting_individual_subjects_on = true; #true :: Bool; # lines joining the individual subject data points
 plotting_error_bars_on = false :: Bool; # standard deviation from the mean
 use_plot_mean = false :: Bool; # plot mean rather than median for proportions correct

@@ -232,7 +232,7 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
 
   # calculated probability of getting this result given de-noised results and error size
   #   TODO: finish this code
-  trial_probability_left = 0.5 + erf((noise_free_left - noise_free_right) / (output_noise / 2.0)) * 0.5;
+  trial_probability_left = 0.5 + erf((noise_free_left - noise_free_right) / (sqrt(output_noise_variance) / 2.0)) * 0.5;
 
   if(debug_on)
     if(verbosity > 0)
@@ -318,7 +318,7 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
             end
 
             # probability, for a positive input (i) that we choose left
-            p_pos_left = 0.5 + 0.5 * erf( (local_noise_free_post_pos_left - local_noise_free_post_pos_right) / (output_noise / 2.0) );
+            p_pos_left = 0.5 + 0.5 * erf( (local_noise_free_post_pos_left - local_noise_free_post_pos_right) / (sqrt(output_noise_variance) / 2.0) );
             p_pos_right = (1. - p_pos_left);
     
             if(verbosity > 2)
@@ -326,7 +326,7 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
             end
 
             # probability, for a negative input (-i) that we choose left
-            p_neg_left = 0.5 + 0.5 * erf( (local_noise_free_post_neg_left - local_noise_free_post_neg_right) / (output_noise / 2.0) );
+            p_neg_left = 0.5 + 0.5 * erf( (local_noise_free_post_neg_left - local_noise_free_post_neg_right) / (sqrt(output_noise_variance) / 2.0) );
             p_neg_right = (1. - p_neg_left);
             if(verbosity > 2)
               print("p_neg_left: $p_neg_left, p_neg_right: $p_neg_right,")
@@ -420,7 +420,7 @@ function detect_threshold(tuning_type::TuningSelector, task_id::Int=1, split_out
     end
 
     # probability, for a positive input (i) that we choose left
-    p_pos_left = 0.5 + 0.5 * erf( (local_noise_free_post_pos_left - local_noise_free_post_pos_right) / (output_noise / 2.0) );
+    p_pos_left = 0.5 + 0.5 * erf( (local_noise_free_post_pos_left - local_noise_free_post_pos_right) / (sqrt(output_noise_variance) / 2.0) );
     p_pos_right = (1. - p_pos_left);
     
     if(verbosity > 2)
@@ -428,7 +428,7 @@ function detect_threshold(tuning_type::TuningSelector, task_id::Int=1, split_out
     end
 
     # probability, for a negative input (-i) that we choose left
-    p_neg_left = 0.5 + 0.5 * erf( (local_noise_free_post_neg_left - local_noise_free_post_neg_right) / (output_noise / 2.0) );
+    p_neg_left = 0.5 + 0.5 * erf( (local_noise_free_post_neg_left - local_noise_free_post_neg_right) / (sqrt(output_noise_variance) / 2.0) );
     p_neg_right = (1. - p_neg_left);
     if(verbosity > 2)
       print("p_neg_left: $p_neg_left, p_neg_right: $p_neg_right,")

@@ -1169,9 +1169,9 @@ function plot_single_subject_proportion_correct(subject::Subject)
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
-  plot(x, local_av_task_reward[:,1], linewidth=2, c="k")
+  plot(x, local_av_task_reward[:,1], linewidth=2, c="r")
   plot(x, local_av_task_reward[:,2], linewidth=2, c="g")
-  plot(x, local_av_reward, linewidth=2, c="r")
+  plot(x, local_av_reward, linewidth=2, c="k")
 end
 
 function plot_multi_subject_proportion_correct(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
@@ -1386,8 +1386,8 @@ function will_subject_learn(subjects::Array{Subject,2}, task_id::Int=1, begin_id
     noise_free_post_neg_left = sum(pre_neg_1[:,task_id].*w[:,1,task_id]);
     noise_free_post_neg_right = sum(pre_neg_1[:,task_id].*w[:,2,task_id]);
 
-    p_pos_left = 0.5 + 0.5 * erf( (noise_free_post_pos_left - noise_free_post_pos_right) / (output_noise / 2.0) );
-    p_neg_left = 0.5 + 0.5 * erf( (noise_free_post_neg_left - noise_free_post_neg_right) / (output_noise / 2.0) );
+    p_pos_left = 0.5 + 0.5 * erf( (noise_free_post_pos_left - noise_free_post_pos_right) / (sqrt(output_noise_variance) / 2.0) );
+    p_neg_left = 0.5 + 0.5 * erf( (noise_free_post_neg_left - noise_free_post_neg_right) / (sqrt(output_noise_variance) / 2.0) );
     p_neg_right = (1. - p_neg_left);
 
     if (verbosity > 1)
