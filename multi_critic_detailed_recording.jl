@@ -760,6 +760,10 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
         scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct, marker="o", c="b")
+        if(plotting_task_by_task_on)
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[1], marker="o", c="r")
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[2], marker="o", c="g")
+        end
       end
     end
   end
@@ -772,8 +776,16 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
   if(plotting_individual_subjects_on)
     for j = 1:no_subjects
       local_prop_roving_correct = zeros(no_blocks_in_experiment);
+      local_prop_roving_task_1_correct = zeros(no_blocks_in_experiment);
+      local_prop_roving_task_2_correct = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
         local_prop_roving_correct[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct;
+        local_prop_roving_task_1_correct[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[1];
+        local_prop_roving_task_2_correct[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[2];
+      end
+      if(plotting_task_by_task_on)
+        plot(block_id-0.1, local_prop_roving_task_1_correct, "r")
+        plot(block_id-0.1, local_prop_roving_task_2_correct, "g")
       end
       plot(block_id-0.1, local_prop_roving_correct, "b")
     end
@@ -877,6 +889,10 @@ function plot_multi_subject_experiment_reward_as_subplots(latest_experiment_resu
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
         scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_reward, marker="o", c="b")
+        if(plotting_task_by_task_on)
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_task_reward[1], marker="o", c="r")
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_task_reward[2], marker="o", c="g")
+        end
       end
     end
   end
@@ -884,8 +900,16 @@ function plot_multi_subject_experiment_reward_as_subplots(latest_experiment_resu
   if(plotting_individual_subjects_on)
     for j = 1:no_subjects
       local_roving_reward = zeros(no_blocks_in_experiment);
+      local_roving_task_1_reward = zeros(no_blocks_in_experiment);
+      local_roving_task_2_reward = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
         local_roving_reward[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_reward;
+        local_roving_task_1_reward[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_task_reward[1];
+        local_roving_task_2_reward[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_task_reward[2];
+      end
+      if(plotting_task_by_task_on)
+        plot(block_id-0.1, local_roving_task_1_reward, "r")
+        plot(block_id-0.1, local_roving_task_2_reward, "g")
       end
       plot(block_id-0.1, local_roving_reward, "b")
     end
@@ -984,6 +1008,10 @@ function plot_multi_subject_experiment_choice_as_subplots(latest_experiment_resu
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
         scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_choice, marker="o", c="b")
+        if(plotting_task_by_task_on)
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_task_choice[1], marker="o", c="r")
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_task_choice[2], marker="o", c="g")
+        end
       end
     end
   end
@@ -991,8 +1019,16 @@ function plot_multi_subject_experiment_choice_as_subplots(latest_experiment_resu
   if(plotting_individual_subjects_on)
     for j = 1:no_subjects
       local_roving_choice = zeros(no_blocks_in_experiment);
+      local_roving_task_1_choice = zeros(no_blocks_in_experiment);
+      local_roving_task_2_choice = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
         local_roving_choice[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_choice;
+        local_roving_task_1_choice[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_task_choice[1] / 2.0 + 1.5;
+        local_roving_task_2_choice[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_task_choice[2] / 2.0 + 1.5;        
+      end
+      if(plotting_task_by_task_on)
+        plot(block_id-0.1, local_roving_task_1_choice, "r")
+        plot(block_id-0.1, local_roving_task_2_choice, "g")
       end
       plot(block_id-0.1, local_roving_choice, "b")
     end

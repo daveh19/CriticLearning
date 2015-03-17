@@ -92,5 +92,6 @@ verbosity = (-1) :: Int;
 # plotting options
 plotting_scatter_plot_on = true; #true :: Bool; # dots from scatter plot showing individual subject results 
 plotting_individual_subjects_on = true; #true :: Bool; # lines joining the individual subject data points
+plotting_task_by_task_on = true :: Bool;
 plotting_error_bars_on = false :: Bool; # standard deviation from the mean
 use_plot_mean = false :: Bool; # plot mean rather than median for proportions correct
