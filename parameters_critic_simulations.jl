@@ -9,7 +9,7 @@ no_input_tasks = 2::Int;
 
 # trial length parameters
 no_trials_in_block = 80::Int; #80;
-no_blocks_in_experiment = 120::Int; #20::Int; #14;
+no_blocks_in_experiment = 41::Int; #20::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = true ::Bool;
 
@@ -28,15 +28,30 @@ problem_right_bound = (1.) :: Float64; #0.5;
 
 running_av_window_length = 50 :: Int; #50::Int;
 
-learning_rate = (0.000001); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
-output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
+learning_rate = (0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
+output_noise_variance = 100.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 
-initial_weight_bias = (2.0); #(2.0) :: Float64; # 2.0
+initial_weight_bias = (2.0); #(2.0); #(2.0) :: Float64; # 2.0
 gaussian_weight_bias = (0.5) :: Float64;
 
 # weight constraints
-weights_upper_bound = (10.0) :: Float64;
-weights_lower_bound = (-10.0) :: Float64;
+weights_upper_bound = (1e3) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
+weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
+
+floor_on_post = (-Inf) :: Float64;
+
+# choose input sequence
+use_cts_random_inputs = false :: Bool;
+use_binary_alternating_inputs = true :: Bool;
+use_binary_random_inputs = false :: Bool;
+
+# selective tuning of input
+input_baseline = 2.0 :: Float64; #2.0;
+input_baseline_variance = 0.5^2; #0.25; #0.5 :: Float64; #0.5;
+task_tuning_slope_variance = zeros(no_input_tasks) :: Array{Float64,1};
+task_tuning_slope_variance[1] = 0.5^2; #0.5^2; #0.7^2; #0.5^2; #0.4; #0.375; #0.25; #0.375 :: Float64; # easy task
+task_tuning_slope_variance[2] = 0.3^2; #0.2^2; #0.25^2; #0.25; #0.0625; #0.25 :: Float64; # hard task
+
 
 # input tuning function
 # empty constructors utilise multiple dispatch in selecting tuning function
@@ -54,18 +69,6 @@ gaussian_tuning_sigma_mean = 0.25 :: Float64;
 gaussian_tuning_sigma_variance = 0.1 :: Float64;
 gaussian_tuning_height_mean = 2.0 :: Float64;
 gaussian_tuning_height_variance = 0.25 :: Float64;
-
-# choose input sequence
-use_cts_random_inputs = false :: Bool;
-use_binary_alternating_inputs = true :: Bool;
-use_binary_random_inputs = false :: Bool;
-
-# selective tuning of input
-input_baseline = 2.0 :: Float64; #2.0;
-input_baseline_variance = 0.5^2; #0.25; #0.5 :: Float64; #0.5;
-task_tuning_slope_variance = zeros(no_input_tasks) :: Array{Float64,1};
-task_tuning_slope_variance[1] = 0.5^2; #0.7^2; #0.5^2; #0.4; #0.375; #0.25; #0.375 :: Float64; # easy task
-task_tuning_slope_variance[2] = 0.2^2; #0.25^2; #0.25; #0.0625; #0.25 :: Float64; # hard task
 
 # discrimination threshold calculation
 perform_detection_threshold = false :: Bool;

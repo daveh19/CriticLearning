@@ -234,6 +234,13 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
   #   TODO: finish this code
   trial_probability_left = 0.5 + erf((noise_free_left - noise_free_right) / (sqrt(output_noise_variance) / 2.0)) * 0.5;
 
+  ###hack
+  if (left < floor_on_post)
+    left = floor_on_post;
+  end
+  if (right < floor_on_post)
+    right = floor_on_post;
+  end
   if(debug_on)
     if(verbosity > 0)
       print("n_within_block: $n_within_block, x: $x, left: $left, right: $right,\n noise_free_left: $noise_free_left, noise_free_right: $noise_free_right, trial_probability_left: $trial_probability_left ")
@@ -577,7 +584,11 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   if(disable_winner_takes_all)
     trial_dat.chosen_answer = ( (local_post[2] > local_post[1]) ? 1 : -1)
     local_choice = ( (local_post[2] > local_post[1]) ? 2 : 1);
+    if(debug_print_now)
+      print("chosen_answer: ", trial_dat.chosen_answer, "\n");
+    end
   else
+    #print("Error\n")
     trial_dat.chosen_answer = ( (abs(local_post[2]) > abs(local_post[1])) ? 1 : -1)
     local_choice = ( (abs(local_post[2]) > abs(local_post[1])) ? 2 : 1);
   end

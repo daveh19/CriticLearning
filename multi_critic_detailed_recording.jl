@@ -391,10 +391,20 @@ end
 
 function perform_multi_subject_experiment(task_id::Int, tuning_type::TuningSelector, subjects::Array{Subject,2}, no_subjects::Int64=no_subjects)
   #global subject = Array(Subject, no_subjects);
-
+  
+  global debug_print_now = false;
+  global verbosity;
+  
   for(i = 1:no_subjects)
     if(verbosity > -1)
       print("-----------Subject number $i------------\n")
+    end
+    if (i == 1)
+      debug_print_now = true;
+      verbosity = 2;
+    else
+      verbosity = -1;
+      debug_print_now = false;
     end
     perform_single_subject_experiment(task_id, tuning_type, subjects, i)
   end
