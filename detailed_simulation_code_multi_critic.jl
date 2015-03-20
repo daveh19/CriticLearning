@@ -239,10 +239,10 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
       print("n_within_block: $n_within_block, x: $x, left: $left, right: $right,\n noise_free_left: $noise_free_left, noise_free_right: $noise_free_right, trial_probability_left: $trial_probability_left ")
     end
   end
-  if(!disable_winner_takes_all)
-	 return wta(left,right, debug_on)
-  else
+  if(disable_winner_takes_all)
     return [left,right];
+  else
+    return wta(left,right, debug_on);
   end
 end
 
