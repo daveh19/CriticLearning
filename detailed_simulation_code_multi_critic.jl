@@ -198,20 +198,20 @@ function wta(left::Float64, right::Float64, debug_on::Bool = false)
     end
   end
 
-	if (left > right)
-    if(verbosity > 0)
-      if(debug_on)
-		    print("Left!\n")
-      end
-    end
-		right = 0
-	else
+	if (right > left) #(left > right)
     if(verbosity > 0)
       if(debug_on)
 		    print("Right!\n")
       end
+    end
+		left = 0
+	else
+    if(verbosity > 0)
+      if(debug_on)
+		    print("Left!\n")
+      end
 		end
-    left = 0
+    right = 0
 	end
 	return [left right]
 end
@@ -563,12 +563,13 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   # Save some data for later examination
   trial_dat.task_type = task_id; #(is_problem_1 ? 1 : 2);
   trial_dat.correct_answer = x #(x > 0 ? 1 : -1);
-  trial_dat.chosen_answer = ((abs(local_post[1]) > abs(local_post[2])) ? -1 : 1) # note sign reversal, to maintain greater than relationship
+  trial_dat.chosen_answer = ( (local_post[2] > local_post[1]) ? 1 : -1)
   trial_dat.got_it_right = ((local_reward > 0) ? true : false);
 
   # monitor average choice per block here
   #   using n independent of critic, for now
-  local_choice = (abs(local_post[1]) > 0 ? 1 : 2);
+  #local_choice = (abs(local_post[1]) > 0 ? 1 : 2);
+  local_choice = ( (local_post[2] > local_post[1]) ? 2 : 1);
   global average_choice = ( (n_within_block-1) * average_choice + local_choice ) / (n_within_block);
   global average_block_reward = ( ( n_within_block - 1) * average_block_reward + local_reward ) / (n_within_block);
   global average_task_reward;
