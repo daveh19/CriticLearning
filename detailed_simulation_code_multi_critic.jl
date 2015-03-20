@@ -239,7 +239,11 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
       print("n_within_block: $n_within_block, x: $x, left: $left, right: $right,\n noise_free_left: $noise_free_left, noise_free_right: $noise_free_right, trial_probability_left: $trial_probability_left ")
     end
   end
-	return wta(left,right, debug_on)
+  if(!disable_winner_takes_all)
+	 return wta(left,right, debug_on)
+  else
+    return [left,right];
+  end
 end
 
 
@@ -484,13 +488,13 @@ function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
 	local_post = post(x, task_id, tuning_type, true)
 
   # I've had some trouble with the logic here due to wta() accepting negative inputs
-	if ((x > 0) && (abs(local_post[2]) > 0))#right
+	if ( (x > 0) && (local_post[2] > local_post[1]) )#right
     if(verbosity > 1)
       global instance_correct += 1;
       print("Greater than zero (x: $x)\n") 
     end
 		return (1);
-	elseif ((x <= 0) && (abs(local_post[1]) > 0))#left
+	elseif ( (x <= 0) && (local_post[1] >= local_post[2]) )#left
     if(verbosity > 1)
       instance_correct += 1;
       print("Less than zero (x: $x)\n")

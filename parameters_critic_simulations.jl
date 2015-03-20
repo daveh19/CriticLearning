@@ -14,11 +14,13 @@ no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = true ::Bool;
 
 # critic parameters
-no_task_critics = 2 :: Int;
+no_task_critics = 1 :: Int;
 no_choices_per_task_critics = 1 :: Int;
 use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
 reset_average_reward_on_each_block = false :: Bool;
+
+disable_winner_takes_all = true :: Bool;
 
 # problem difficulty parameters
 problem_left_bound = (-1.) :: Float64; #-0.5;
@@ -26,7 +28,7 @@ problem_right_bound = (1.) :: Float64; #0.5;
 
 running_av_window_length = 50 :: Int; #50::Int;
 
-learning_rate = (0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
+learning_rate = (0.001); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
 output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 
 initial_weight_bias = (2.0); #(2.0) :: Float64; # 2.0
@@ -62,7 +64,7 @@ use_binary_random_inputs = false :: Bool;
 input_baseline = 2.0 :: Float64; #2.0;
 input_baseline_variance = 0.5^2; #0.25; #0.5 :: Float64; #0.5;
 task_tuning_slope_variance = zeros(no_input_tasks) :: Array{Float64,1};
-task_tuning_slope_variance[1] = 0.5^2; #0.4; #0.375; #0.25; #0.375 :: Float64; # easy task
+task_tuning_slope_variance[1] = 0.5^2; #0.7^2; #0.5^2; #0.4; #0.375; #0.25; #0.375 :: Float64; # easy task
 task_tuning_slope_variance[2] = 0.2^2; #0.25^2; #0.25; #0.0625; #0.25 :: Float64; # hard task
 
 # discrimination threshold calculation
