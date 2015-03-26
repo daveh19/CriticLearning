@@ -9,7 +9,7 @@ no_input_tasks = 2::Int;
 
 # trial length parameters
 no_trials_in_block = 80::Int; #80;
-no_blocks_in_experiment = 41::Int; #20::Int; #14;
+no_blocks_in_experiment = 100::Int; #20::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = true ::Bool;
 
@@ -20,7 +20,11 @@ use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
 reset_average_reward_on_each_block = false :: Bool;
 
-disable_winner_takes_all = true :: Bool;
+# changing the post part of the weight update rule
+floor_on_post = (-Inf) :: Float64;
+disable_winner_takes_all = true :: Bool; # applied in post()
+binary_outputs_mode = false :: Bool;
+rescaled_outputs_mode = true :: Bool;
 
 # problem difficulty parameters
 problem_left_bound = (-1.) :: Float64; #-0.5;
@@ -38,12 +42,11 @@ gaussian_weight_bias = (0.5) :: Float64;
 weights_upper_bound = (1e3) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
 weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 
-floor_on_post = (-Inf) :: Float64;
 
 # choose input sequence
 use_cts_random_inputs = false :: Bool;
-use_binary_alternating_inputs = true :: Bool;
-use_binary_random_inputs = false :: Bool;
+use_binary_alternating_inputs = false :: Bool;
+use_binary_random_inputs = true :: Bool;
 
 # selective tuning of input
 input_baseline = 2.0 :: Float64; #2.0;
@@ -100,3 +103,4 @@ plotting_individual_subjects_on = true; #true :: Bool; # lines joining the indiv
 plotting_task_by_task_on = true :: Bool;
 plotting_error_bars_on = false :: Bool; # standard deviation from the mean
 use_plot_mean = false :: Bool; # plot mean rather than median for proportions correct
+

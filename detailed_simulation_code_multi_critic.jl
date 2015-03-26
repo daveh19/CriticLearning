@@ -234,13 +234,14 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
   #   TODO: finish this code
   trial_probability_left = 0.5 + erf((noise_free_left - noise_free_right) / (sqrt(output_noise_variance) / 2.0)) * 0.5;
 
-  ###hack
+  # hack: putting a lower bound on post synaptic firing
   if (left < floor_on_post)
     left = floor_on_post;
   end
   if (right < floor_on_post)
     right = floor_on_post;
   end
+
   if(debug_on)
     if(verbosity > 0)
       print("n_within_block: $n_within_block, x: $x, left: $left, right: $right,\n noise_free_left: $noise_free_left, noise_free_right: $noise_free_right, trial_probability_left: $trial_probability_left ")
@@ -495,6 +496,9 @@ function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
 	local_post = post(x, task_id, tuning_type, true)
 
   if(disable_winner_takes_all)
+    # Disabling winner-takes-all requires a change in logic: we just
+    #   take the output neuron with the higher firing rate (even if
+    #   it's negative).
     if( (x > 0) && (local_post[2] > local_post[1]) )
       return (1);
     elseif( (x <= 0) && (local_post[1] > local_post[2]) )
@@ -505,6 +509,7 @@ function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
   else # maintaining winner-takes-all logic
     # I've had some trouble with the logic here due to wta() accepting negative inputs
     #   originally used abs() > 0 here for wta logic [which worked]
+    #   changed to abs(a) > abs(b) when developing non-wta logic
 	 if ( (x > 0) && (abs(local_post[2]) > abs(local_post[1]) ) ) #(local_post[2] > local_post[1]) )#right
     if(verbosity > 1)
       global instance_correct += 1;
@@ -567,7 +572,7 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
 
   # don't forget to update noise externally to this function on separate iterations
   local_pre = pre(x, task_id, tuning_type);
-  # Note: local_post returns a tuple where one value is 0. All comparisons to find the non zero value should use absolute comparison.
+  # Note: local_post returns a tuple where one value is 0 [in wta mode]. All comparisons to find the non zero value should use absolute comparison.
   local_post = post(x, task_id, tuning_type);
   local_reward = reward(x, task_id, tuning_type) :: Int; # it is important that noise is not updated between calls to post() and reward()
   if(perform_detection_threshold)
@@ -641,8 +646,25 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
 
   # the weight update matrix
   dw = zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks);
-  dw[:,1,task_id] = learning_rate * local_pre[:,task_id] * local_post[1] * (local_reward - local_average_reward);
-  dw[:,2,task_id] = learning_rate * local_pre[:,task_id] * local_post[2] * (local_reward - local_average_reward);
+  if(binary_outputs_mode) # chosen output is 1, other output is 0
+    binary_post = wta(local_post[1], local_post[2]);
+    dw[:,1,task_id] = learning_rate * local_pre[:,task_id] * binary_post[1] * (local_reward - local_average_reward);
+    dw[:,2,task_id] = learning_rate * local_pre[:,task_id] * binary_post[2] * (local_reward - local_average_reward);
+  elseif(rescaled_outputs_mode)
+    big_post = maximum(local_post);
+    if( !(big_post == 0) ) # avoid divide by zero
+      dw[:,1,task_id] = learning_rate * local_pre[:,task_id] * (local_post[1] / big_post) * (local_reward - local_average_reward);
+      dw[:,2,task_id] = learning_rate * local_pre[:,task_id] * (local_post[2] / big_post) * (local_reward - local_average_reward);
+    else
+      # CONSIDER: what if big_post == 0 ?
+      #   could use epsillon
+      #   could just assume both outputs are 0 and do no weight change
+      # print("big_post == 0 occurred\n");
+    end
+  else # original unbounded post-synaptic firing mode
+    dw[:,1,task_id] = learning_rate * local_pre[:,task_id] * local_post[1] * (local_reward - local_average_reward);
+    dw[:,2,task_id] = learning_rate * local_pre[:,task_id] * local_post[2] * (local_reward - local_average_reward);
+  end
   # Save some data for later examination
   trial_dat.reward_received = (local_reward - local_average_reward);
   trial_dat.w = deepcopy(w);
