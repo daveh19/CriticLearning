@@ -1,7 +1,7 @@
 using PyPlot;
 using Distributions;
 
-#include("inverse_cdf.jl");
+include("inverse_cdf.jl");
 
 no_points = 101;
 #no_points = 10;
@@ -17,10 +17,23 @@ invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 
 xa_norm_sq = 10.0;
 
-rho = zeros(no_points,no_y_points);
+p_ext = 0.30;
+
+rho_a = zeros(no_points,no_y_points);
 for i = 1:no_points
 	for j = 1:(no_y_points)
-		rho[i,j] = (p[i] - p[j]) / 2.0;
+		rho_a[i,j] = (p[i] - p[j]);
+		#rho_a[i,j] = p[i] - ((p[i] + p[j] + 2.0 * p_ext) / 4.0);
+		#rho_a[i,j] = p[i] - ((p[j] + p_ext) / 2.0);
+	end
+end
+
+rho_b = zeros(no_points,no_y_points);
+for i = 1:no_points
+	for j = 1:(no_y_points)
+		rho_b[i,j] = (p[j] - p[i]);
+		#rho_b[i,j] = p[j] - ((p[i] + p[j] + 2.0 * p_ext) / 4.0);
+		#rho_b[i,j] = p[j] - ((p[i] + p_ext) / 2.0);
 	end
 end
 
@@ -39,8 +52,8 @@ for i = 1:no_points
 		#=deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho[i,j] * p[i] * (1-p[i]);
 		deriv_p_b[i,j] = - dist_pdf(invnorm(p[j])) * xa_norm_sq * rho[i,j] * p[j] * (1-p[j]);=#
 		# binary output neurons - new (in first write-up)
-		deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho[i,j] * (2 * p[i] - 1);
-		deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * (-rho[i,j]) * (2 * p[j] - 1);
+		deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho_a[i,j] * (2 * p[i] - 1);
+		deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * rho_b[i,j] * (2 * p[j] - 1);
 		# wta binary output for principal choice, second choice is normalised by magnitude of first
 		#=deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho[i,j] * (p[i] + (1-p[i]) * p[i]);
 		deriv_p_b[i,j] = - dist_pdf(invnorm(p[j])) * xa_norm_sq * rho[i,j] * (p[j] + (1-p[j]) * p[j]);=#
@@ -67,6 +80,7 @@ quiver(p,p,deriv_p_a', deriv_p_b');
 savefig(filename_quiver);
 
 figure();
-streamplot(p,p,deriv_p_a',deriv_p_b')
+streamplot(p,p,deriv_p_a',deriv_p_b');
 #streamplot(p,p_y,deriv_p_a',deriv_p_b')
 savefig(filename_stream);
+
