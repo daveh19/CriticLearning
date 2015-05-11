@@ -37,6 +37,12 @@ for i = 1:no_points
 	end
 end
 
+#S_1 = +1.0 / 10.0;
+#S_2 = -1.0 / 10.0;
+
+S_1 = 1.0 - p;
+S_2 = -p - 1.0;
+
 deriv_p_a = zeros(no_points, no_y_points);
 deriv_p_b = zeros(no_points, no_y_points);
 for i = 1:no_points
@@ -52,8 +58,12 @@ for i = 1:no_points
 		#=deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho[i,j] * p[i] * (1-p[i]);
 		deriv_p_b[i,j] = - dist_pdf(invnorm(p[j])) * xa_norm_sq * rho[i,j] * p[j] * (1-p[j]);=#
 		# binary output neurons - new (in first write-up)
-		deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho_a[i,j] * (2 * p[i] - 1);
-		deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * rho_b[i,j] * (2 * p[j] - 1);
+		#deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho_a[i,j] * (2 * p[i] - 1);
+		#deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * rho_b[i,j] * (2 * p[j] - 1);
+
+		deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * ( ( p[i]*S_1[i] - (1-p[i])*S_2[i] ) + ( rho_a[i,j] * (2 * p[i] - 1) ) );
+		deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * ( ( p[j]*S_1[j] - (1-p[j])*S_2[j] ) + ( rho_b[i,j] * (2 * p[j] - 1) ) );
+
 		# wta binary output for principal choice, second choice is normalised by magnitude of first
 		#=deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho[i,j] * (p[i] + (1-p[i]) * p[i]);
 		deriv_p_b[i,j] = - dist_pdf(invnorm(p[j])) * xa_norm_sq * rho[i,j] * (p[j] + (1-p[j]) * p[j]);=#
