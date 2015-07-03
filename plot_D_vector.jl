@@ -68,12 +68,12 @@ C = [1-c c; c 1-c];
 A = eye(2) - C;
 
 # input similarity parameter
-a = 0.;
+a = 1.;
 S = [1 a; a 1]
 
 # noise and external bias
-sigma = 3;
-rho_ext = -0.5;
+sigma = 1;
+#rho_ext = -0.5;
 
 for i = 1:no_points
 	for j = 1:(no_y_points)
@@ -103,22 +103,48 @@ for i = 1:no_points
 		# temp_b += A[2,1] * cdf(Normal(0,sigma), d_a[i]) * d_a[i];
 		# temp_b += A[2,2] * cdf(Normal(0,sigma), d_b[j]) * d_b[j];
 
+		# # *2 for R^{true} = (2p-1)
+		# temp_a = sigma^2 * pdf(Normal(0,sigma), d_a[i]) * 2; 
+		# temp_b = sigma^2 * pdf(Normal(0,sigma), d_b[j]) * 2;
+
+		# # equations for R^{true} = (2p-1)
+		# temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_a[i];
+		# temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_b[j];
+		# temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_a[i];
+		# temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_b[j];
+
+		# temp_a += rho_ext * d_a[i];
+		# temp_b += rho_ext * d_b[j];
+
+		# # the following doesn't look right
+		# deriv_D_a[i,j] = S[1,1] * temp_a + S[1,2] * temp_b;
+		# deriv_D_b[i,j] = S[2,1] * temp_a + S[2,2] * temp_b;
+
+		## Correcting the formula
 		# *2 for R^{true} = (2p-1)
-		temp_a = sigma^2 * pdf(Normal(0,sigma), d_a[i]) * 2; 
-		temp_b = sigma^2 * pdf(Normal(0,sigma), d_b[j]) * 2;
-
+		temp_a = sigma^2 * pdf(Normal(0,sigma), d_a[i]) * 2 * S[1,1]; 
 		# equations for R^{true} = (2p-1)
-		temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_a[i];
-		temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_b[j];
-		temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_a[i];
-		temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_b[j];
+		temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_a[i] * S[1,1];
+		temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_a[i] * S[1,2];
 
-		temp_a += rho_ext * d_a[i];
-		temp_b += rho_ext * d_b[j];
+		temp_a += sigma^2 * pdf(Normal(0,sigma), d_b[j]) * 2 * S[1,2]; 
+		temp_a += A[2,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_b[j] * S[2,1];
+		temp_a += A[2,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_b[j] * S[2,2];
+
+		temp_b = sigma^2 * pdf(Normal(0,sigma), d_a[i]) * 2 * S[2,1];
+		temp_b += A[1,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_a[i] * S[1,1];
+		temp_b += A[1,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_a[i] * S[1,2];
+
+		temp_b += sigma^2 * pdf(Normal(0,sigma), d_b[j]) * 2 * S[2,2];
+		temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_b[j] * S[2,1];
+		temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_b[j] * S[2,2];
+
+		#temp_a += rho_ext * d_a[i];
+		#temp_b += rho_ext * d_b[j];
 
 		# the following doesn't look right
-		deriv_D_a[i,j] = S[1,1] * temp_a + S[1,2] * temp_b;
-		deriv_D_b[i,j] = S[2,1] * temp_a + S[2,2] * temp_b;
+		deriv_D_a[i,j] = temp_a;
+		deriv_D_b[i,j] = temp_b
 
 		if(plot_unbiased_learning)
 			# include effects of regular learning signal
