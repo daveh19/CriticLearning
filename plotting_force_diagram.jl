@@ -21,7 +21,7 @@ dist_cdf(x) = cdf(Normal(0,1), x);
 invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 
 ## Constants
-xa_norm_sq = 10.0;
+xa_norm_sq = 1.0;
 p_ext = 0.30;
 
 ## Success signal is necessary for unbiased learning
@@ -72,10 +72,8 @@ for i = 1:no_points
 
 		# binary output neurons - new (in first write-up)
 		# effects of unsupervised bias
-		#deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho_a[i,j] * (2 * p[i] - 1);
-		#deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * rho_b[i,j] * (2 * p[j] - 1);
-		#deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho_a[i,j] * (2 * p[i] - 1);
-		#deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * rho_b[i,j] * (2 * p[j] - 1);
+		deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho_a[i,j] * (2 * p[i] - 1);
+		deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * rho_b[i,j] * (2 * p[j] - 1);
 		if(plot_unbiased_learning)
 			# include effects of regular learning signal
 			#deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * ( ( p[i]*S_1[i] - (1-p[i])*S_2[i] ) + ( rho_a[i,j] * (2 * p[i] - 1) ) );
