@@ -11,7 +11,7 @@ invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 
 
 ## Space over which vector field is calculated / plotted
-no_points = 20;
+no_points = 40;
 #no_points = 10;
 #no_y_points = no_points - 1; 
 # The no_y_points is to ensure that I plot the vector field in the right direction,
@@ -24,9 +24,15 @@ p_y = linspace(0, 1, no_y_points);
 d_a = linspace(-1,10, no_points);
 d_b = linspace(-1,10, no_points);
 
+#debug vars
+Da = zeros(no_points);
+Db = zeros(no_y_points);
+
 ## Vector flow field variables
 deriv_p_a = zeros(no_points, no_y_points);
 deriv_p_b = zeros(no_points, no_y_points);
+p_deriv_D_a = zeros(no_points, no_y_points);
+p_deriv_D_b = zeros(no_points, no_y_points);
 deriv_D_a = zeros(no_points, no_y_points);
 deriv_D_b = zeros(no_points, no_y_points);
 
@@ -111,7 +117,7 @@ for i = 1:no_points
 		temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_b[j];
 		
 		# Bias from other tasks 
-		if(critic_dimensions > 2)
+		if(critic_dimensions == 4)
 			temp_a += d_a[i] * (-0.5 * R_ext);
 			temp_b += d_b[j] * (-0.5 * R_ext);
 		end
@@ -139,15 +145,42 @@ for i = 1:no_points
 
 		# binary output neurons - new (in first write-up)
 		# effects of unsupervised bias
-		deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho_a[i,j] * (2 * p[i] - 1);
-		deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * rho_b[i,j] * (2 * p[j] - 1);
-		if(plot_unbiased_learning)
+		#deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho_a[i,j] * (2 * p[i] - 1);
+		#deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * rho_b[i,j] * (2 * p[j] - 1);
+		
+
+		Da[i] = invphi(p[i]);
+		Db[j] = invphi(p_y[j]);
+		p_temp_a = sigma^2 * pdf(Normal(0,sigma), Da[i]) * 2; 
+		p_temp_b = sigma^2 * pdf(Normal(0,sigma), Db[j]) * 2;
+		# equations for R^{true} = (2p-1)
+		p_temp_a += A[1,1] * (2 * p[i] - 1) * Da[i];
+		p_temp_a += A[1,2] * (2 * p[j] - 1) * Da[i];
+
+		p_temp_b += A[2,1] * (2 * p[i] - 1) * Db[j];
+		p_temp_b += A[2,2] * (2 * p[j] - 1) * Db[j];
+		
+		# Bias from other tasks 
+		if(critic_dimensions == 4)
+			p_temp_a += Da[i] * (-0.5 * R_ext);
+			p_temp_b += Db[j] * (-0.5 * R_ext);
+		end
+
+		# putting it all together
+		p_deriv_D_a[i,j] = S[1,1] * p_temp_a + S[1,2] * p_temp_b;
+		p_deriv_D_b[i,j] = S[2,1] * p_temp_a + S[2,2] * p_temp_b;
+
+		deriv_p_a[i,j] = pdf(Normal(0,sigma), Da[i]) * p_deriv_D_a[i,j];
+		deriv_p_b[i,j] = pdf(Normal(0,sigma), Db[j]) * p_deriv_D_b[i,j];
+
+
+		#=if(plot_unbiased_learning)
 			# include effects of regular learning signal
 			#deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * ( ( p[i]*S_1[i] - (1-p[i])*S_2[i] ) + ( rho_a[i,j] * (2 * p[i] - 1) ) );
 			#deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * ( ( p[j]*S_1[j] - (1-p[j])*S_2[j] ) + ( rho_b[i,j] * (2 * p[j] - 1) ) );
 			deriv_p_a[i,j] += dist_pdf(invnorm(p[i])) * xa_norm_sq * ( ( p[i]*S_1[i] - (1-p[i])*S_2[i] ) );
 			deriv_p_b[i,j] += dist_pdf(invnorm(p[j])) * xa_norm_sq * ( ( p[j]*S_1[j] - (1-p[j])*S_2[j] ) );
-		end
+		end=#
 		# wta binary output for principal choice, second choice is normalised by magnitude of first
 		#=deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho[i,j] * (p[i] + (1-p[i]) * p[i]);
 		deriv_p_b[i,j] = - dist_pdf(invnorm(p[j])) * xa_norm_sq * rho[i,j] * (p[j] + (1-p[j]) * p[j]);=#
@@ -189,4 +222,9 @@ quiver(d_a,d_b,deriv_D_a',deriv_D_b');
 origin_space = linspace(-100,100,no_points);
 plot(origin, origin_space);
 plot(origin_space, origin);=#
+
+figure();
+#streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
+quiver(p,p_y,deriv_p_a',deriv_p_b');
+
 
