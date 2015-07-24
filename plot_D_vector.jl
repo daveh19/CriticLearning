@@ -21,8 +21,8 @@ no_points = 20;
 no_y_points = no_points;
 p = linspace(0, 1, no_points);
 p_y = linspace(0, 1, no_y_points);
-d_a = linspace(-2.5,2.5, no_points);
-d_b = linspace(-2.5,2.5, no_points);
+d_a = linspace(-1,10, no_points);
+d_b = linspace(-1,10, no_points);
 
 ## Vector flow field variables
 deriv_p_a = zeros(no_points, no_y_points);
@@ -76,13 +76,13 @@ A = eye(critic_dimensions) - C
 
 
 # Input representation similarity parameter
-a = 0; #0.9;
+a = 1;
 S = [1 a; a 1]
 
 # Noise and external bias
-sigma = 1;
+sigma = sqrt(1); #sqrt(100);
 #rho_ext = -0.5;
-R_ext = 0;
+R_ext = 1.1; #1.001;
 
 
 for i = 1:no_points 
@@ -106,14 +106,16 @@ for i = 1:no_points
 		# equations for R^{true} = (2p-1)
 		temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_a[i];
 		temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_a[i];
-		temp_a += d_a[i] * (-0.5 * R_ext);
+
 		temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_b[j];
 		temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_b[j];
-		temp_b += d_b[j] * (-0.5 * R_ext);
+		
+		# Bias from other tasks 
+		if(critic_dimensions > 2)
+			temp_a += d_a[i] * (-0.5 * R_ext);
+			temp_b += d_b[j] * (-0.5 * R_ext);
+		end
 
-		# # Bias from other tasks (change how it's formulated)
-		# temp_a += rho_ext * d_a[i];
-		# temp_b += rho_ext * d_b[j];
 
 		# putting it all together
 		deriv_D_a[i,j] = S[1,1] * temp_a + S[1,2] * temp_b;
