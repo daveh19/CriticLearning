@@ -68,9 +68,12 @@ xa_norm_sq = 1.0;
 p_ext = 0.30;
 
 # Confusion parameter
-c = 0.5
-C = [1-c c; c 1-c];
-A = eye(2) - C;
+critic_dimensions = 4;
+c = 1 / critic_dimensions; # currently equal confusion mix of all true critics
+C = ones(critic_dimensions,critic_dimensions)
+C *= c
+A = eye(critic_dimensions) - C
+
 
 # Input representation similarity parameter
 a = 0; #0.9;
@@ -79,6 +82,8 @@ S = [1 a; a 1]
 # Noise and external bias
 sigma = 1;
 #rho_ext = -0.5;
+R_ext = 0;
+
 
 for i = 1:no_points 
 	for j = 1:(no_y_points)
@@ -101,8 +106,10 @@ for i = 1:no_points
 		# equations for R^{true} = (2p-1)
 		temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_a[i];
 		temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_a[i];
+		temp_a += d_a[i] * (-0.5 * R_ext);
 		temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_b[j];
 		temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_b[j];
+		temp_b += d_b[j] * (-0.5 * R_ext);
 
 		# # Bias from other tasks (change how it's formulated)
 		# temp_a += rho_ext * d_a[i];
