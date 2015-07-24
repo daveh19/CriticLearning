@@ -1,8 +1,16 @@
 using PyPlot;
 using Distributions;
 
+### Useful functions
+## There are a number of alternative ways to calculate pdf and cdf inverse
+dist_pdf(x) = pdf(Normal(0,1), x);
+dist_cdf(x) = cdf(Normal(0,1), x);
+# Note: inv_cdf(x) != 1.0 / cdf(Normal(0,1), x); #Not 1/fn but inverse function!!
 include("inverse_cdf.jl"); #contains invnorm(), consider switching to invphi()
+invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 
+
+## Space over which vector field is calculated / plotted
 no_points = 20;
 #no_points = 10;
 #no_y_points = no_points - 1; 
@@ -16,21 +24,16 @@ p_y = linspace(0, 1, no_y_points);
 d_a = linspace(-2.5,2.5, no_points);
 d_b = linspace(-2.5,2.5, no_points);
 
-origin = zeros(no_points);
-origin_space = linspace(-100,100,no_points);
+## Vector flow field variables
+deriv_p_a = zeros(no_points, no_y_points);
+deriv_p_b = zeros(no_points, no_y_points);
+deriv_D_a = zeros(no_points, no_y_points);
+deriv_D_b = zeros(no_points, no_y_points);
 
-## There are a number of alternative ways to calculate pdf and cdf inverse
-dist_pdf(x) = pdf(Normal(0,1), x);
-dist_cdf(x) = cdf(Normal(0,1), x);
-# Note: inv_cdf(x) != 1.0 / cdf(Normal(0,1), x); #Not 1/fn but inverse function!!
-invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 
-## Constants
-xa_norm_sq = 1.0;
-p_ext = 0.30;
-
-## Success signal is necessary for unbiased learning
+## Reward learning component to flow is an option in probabilistic diagram
 plot_unbiased_learning = true :: Bool;
+# Success signal is necessary for unbiased learning component
 # constant Success signal
 #S_1 = +1.0 / 10.0;
 #S_2 = -1.0 / 10.0;
@@ -41,7 +44,7 @@ plot_unbiased_learning = true :: Bool;
 S_1 = 1.0 - (2*p-1.0);
 S_2 = -1.0 - (2*p-1.0);
 
-## Rho represents error in estimation of Success signal
+## Rho represents error in estimation of Success signal, used in probabilistic calculation
 rho_a = zeros(no_points,no_y_points);
 for i = 1:no_points
 	for j = 1:(no_y_points)
@@ -59,52 +62,30 @@ for i = 1:no_points
 	end
 end
 
-## Calculate vector flow field
-deriv_p_a = zeros(no_points, no_y_points);
-deriv_p_b = zeros(no_points, no_y_points);
-deriv_D_a = zeros(no_points, no_y_points);
-deriv_D_b = zeros(no_points, no_y_points);
 
-#nullcline, zero overlap in representations
-Db_null = zeros(no_points);
+## Constants
+xa_norm_sq = 1.0;
+p_ext = 0.30;
 
-# confusion parameter
+# Confusion parameter
 c = 0.5
 C = [1-c c; c 1-c];
 A = eye(2) - C;
 
-# input similarity parameter
+# Input representation similarity parameter
 a = 0; #0.9;
 S = [1 a; a 1]
 
-# noise and external bias
+# Noise and external bias
 sigma = 1;
 #rho_ext = -0.5;
 
 for i = 1:no_points 
-	#=if(d_a[i] != 0)
-		#local_nullcline_term = (sigma^2 / d_a[i]) * 2 * pdf(Normal(0,sigma), d_a[i]) + 0.5 * ( 2 * cdf(Normal(0,sigma), d_a[i]) - 1) + 0.5; 
-		local_nullcline_term = -0.1; #(sigma^2 ./ d_a[i]);
-		print("$local_nullcline_term \n");
-		Db_null[i] = invphi(local_nullcline_term);
-	end=#
 	for j = 1:(no_y_points)
-		# -ve for task B is for the opposite sign on rho
-		# unbounded post firing rate equations
-		#=deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho[i,j] * invnorm(p[i]);
-		deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * (-rho[i,j]) * invnorm(p[j]);=#
-		# binary output neurons
-		#=deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho[i,j] * p[i];
-		deriv_p_b[i,j] = - dist_pdf(invnorm(p[j])) * xa_norm_sq * rho[i,j] * p[j];=#
-		# binary output neurons - alternative
-		#=deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho[i,j] * p[i] * (1-p[i]);
-		deriv_p_b[i,j] = - dist_pdf(invnorm(p[j])) * xa_norm_sq * rho[i,j] * p[j] * (1-p[j]);=#
-
-		# binary output neurons - new (in first write-up)
-		# effects of unsupervised bias
-		deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho_a[i,j] * (2 * p[i] - 1);
-		deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * rho_b[i,j] * (2 * p[j] - 1);
-		
+		#####
+		# 
+		# Calculation of change of difference in outputs
+		#
 		# for R^{true} = p
 		# temp_a = sigma^2 * pdf(Normal(0,sigma), d_a[i]); 
 		# temp_b = sigma^2 * pdf(Normal(0,sigma), d_b[j]); 
@@ -131,6 +112,26 @@ for i = 1:no_points
 		deriv_D_a[i,j] = S[1,1] * temp_a + S[1,2] * temp_b;
 		deriv_D_b[i,j] = S[2,1] * temp_a + S[2,2] * temp_b;
 
+
+		#####
+		# 
+		# Calculation of change of probability of outcome
+		#
+		# -ve for task B is for the opposite sign on rho
+		# unbounded post firing rate equations
+		#=deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho[i,j] * invnorm(p[i]);
+		deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * (-rho[i,j]) * invnorm(p[j]);=#
+		# binary output neurons
+		#=deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho[i,j] * p[i];
+		deriv_p_b[i,j] = - dist_pdf(invnorm(p[j])) * xa_norm_sq * rho[i,j] * p[j];=#
+		# binary output neurons - alternative
+		#=deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho[i,j] * p[i] * (1-p[i]);
+		deriv_p_b[i,j] = - dist_pdf(invnorm(p[j])) * xa_norm_sq * rho[i,j] * p[j] * (1-p[j]);=#
+
+		# binary output neurons - new (in first write-up)
+		# effects of unsupervised bias
+		deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho_a[i,j] * (2 * p[i] - 1);
+		deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * rho_b[i,j] * (2 * p[j] - 1);
 		if(plot_unbiased_learning)
 			# include effects of regular learning signal
 			#deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * ( ( p[i]*S_1[i] - (1-p[i])*S_2[i] ) + ( rho_a[i,j] * (2 * p[i] - 1) ) );
@@ -155,6 +156,7 @@ print("Plotting...\n")
 filename_change = "unbounded_post"
 filename_change = "binary_new"
 #filename_change = "rescaled_new"
+file_name_change = "blah"
 filename_base = string("vector_field_", filename_change);
 filename_quiver = string("quiver_",filename_base,".pdf")
 filename_stream = string("stream_",filename_base,".pdf")
@@ -173,6 +175,9 @@ figure();
 #streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
 quiver(d_a,d_b,deriv_D_a',deriv_D_b');
 #plot(d_a, Db_null);
-#plot(origin, origin_space);
-#plot(origin_space, origin);
+## x=0 and y=0 lines for visual inspection
+#=origin = zeros(no_points);
+origin_space = linspace(-100,100,no_points);
+plot(origin, origin_space);
+plot(origin_space, origin);=#
 
