@@ -86,9 +86,9 @@ a = 1;
 S = [1 a; a 1]
 
 # Noise and external bias
-sigma = sqrt(1); #sqrt(100);
+sigma = 1; #sqrt(1); #sqrt(100);
 #rho_ext = -0.5;
-R_ext = 1.1; #1.001;
+R_ext = 2.5; #1.001;
 
 
 for i = 1:no_points 
