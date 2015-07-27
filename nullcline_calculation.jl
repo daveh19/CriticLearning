@@ -6,9 +6,30 @@ function my_null(x::Vector)
 	return pdf(Normal(0,1),x[1]) + (cdf(Normal(0,1),x[1]) - cdf(Normal(0,1),x[2]) ) * 0.5 * x[1]
 end
 
+function my_null2(x::Vector)
+	temp = (sigma^2 * 2 * pdf(Normal(0,sigma),x[1]) + sigma^2 * 2 * pdf(Normal(0,sigma),x[2]));
+	temp_1 = x[1] * (0.75 * (2 * cdf(Normal(0,sigma),x[1]) - 1) - 0.25 * (2 * cdf(Normal(0,sigma),x[2]) - 1) )
+	temp_2 =  x[2] * (-0.25 * (2 * cdf(Normal(0,sigma),x[1]) - 1) + 0.75 * (2 * cdf(Normal(0,sigma),x[2]) - 1) )
+	temp_3 = (x[1] * (-0.5 * R_ext) + x[2] * (-0.5 * R_ext) )
+	ret_val = (temp + temp_1 + temp_2 + temp_3);
+	if (abs(x[1]) > 100 || abs(x[2]) > 100)
+		ret_val = Inf;
+	end
+	return  ret_val
+end
+
+function my_null3(x::Vector)
+	if ((abs(x[1]) > 1.) || (abs(x[2]) > 1.))
+		ret_val = Inf
+	else
+		ret_val = 2* pdf(Normal(0,1),invphi(x[1])) + invphi(x[1]) * ((1 - 0.25) * x[1] - (0.25 * x[2]) ) ;
+	end
+	return  ret_val
+end
+
 f = my_null;
 
-res1 = optimize(f, [0.0, 0.0], method = :nelder_mead, store_trace = true)
+res1 = optimize(f, [0.0010, 0.0010], method = :nelder_mead, store_trace = true)
 
 #optimize(f, [0.0, 0.0], method = :l_bfgs)
 # a slight offset from origin is required for bfgs to detect slope correctly
