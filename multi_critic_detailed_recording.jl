@@ -400,8 +400,9 @@ function perform_multi_subject_experiment(task_id::Int, tuning_type::TuningSelec
       print("-----------Subject number $i------------\n")
     end
     if (i == 1)
-      debug_print_now = true;
-      verbosity = 2;
+      ## Handy debugging code: reenable the following two lines
+      #debug_print_now = true;
+      #verbosity = 2;
     else
       verbosity = -1;
       debug_print_now = false;
