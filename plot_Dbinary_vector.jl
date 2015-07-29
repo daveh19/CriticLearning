@@ -21,8 +21,8 @@ no_points = 40;
 no_y_points = no_points;
 p = linspace(0, 1, no_points);
 p_y = linspace(0, 1, no_y_points);
-d_a = linspace(-6,6, no_points);
-d_b = linspace(-6,6, no_points);
+d_a = linspace(-10,10, no_points);
+d_b = linspace(-10,10, no_points);
 
 #debug vars
 Da = zeros(no_points);
@@ -108,19 +108,19 @@ for i = 1:no_points
 		# temp_b += A[2,2] * cdf(Normal(0,sigma), d_b[j]) * d_b[j];
 
 		# *2 for R^{true} = (2p-1)
-		temp_a = sigma^2 * pdf(Normal(0,sigma), d_a[i]) * 2; 
-		temp_b = sigma^2 * pdf(Normal(0,sigma), d_b[j]) * 2;
+		temp_a = 4 * cdf(Normal(0,sigma),d_a[i]) * (1 - cdf(Normal(0,sigma),d_a[i]))
+		temp_b = 4 * cdf(Normal(0,sigma),d_b[j]) * (1 - cdf(Normal(0,sigma),d_b[j]))
 		# equations for R^{true} = (2p-1)
-		temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_a[i];
-		temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_a[i];
+		temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * (2 * cdf(Normal(0,sigma),d_a[i]) - 1);
+		temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * (2 * cdf(Normal(0,sigma),d_a[i]) - 1);
 
-		temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_b[j];
-		temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_b[j];
+		temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * (2 * cdf(Normal(0,sigma),d_b[j]) - 1);
+		temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * (2 * cdf(Normal(0,sigma),d_b[j]) - 1);
 		
 		# Bias from other tasks 
 		if(critic_dimensions == 4)
-			temp_a += d_a[i] * (-0.5 * R_ext);
-			temp_b += d_b[j] * (-0.5 * R_ext);
+			temp_a += (2 * cdf(Normal(0,sigma),d_a[i]) - 1) * (-0.5 * R_ext);
+			temp_b += (2 * cdf(Normal(0,sigma),d_b[j]) - 1) * (-0.5 * R_ext);
 		end
 
 
@@ -150,21 +150,23 @@ for i = 1:no_points
 		#deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * rho_b[i,j] * (2 * p[j] - 1);
 		
 
+		## the following has not been updates to follow binary output rules yet!!
 		Da[i] = invphi(p[i]);
 		Db[j] = invphi(p_y[j]);
-		p_temp_a = sigma^2 * pdf(Normal(0,sigma), Da[i]) * 2; 
-		p_temp_b = sigma^2 * pdf(Normal(0,sigma), Db[j]) * 2;
+		p_temp_a = 4 * cdf(Normal(0,sigma),Da[i]) * (1 - cdf(Normal(0,sigma),Da[i]))
+		p_temp_b = 4 * cdf(Normal(0,sigma),Db[j]) * (1 - cdf(Normal(0,sigma),Db[j]))
 		# equations for R^{true} = (2p-1)
-		p_temp_a += A[1,1] * (2 * p[i] - 1) * Da[i];
-		p_temp_a += A[1,2] * (2 * p[j] - 1) * Da[i];
+		p_temp_a += A[1,1] * (2 * p[i] - 1) * (2 * p[i] - 1);
+		p_temp_a += A[1,2] * (2 * p[j] - 1) * (2 * p[i] - 1);
 
-		p_temp_b += A[2,1] * (2 * p[i] - 1) * Db[j];
-		p_temp_b += A[2,2] * (2 * p[j] - 1) * Db[j];
+		p_temp_b += A[2,1] * (2 * p[i] - 1) * (2 * p[j] - 1);
+		p_temp_b += A[2,2] * (2 * p[j] - 1) * (2 * p[j] - 1);
+
 		
 		# Bias from other tasks 
 		if(critic_dimensions == 4)
-			p_temp_a += Da[i] * (-0.5 * R_ext);
-			p_temp_b += Db[j] * (-0.5 * R_ext);
+			p_temp_a += (2 * p[i] - 1) * (-0.5 * R_ext);
+			p_temp_b += (2 * p[j] - 1) * (-0.5 * R_ext);
 		end
 
 		# putting it all together
