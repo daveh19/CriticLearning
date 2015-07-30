@@ -32,28 +32,28 @@ problem_right_bound = (1.) :: Float64; #0.5;
 
 running_av_window_length = 50 :: Int; #50::Int;
 
-learning_rate = (0.00001) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
+learning_rate = (0.001) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
 output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 
 initial_weight_bias = (2.0); #(2.0); #(2.0) :: Float64; # 2.0
 gaussian_weight_bias = (0.5) :: Float64;
 
 # weight constraints
-weights_upper_bound = (1e3) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
-weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
+weights_upper_bound = (1e1) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
+weights_lower_bound = (-1e1) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 
 
 # choose input sequence
-use_cts_random_inputs = false :: Bool;
+use_cts_random_inputs = true :: Bool;
 use_binary_alternating_inputs = false :: Bool;
-use_binary_random_inputs = true :: Bool;
+use_binary_random_inputs = false :: Bool;
 
 # selective tuning of input
 input_baseline = 2.0 :: Float64; #2.0;
 input_baseline_variance = 0.5^2; #0.25; #0.5 :: Float64; #0.5;
 task_tuning_slope_variance = zeros(no_input_tasks) :: Array{Float64,1};
 task_tuning_slope_variance[1] = 0.5^2; #0.5^2; #0.7^2; #0.5^2; #0.4; #0.375; #0.25; #0.375 :: Float64; # easy task
-task_tuning_slope_variance[2] = 0.3^2; #0.2^2; #0.25^2; #0.25; #0.0625; #0.25 :: Float64; # hard task
+task_tuning_slope_variance[2] = 0.2^2; #0.2^2; #0.25^2; #0.25; #0.0625; #0.25 :: Float64; # hard task
 
 
 # input tuning function
