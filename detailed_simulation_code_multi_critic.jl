@@ -516,7 +516,7 @@ function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
       print("Greater than zero (x: $x)\n") 
     end
 		return (1);
-	 elseif ( (x <= 0) && (abs(local_post[1]) > abs(local_post[2]) ) ) #(local_post[1] > local_post[2]) )#left
+	 elseif ( (x <= 0) && (abs(local_post[1]) >= abs(local_post[2]) ) ) #(local_post[1] > local_post[2]) )#left
     if(verbosity > 1)
       instance_correct += 1;
       print("Less than zero (x: $x)\n")
