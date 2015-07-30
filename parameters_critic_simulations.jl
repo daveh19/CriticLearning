@@ -25,6 +25,7 @@ floor_on_post = (-Inf) :: Float64; # applied in post()
 disable_winner_takes_all = false :: Bool; # applied in post()
 binary_outputs_mode = true :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
+if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update
 
 # problem difficulty parameters
 problem_left_bound = (-1.) :: Float64; #-0.5;

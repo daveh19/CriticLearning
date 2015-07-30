@@ -649,7 +649,6 @@ end
   if(binary_outputs_mode) # chosen output is 1, other output is 0
     binary_post = wta(local_post[1], local_post[2]);
     binary_post /= maximum(binary_post);
-    #@bp
     dw[:,1,task_id] = learning_rate * local_pre[:,task_id] * binary_post[1] * (local_reward - local_average_reward);
     dw[:,2,task_id] = learning_rate * local_pre[:,task_id] * binary_post[2] * (local_reward - local_average_reward);
   elseif(rescaled_outputs_mode)
