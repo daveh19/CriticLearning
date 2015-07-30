@@ -9,7 +9,7 @@ no_input_tasks = 2::Int;
 
 # trial length parameters
 no_trials_in_block = 80::Int; #80;
-no_blocks_in_experiment = 40::Int; #20::Int; #14;
+no_blocks_in_experiment = 60::Int; #20::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = true ::Bool;
 
