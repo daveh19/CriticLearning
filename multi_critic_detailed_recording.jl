@@ -3,6 +3,8 @@ using Distributions
 using PyPlot
 using Grid
 
+using Debug
+
 ########## Parameters #############
 
 include("parameters_critic_simulations.jl");

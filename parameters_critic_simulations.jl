@@ -23,7 +23,7 @@ reset_average_reward_on_each_block = false :: Bool;
 # changing the post part of the weight update rule
 floor_on_post = (-Inf) :: Float64; # applied in post()
 disable_winner_takes_all = false :: Bool; # applied in post()
-binary_outputs_mode = false :: Bool; # applied to dw
+binary_outputs_mode = true :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 
 # problem difficulty parameters
