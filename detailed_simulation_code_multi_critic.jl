@@ -501,7 +501,7 @@ function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
     #   it's negative).
     if( (x > 0) && (local_post[2] > local_post[1]) )
       return (1);
-    elseif( (x <= 0) && (local_post[1] > local_post[2]) )
+    elseif( (x <= 0) && (local_post[1] >= local_post[2]) )
       return (1);
     else
       return (-1);
