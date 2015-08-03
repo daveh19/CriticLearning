@@ -74,7 +74,7 @@ xa_norm_sq = 1.0;
 p_ext = 0.30;
 
 # Confusion parameter
-critic_dimensions = 4;
+critic_dimensions = 2;
 c = 1 / critic_dimensions; # currently equal confusion mix of all true critics
 C = ones(critic_dimensions,critic_dimensions)
 C *= c
@@ -118,9 +118,12 @@ for i = 1:no_points
 		temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_b[j];
 		
 		# Bias from other tasks 
-		if(critic_dimensions == 4)
-			temp_a += d_a[i] * (-0.5 * R_ext);
-			temp_b += d_b[j] * (-0.5 * R_ext);
+		if(critic_dimensions > 2)
+			a_multiplier = (critic_dimensions - 2) / critic_dimensions
+			#=temp_a += d_a[i] * (-0.5 * R_ext);
+			temp_b += d_b[j] * (-0.5 * R_ext);=#
+			temp_a += d_a[i] * (-a_multiplier * R_ext);
+			temp_b += d_b[j] * (-a_multiplier * R_ext);
 		end
 
 
