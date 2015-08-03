@@ -21,8 +21,8 @@ no_points = 40;
 no_y_points = no_points;
 p = linspace(0, 1, no_points);
 p_y = linspace(0, 1, no_y_points);
-d_a = linspace(-10,10, no_points);
-d_b = linspace(-10,10, no_points);
+d_a = linspace(-6,6, no_points);
+d_b = linspace(-6,6, no_points);
 
 #debug vars
 Da = zeros(no_points);
@@ -74,7 +74,7 @@ xa_norm_sq = 1.0;
 p_ext = 0.30;
 
 # Confusion parameter
-critic_dimensions = 4;
+critic_dimensions = 20;
 c = 1 / critic_dimensions; # currently equal confusion mix of all true critics
 C = ones(critic_dimensions,critic_dimensions)
 C *= c
@@ -83,7 +83,7 @@ A = eye(critic_dimensions) - C
 
 
 # Input representation similarity parameter
-a = 1;
+a = 0;
 S = [1 a; a 1]
 
 # Noise and external bias
@@ -118,9 +118,12 @@ for i = 1:no_points
 		temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * (2 * cdf(Normal(0,sigma),d_b[j]) - 1);
 		
 		# Bias from other tasks 
-		if(critic_dimensions == 4)
-			temp_a += (2 * cdf(Normal(0,sigma),d_a[i]) - 1) * (-0.5 * R_ext);
-			temp_b += (2 * cdf(Normal(0,sigma),d_b[j]) - 1) * (-0.5 * R_ext);
+		if(critic_dimensions > 2)
+			a_multiplier = (critic_dimensions - 2) / critic_dimensions
+			#=temp_a += (2 * cdf(Normal(0,sigma),d_a[i]) - 1) * (-0.5 * R_ext);
+			temp_b += (2 * cdf(Normal(0,sigma),d_b[j]) - 1) * (-0.5 * R_ext);=#
+			temp_a += (2 * cdf(Normal(0,sigma),d_a[i]) - 1) * (-a_multiplier * R_ext);
+			temp_b += (2 * cdf(Normal(0,sigma),d_b[j]) - 1) * (-a_multiplier * R_ext);
 		end
 
 
@@ -164,9 +167,12 @@ for i = 1:no_points
 
 		
 		# Bias from other tasks 
-		if(critic_dimensions == 4)
-			p_temp_a += (2 * p[i] - 1) * (-0.5 * R_ext);
-			p_temp_b += (2 * p[j] - 1) * (-0.5 * R_ext);
+		if(critic_dimensions > 2)
+			a_multiplier = (critic_dimensions - 2) / critic_dimensions
+			#=p_temp_a += (2 * p[i] - 1) * (-0.5 * R_ext);
+			p_temp_b += (2 * p[j] - 1) * (-0.5 * R_ext);=#
+			p_temp_a += (2 * p[i] - 1) * (-a_multiplier * R_ext);
+			p_temp_b += (2 * p[j] - 1) * (-a_multiplier * R_ext);
 		end
 
 		# putting it all together
