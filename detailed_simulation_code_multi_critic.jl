@@ -560,8 +560,7 @@ function multi_critic_running_av_reward(R::Int, task_critic_id::Int, choice_crit
 end
 
 
-# average_choice = 0. :: Float64;
-@debug function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, trial_dat::Trial)
+function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, trial_dat::Trial)
   if(verbosity > 3)
     global instance_reward;
     global instance_average_reward;
