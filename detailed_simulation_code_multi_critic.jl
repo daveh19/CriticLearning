@@ -647,7 +647,11 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   dw = zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks);
   if(binary_outputs_mode) # chosen output is 1, other output is 0
     binary_post = wta(local_post[1], local_post[2]);
-    binary_post /= maximum(binary_post);
+    if (maximum(binary_post) != 0)
+      binary_post /= maximum(binary_post);
+    else
+      #print("DEBUG: NaN avoided\n")
+    end
     dw[:,1,task_id] = learning_rate * local_pre[:,task_id] * binary_post[1] * (local_reward - local_average_reward);
     dw[:,2,task_id] = learning_rate * local_pre[:,task_id] * binary_post[2] * (local_reward - local_average_reward);
   elseif(rescaled_outputs_mode)
