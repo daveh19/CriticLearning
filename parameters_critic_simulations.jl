@@ -22,7 +22,7 @@ reset_average_reward_on_each_block = false :: Bool;
 
 # changing the post part of the weight update rule
 floor_on_post = (-Inf) :: Float64; # applied in post()
-disable_winner_takes_all = true :: Bool; # applied in post()
+disable_winner_takes_all = false :: Bool; # applied in post()
 binary_outputs_mode = false :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update
@@ -33,7 +33,7 @@ problem_right_bound = (1.) :: Float64; #0.5;
 
 running_av_window_length = 50 :: Int; #50::Int;
 
-learning_rate = (0.0000005) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
+learning_rate = (0.00005) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
 output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 
 initial_weight_bias = (2.0); #(2.0); #(2.0) :: Float64; # 2.0
