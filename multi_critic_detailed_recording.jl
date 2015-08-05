@@ -573,7 +573,7 @@ function compare_three_trial_types_with_multiple_subjects()
   print("-----Experiment: roving task------\n")
   roving_experiment_id = 1 :: Int;
   # there's no point expanding the following to generic multiple roving pop experiments until I have such an experiment
-  perform_multi_subject_experiment_trial_switching(tuning_type, latest_experiment_results.subjects_roving_task, no_subjects, roving_experiment_id);
+  perform_multi_subject_experiment_trial_switching(tuning_type, latest_experiment_results.subjects_roving_task, no_subjects);
   mean_correct = zeros(no_blocks_in_experiment);
   mean_task_1_correct = zeros(no_blocks_in_experiment);
   mean_task_2_correct = zeros(no_blocks_in_experiment);
@@ -692,6 +692,8 @@ function biased_compare_three_trial_types_with_multiple_subjects()
     end
   end
 
+  ## insert srand() here and before biased experiments if you want identical population behaviour
+  
   print("-----Experiment: task 1------\n")
   task_id = 1::Int;
   use_fixed_external_bias = false; # initally don't use
@@ -762,7 +764,7 @@ function biased_compare_three_trial_types_with_multiple_subjects()
   # Finally, I will discard the averaging across tasks here as there is no commonality between
   #   what will now be separate experiments.
   roving_experiment_id = 1 :: Int;
-  task_id = 2::Int;
+  task_id = 1::Int;
   use_fixed_external_bias = true; # initally don't use
   perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_roving_task, no_subjects, roving_experiment_id);
 
@@ -821,8 +823,8 @@ function biased_compare_three_trial_types_with_multiple_subjects()
   roving_experiment_id = 2 :: Int;
   task_id = 2::Int;
   use_fixed_external_bias = true; 
-  #perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_roving_task, no_subjects, roving_experiment_id);
-  print("DEBUG: skipping...\n");
+  perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_roving_task, no_subjects, roving_experiment_id);
+  #print("DEBUG: skipping...\n");
 
   #mean_correct = zeros(no_blocks_in_experiment);
   #mean_task_1_correct = zeros(no_blocks_in_experiment);
