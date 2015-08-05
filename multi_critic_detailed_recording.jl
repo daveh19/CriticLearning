@@ -136,7 +136,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
     end
     if (use_fixed_external_bias)
       # this is where the external bias gets applied
-      bias_task_critic_id = task_id;
+      bias_task_critic_id = 1;
       if(no_task_critics > 1)
         bias_task_critic_id = ( (task_id % 2) == 0 ? 1 : 2)
       end
@@ -311,7 +311,7 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
     if(verbosity > -1)
       print("------------------ Block number $i --------------------\n")
     end
-    perform_learning_block_single_problem(task_id, tuning_type, subjects_dat[subject_id, task_id].blocks[i])
+    perform_learning_block_single_problem(task_id, tuning_type, subjects_dat[subject_id, local_save_task_id].blocks[i])
     if (save_reward_from_running_average)
       # Remember, average_reward is a running average not a block average
       local_average_reward = 0.;
@@ -322,7 +322,7 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
           local_sum_critics += n_critic[k,j];
         end
       end
-      subjects_dat[subject_id, task_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
+      subjects_dat[subject_id, local_save_task_id].blocks[i].average_reward = ( local_average_reward / local_sum_critics );
     end
     if(verbosity > -1)
       print("Block $i completed. Task_id: $task_id.\n") 
@@ -762,7 +762,7 @@ function biased_compare_three_trial_types_with_multiple_subjects()
   #   what will now be separate experiments.
 
   #perform_multi_subject_experiment_trial_switching(tuning_type, latest_experiment_results.subjects_roving_task);
-  task_id = 1::Int;
+  task_id = 2::Int;
   use_fixed_external_bias = true; # initally don't use
   perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_roving_task);
 
@@ -822,7 +822,7 @@ function biased_compare_three_trial_types_with_multiple_subjects()
 
   task_id = 2::Int;
   use_fixed_external_bias = true; 
-  perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_roving_task);
+  #perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_roving_task);
 
   #mean_correct = zeros(no_blocks_in_experiment);
   #mean_task_1_correct = zeros(no_blocks_in_experiment);
