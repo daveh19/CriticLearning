@@ -135,15 +135,15 @@ type RovingExperiment
   roving_range :: Array{Float64,2}
 end
 
-function initialise_empty_roving_experiment(tuning_type::TuningSelector, no_subjects::Int, blocks_per_subject::Int, trials_per_block::Int)
-  no_roving_tasks = 1::Int;
+function initialise_empty_roving_experiment(tuning_type::TuningSelector, no_subjects::Int, blocks_per_subject::Int, trials_per_block::Int, no_roving_experiments::Int)
+  #no_roving_tasks = 1::Int;
 
   subjects_task = Array(Subject, (no_subjects, no_input_tasks) );
-  subjects_roving_task = Array(Subject, (no_subjects, no_roving_tasks) );
+  subjects_roving_task = Array(Subject, (no_subjects, no_roving_experiments) );
 
   task_correct = zeros(blocks_per_subject, no_input_tasks);
-  roving_correct = zeros(blocks_per_subject, no_roving_tasks);
-  roving_task_correct = zeros(blocks_per_subject, no_input_tasks, no_roving_tasks);
+  roving_correct = zeros(blocks_per_subject, no_roving_experiments);
+  roving_task_correct = zeros(blocks_per_subject, no_input_tasks, no_roving_experiments);
 
   task_error = zeros(blocks_per_subject, no_input_tasks);
   roving_error = zeros(blocks_per_subject, no_input_tasks);
@@ -155,7 +155,7 @@ function initialise_empty_roving_experiment(tuning_type::TuningSelector, no_subj
     for j = 1:no_input_tasks
       subjects_task[i,j] = initialise_empty_subject(tuning_type, blocks_per_subject, trials_per_block);
     end
-    for j = 1:no_roving_tasks
+    for j = 1:no_roving_experiments
       subjects_roving_task[i,j] = initialise_empty_subject(tuning_type, blocks_per_subject, trials_per_block, double_no_of_trials_in_alternating_experiment);
     end
   end

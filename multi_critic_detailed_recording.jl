@@ -265,7 +265,7 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
 end
 
 
-function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSelector, subjects_dat::Array{Subject,2}, subject_id::Int64=1)
+function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSelector, subjects_dat::Array{Subject,2}, subject_id::Int64=1, roving_experiment_id::Int64=1)
   global enable_weight_updates :: Bool;
   global average_reward;
   global n_critic;
@@ -273,7 +273,7 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
   if (!use_fixed_external_bias)
     local_save_task_id = task_id;
   else
-    local_save_task_id = 1; # hard code for now, should be related to roving_task_id if we expand the number of 'experiments'
+    local_save_task_id = roving_experiment_id; # hard code for now, should be related to roving_task_id if we expand the number of 'experiments'
   end
 
   global a = deepcopy(subjects_dat[subject_id, local_save_task_id].a);
@@ -413,7 +413,7 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
 end
 
 
-function perform_multi_subject_experiment(task_id::Int, tuning_type::TuningSelector, subjects::Array{Subject,2}, no_subjects::Int64=no_subjects)
+function perform_multi_subject_experiment(task_id::Int, tuning_type::TuningSelector, subjects::Array{Subject,2}, no_subjects::Int64=no_subjects, roving_experiment_id::Int64=1)
   #global subject = Array(Subject, no_subjects);
   
   global debug_print_now = false;
@@ -431,7 +431,7 @@ function perform_multi_subject_experiment(task_id::Int, tuning_type::TuningSelec
       verbosity = -1;
       debug_print_now = false;
     end
-    perform_single_subject_experiment(task_id, tuning_type, subjects, i)
+    perform_single_subject_experiment(task_id, tuning_type, subjects, i, roving_experiment_id)
   end
 
   if(verbosity > -1)
@@ -475,7 +475,8 @@ function compare_three_trial_types_with_multiple_subjects()
     error(1);
   end
 
-  latest_experiment_results = initialise_empty_roving_experiment(tuning_type, no_subjects, no_blocks_in_experiment, no_trials_in_block);
+  no_roving_experiments = 1::Int;
+  latest_experiment_results = initialise_empty_roving_experiment(tuning_type, no_subjects, no_blocks_in_experiment, no_trials_in_block, no_roving_experiments);
 
   if(use_ab_persistence)
     for i = 1:no_subjects
@@ -572,7 +573,7 @@ function compare_three_trial_types_with_multiple_subjects()
   print("-----Experiment: roving task------\n")
   roving_experiment_id = 1 :: Int;
   # there's no point expanding the following to generic multiple roving pop experiments until I have such an experiment
-  perform_multi_subject_experiment_trial_switching(tuning_type, latest_experiment_results.subjects_roving_task);
+  perform_multi_subject_experiment_trial_switching(tuning_type, latest_experiment_results.subjects_roving_task, no_subjects, roving_experiment_id);
   mean_correct = zeros(no_blocks_in_experiment);
   mean_task_1_correct = zeros(no_blocks_in_experiment);
   mean_task_2_correct = zeros(no_blocks_in_experiment);
@@ -652,7 +653,8 @@ function biased_compare_three_trial_types_with_multiple_subjects()
     error(1);
   end
 
-  latest_experiment_results = initialise_empty_roving_experiment(tuning_type, no_subjects, no_blocks_in_experiment, no_trials_in_block);
+  no_roving_experiments = 2::Int;
+  latest_experiment_results = initialise_empty_roving_experiment(tuning_type, no_subjects, no_blocks_in_experiment, no_trials_in_block, no_roving_experiments);
 
   if(use_ab_persistence)
     for i = 1:no_subjects
@@ -749,7 +751,6 @@ function biased_compare_three_trial_types_with_multiple_subjects()
   latest_experiment_results.task_range[:,task_id] = range_correct;
 
   print("-----Experiment: biased task 1------\n")
-  roving_experiment_id = 1 :: Int;
   # Notation is going to be a bitch here as I'm hijacking the code from the roving_task
   # there will be only one roving_experiment still
   # I will simulate first task 1 (with a bias included into updates of running average reward)
@@ -760,11 +761,10 @@ function biased_compare_three_trial_types_with_multiple_subjects()
   #   the other task should occur.
   # Finally, I will discard the averaging across tasks here as there is no commonality between
   #   what will now be separate experiments.
-
-  #perform_multi_subject_experiment_trial_switching(tuning_type, latest_experiment_results.subjects_roving_task);
+  roving_experiment_id = 1 :: Int;
   task_id = 2::Int;
   use_fixed_external_bias = true; # initally don't use
-  perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_roving_task);
+  perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_roving_task, no_subjects, roving_experiment_id);
 
   #mean_correct = zeros(no_blocks_in_experiment);
   mean_task_1_correct = zeros(no_blocks_in_experiment);
@@ -813,16 +813,16 @@ function biased_compare_three_trial_types_with_multiple_subjects()
   #latest_experiment_results.roving_range[:,roving_experiment_id] = range_correct;
 
 
-  print("-----Experiment: biased task 2?------\n")
-  roving_experiment_id = 1 :: Int;
+  print("-----Experiment: biased task 2------\n")
   # Then I will simulate task 2 (with similar inclusion of bias)
   #   this output goes into task 2 output of roving_experiment_id 2
   # As long as careful accounting of task_id's is done then no overwriting of variables for
   #   the other task should occur.
-
+  roving_experiment_id = 2 :: Int;
   task_id = 2::Int;
   use_fixed_external_bias = true; 
-  #perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_roving_task);
+  #perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_roving_task, no_subjects, roving_experiment_id);
+  print("DEBUG: skipping...\n");
 
   #mean_correct = zeros(no_blocks_in_experiment);
   #mean_task_1_correct = zeros(no_blocks_in_experiment);
@@ -869,7 +869,6 @@ function biased_compare_three_trial_types_with_multiple_subjects()
   latest_experiment_results.roving_task_correct[:,2,roving_experiment_id] = mean_task_2_correct;
   #latest_experiment_results.roving_error[:,roving_experiment_id] = err_correct;
   #latest_experiment_results.roving_range[:,roving_experiment_id] = range_correct;
-
 
 
   use_fixed_external_bias = false; # reset to off
