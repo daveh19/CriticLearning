@@ -3,7 +3,7 @@ using Distributions
 using PyPlot
 using Grid
 
-using Debug
+#using Debug
 
 ########## Parameters #############
 
@@ -134,6 +134,14 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
     if(verbosity > 0)
       print("\n")
     end
+    if (use_fixed_external_bias)
+      # this is where the external bias gets applied
+      bias_task_critic_id = task_id;
+      if(no_task_critics > 1)
+        bias_task_critic_id = ( (task_id % 2) == 0 ? 1 : 2)
+      end
+      multi_critic_running_av_reward(fixed_external_bias_value, bias_task_critic_id, 1)
+    end
   end
   proportion_correct = monitor_reward / no_trials_in_block;
   if(perform_detection_threshold)
@@ -262,13 +270,23 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
   global average_reward;
   global n_critic;
 
-  global a = deepcopy(subjects_dat[subject_id, task_id].a);
+  if (!use_fixed_external_bias)
+    local_save_task_id = task_id;
+  else
+    local_save_task_id = 1; # hard code for now, should be related to roving_task_id if we expand the number of 'experiments'
+  end
+
+  global a = deepcopy(subjects_dat[subject_id, local_save_task_id].a);
   if( isa(tuning_type, linear_tc) )
-    global b = deepcopy(subjects_dat[subject_id, task_id].b);
+    global b = deepcopy(subjects_dat[subject_id, local_save_task_id].b);
   end
 
   initialise_weight_matrix(tuning_type) # must be called after a and b are setup
-  subjects_dat[subject_id, task_id].w_initial = deepcopy(w);
+  if (!use_fixed_external_bias)
+    subjects_dat[subject_id, task_id].w_initial = deepcopy(w);
+  else
+    subjects_dat[subject_id, local_save_task_id].w_initial[:,:,task_id] = deepcopy(w[:,:,task_id]);
+  end
 
   if(disable_learning_on_first_block)
     enable_weight_updates = false :: Bool;
@@ -315,8 +333,12 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
     enable_weight_updates = true;
   end
 
-  subjects_dat[subject_id, task_id].w_final = deepcopy(w);
-  
+  if (!use_fixed_external_bias)
+    subjects_dat[subject_id, task_id].w_final = deepcopy(w);
+  else
+    subjects_dat[subject_id, local_save_task_id].w_final[:,:,task_id] = deepcopy(w[:,:,task_id]);
+  end
+
   return 0;
 end
 
@@ -594,6 +616,263 @@ function compare_three_trial_types_with_multiple_subjects()
   latest_experiment_results.roving_task_correct[:,2,roving_experiment_id] = mean_task_2_correct;
   latest_experiment_results.roving_error[:,roving_experiment_id] = err_correct;
   latest_experiment_results.roving_range[:,roving_experiment_id] = range_correct;
+
+  print("Plotting...\n")
+  # legend(loc=4)
+  #figure()
+  #plot_multi_subject_experiment(latest_experiment_results);
+  #restore next line
+  plot_multi_subject_experiment_as_subplots(latest_experiment_results);
+
+  if(perform_post_hoc_detection_threshold)
+    print("Calculating error detection thresholds...\n");
+    post_hoc_calculate_thresholds(tuning_type, latest_experiment_results.subjects_task);
+    post_hoc_calculate_thresholds(tuning_type, latest_experiment_results.subjects_roving_task);
+  end
+
+  global exp_results;
+  resize!(exp_results, length(exp_results)+1);
+  exp_results[length(exp_results)] = latest_experiment_results;
+  print("End\n");
+end
+
+
+function biased_compare_three_trial_types_with_multiple_subjects()
+  ## fixed external bias sim comparison
+  global use_fixed_external_bias :: Bool; 
+
+  if(use_gaussian_tuning_function)
+    # use gaussian basis functions
+    tuning_type = gaussian_tc();
+  elseif(use_linear_tuning_function)
+    # use linear tuning functions
+    tuning_type = linear_tc();
+  else
+    print("ERROR: you need to define a tuning function\n");
+    error(1);
+  end
+
+  latest_experiment_results = initialise_empty_roving_experiment(tuning_type, no_subjects, no_blocks_in_experiment, no_trials_in_block);
+
+  if(use_ab_persistence)
+    for i = 1:no_subjects
+      initialise_pre_population(tuning_type);
+      for j = 1:no_input_tasks
+        latest_experiment_results.subjects_task[i,j].a = deepcopy(a);
+        if( isa(tuning_type, linear_tc) )
+          latest_experiment_results.subjects_task[i,j].b = deepcopy(b);
+        end
+      end
+      latest_experiment_results.subjects_roving_task[i,1].a = deepcopy(a);
+      if( isa(tuning_type, linear_tc) )
+        latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
+      end
+      initialise_pre_population(tuning_type);
+      initialise_pre_population(tuning_type);
+    end
+  else # experiment to have identical RND sequences
+    for i = 1:no_subjects
+      initialise_pre_population(tuning_type); 
+      latest_experiment_results.subjects_task[i,1].a = deepcopy(a);
+      if( isa(tuning_type, linear_tc) )
+        latest_experiment_results.subjects_task[i,1].b = deepcopy(b);
+      end
+      initialise_pre_population(tuning_type); 
+      latest_experiment_results.subjects_task[i,2].a = deepcopy(a);
+      if( isa(tuning_type, linear_tc) )
+        latest_experiment_results.subjects_task[i,2].b = deepcopy(b);
+      end
+      initialise_pre_population(tuning_type); 
+      latest_experiment_results.subjects_roving_task[i,1].a = deepcopy(a);
+      if( isa(tuning_type, linear_tc) )
+        latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
+      end
+    end
+  end
+
+  print("-----Experiment: task 1------\n")
+  task_id = 1::Int;
+  use_fixed_external_bias = false; # initally don't use
+  perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_task);
+  mean_correct = zeros(no_blocks_in_experiment);
+  range_correct = zeros(no_blocks_in_experiment);
+  err_correct = zeros(no_blocks_in_experiment);
+  for i = 1:no_blocks_in_experiment
+    local_prop = zeros(no_subjects);
+    for j = 1:no_subjects
+      local_prop[j] = latest_experiment_results.subjects_task[j,task_id].blocks[i].proportion_correct;
+    end
+    if(use_plot_mean)
+      # mean calculation
+      mean_correct[i] = mean(local_prop);
+    else
+      # median calculation
+      mean_correct[i] = median(local_prop);
+    end
+    # other deviation and range statistics
+    err_correct[i] = std(local_prop);
+    #err_correct[i] /= sqrt(no_subjects); # standard error correction to sample standard deviation
+    range_correct[i] = (maximum(local_prop) - minimum(local_prop)) / 2.0; 
+  end
+  # plot(mean_correct, "r", linewidth=2, label="Task 1")
+  latest_experiment_results.task_correct[:,task_id] = mean_correct;
+  latest_experiment_results.task_error[:,task_id] = err_correct; 
+  latest_experiment_results.task_range[:,task_id] = range_correct;
+
+  print("-----Experiment: task 2------\n")
+  task_id = 2::Int;
+  use_fixed_external_bias = false; # initally don't use
+  perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_task);
+  mean_correct = zeros(no_blocks_in_experiment);
+  range_correct = zeros(no_blocks_in_experiment);
+  err_correct = zeros(no_blocks_in_experiment);
+  for i = 1:no_blocks_in_experiment
+    local_prop = zeros(no_subjects);
+    for j = 1:no_subjects
+      local_prop[j] = latest_experiment_results.subjects_task[j,task_id].blocks[i].proportion_correct;
+    end
+    if(use_plot_mean)
+      # mean calculation
+      mean_correct[i] = mean(local_prop);
+    else
+      # median calculation
+      mean_correct[i] = median(local_prop);
+    end
+    # other deviation and range statistics
+    err_correct[i] = std(local_prop);
+    #err_correct[i] /= sqrt(no_subjects); # standard error correction to sample standard deviation
+    range_correct[i] = (maximum(local_prop) - minimum(local_prop)) / 2.0;
+  end
+  # plot(mean_correct, "g", linewidth=2, label="Task 2")
+  latest_experiment_results.task_correct[:,task_id] = mean_correct;
+  latest_experiment_results.task_error[:,task_id] = err_correct;
+  latest_experiment_results.task_range[:,task_id] = range_correct;
+
+  print("-----Experiment: biased task 1------\n")
+  roving_experiment_id = 1 :: Int;
+  # Notation is going to be a bitch here as I'm hijacking the code from the roving_task
+  # there will be only one roving_experiment still
+  # I will simulate first task 1 (with a bias included into updates of running average reward)
+  #   output will be stored as task 1 output of roving_experiment_id 1
+  # Then I will simulate task 2 (with similar inclusion of bias)
+  #   this output goes into task 2 output of roving_experiment_id 2
+  # As long as careful accounting of task_id's is done then no overwriting of variables for
+  #   the other task should occur.
+  # Finally, I will discard the averaging across tasks here as there is no commonality between
+  #   what will now be separate experiments.
+
+  #perform_multi_subject_experiment_trial_switching(tuning_type, latest_experiment_results.subjects_roving_task);
+  task_id = 1::Int;
+  use_fixed_external_bias = true; # initally don't use
+  perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_roving_task);
+
+  #mean_correct = zeros(no_blocks_in_experiment);
+  mean_task_1_correct = zeros(no_blocks_in_experiment);
+  #mean_task_2_correct = zeros(no_blocks_in_experiment);
+  err_correct = zeros(no_blocks_in_experiment);
+  range_correct = zeros(no_blocks_in_experiment);
+  for i = 1:no_blocks_in_experiment
+    # can increase dimensionality of the following when I want to expand task space
+    #local_prop = zeros(no_subjects);
+    local_prop_1 = zeros(no_subjects);
+    #local_prop_2 = zeros(no_subjects);
+    for j = 1:no_subjects
+      # save the proportions so that mean or median can be called
+      #local_prop[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_correct;
+      local_prop_1[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_task_correct[1];
+      #local_prop_2[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_task_correct[2];
+    end
+    if(use_plot_mean)
+      # mean calculation
+      #mean_correct[i] = mean(local_prop)
+      mean_task_1_correct[i] = mean(local_prop_1)
+      #mean_task_2_correct[i] = mean(local_prop_2)
+    else
+      # median calculation
+      #mean_correct[i] = median(local_prop);
+      mean_task_1_correct[i] = median(local_prop_1);
+      #mean_task_2_correct[i] = median(local_prop_2);
+    end
+
+    # other deviation and range statistics
+    ## TODO
+    #err_correct[i] = std(local_prop);
+    #err_correct[i] /= sqrt(no_subjects); # standard error correction to sample standard deviation
+    ## TODO
+    #range_correct[i] = (maximum(local_prop) - minimum(local_prop)) / 2.0;
+  end
+
+  # plot(mean_correct, "b", linewidth=3, label="RDM alternating tasks")
+  # plot(mean_task_1_correct, "k", linewidth=3, label="Task 1, from alternating tasks")
+  # plot(mean_task_2_correct, "k", linewidth=3, label="Task 2, from alternating tasks")
+
+  #latest_experiment_results.roving_correct[:,roving_experiment_id] = mean_correct;
+  latest_experiment_results.roving_task_correct[:,1,roving_experiment_id] = mean_task_1_correct;
+  #latest_experiment_results.roving_task_correct[:,2,roving_experiment_id] = mean_task_2_correct;
+  #latest_experiment_results.roving_error[:,roving_experiment_id] = err_correct;
+  #latest_experiment_results.roving_range[:,roving_experiment_id] = range_correct;
+
+
+  print("-----Experiment: biased task 2?------\n")
+  roving_experiment_id = 1 :: Int;
+  # Then I will simulate task 2 (with similar inclusion of bias)
+  #   this output goes into task 2 output of roving_experiment_id 2
+  # As long as careful accounting of task_id's is done then no overwriting of variables for
+  #   the other task should occur.
+
+  task_id = 2::Int;
+  use_fixed_external_bias = true; 
+  perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_roving_task);
+
+  #mean_correct = zeros(no_blocks_in_experiment);
+  #mean_task_1_correct = zeros(no_blocks_in_experiment);
+  mean_task_2_correct = zeros(no_blocks_in_experiment);
+  err_correct = zeros(no_blocks_in_experiment);
+  range_correct = zeros(no_blocks_in_experiment);
+  for i = 1:no_blocks_in_experiment
+    # can increase dimensionality of the following when I want to expand task space
+    #local_prop = zeros(no_subjects);
+    #local_prop_1 = zeros(no_subjects);
+    local_prop_2 = zeros(no_subjects);
+    for j = 1:no_subjects
+      # save the proportions so that mean or median can be called
+      #local_prop[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_correct;
+      #local_prop_1[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_task_correct[1];
+      local_prop_2[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_task_correct[2];
+    end
+    if(use_plot_mean)
+      # mean calculation
+      #mean_correct[i] = mean(local_prop)
+      #mean_task_1_correct[i] = mean(local_prop_1)
+      mean_task_2_correct[i] = mean(local_prop_2)
+    else
+      # median calculation
+      #mean_correct[i] = median(local_prop);
+      #mean_task_1_correct[i] = median(local_prop_1);
+      mean_task_2_correct[i] = median(local_prop_2);
+    end
+
+    # other deviation and range statistics
+    ## TODO
+    #err_correct[i] = std(local_prop);
+    #err_correct[i] /= sqrt(no_subjects); # standard error correction to sample standard deviation
+    ## TODO
+    #range_correct[i] = (maximum(local_prop) - minimum(local_prop)) / 2.0;
+  end
+
+  # plot(mean_correct, "b", linewidth=3, label="RDM alternating tasks")
+  # plot(mean_task_1_correct, "k", linewidth=3, label="Task 1, from alternating tasks")
+  # plot(mean_task_2_correct, "k", linewidth=3, label="Task 2, from alternating tasks")
+
+  #latest_experiment_results.roving_correct[:,roving_experiment_id] = mean_correct;
+  #latest_experiment_results.roving_task_correct[:,1,roving_experiment_id] = mean_task_1_correct;
+  latest_experiment_results.roving_task_correct[:,2,roving_experiment_id] = mean_task_2_correct;
+  #latest_experiment_results.roving_error[:,roving_experiment_id] = err_correct;
+  #latest_experiment_results.roving_range[:,roving_experiment_id] = range_correct;
+
+
+
+  use_fixed_external_bias = false; # reset to off
 
   print("Plotting...\n")
   # legend(loc=4)

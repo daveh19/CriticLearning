@@ -153,6 +153,8 @@ function initialise()
 
   global enable_weight_updates = true::Bool;
 
+  global use_fixed_external_bias = false :: Bool;
+
   print("RND seeded $random_seed\n")
 end
 
