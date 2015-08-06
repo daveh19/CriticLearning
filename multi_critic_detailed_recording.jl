@@ -57,7 +57,7 @@ function generate_test_sequence(seq_length::Int64)
     x = zeros(seq_length,1);
     choice = rand(Uniform(0,1), seq_length);
     for (i = 1:seq_length)
-      x[i] = (choice[i] > 0.5? -1.0 : 1.0)
+      x[i] = (choice[i] > (0.5 + input_sequence_bias) ? -1.0 : 1.0)
     end
   end
 
