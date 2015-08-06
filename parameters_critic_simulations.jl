@@ -49,8 +49,8 @@ weights_lower_bound = (-1e1) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 # choose input sequence
 use_cts_random_inputs = false :: Bool;
 use_binary_alternating_inputs = false :: Bool;
-use_binary_random_inputs = true :: Bool;
-use_biased_cts_random_inputs = false :: Bool;
+use_binary_random_inputs = false :: Bool;
+use_biased_cts_random_inputs = true :: Bool;
 input_sequence_bias = 0.0 :: Float64; # should be between -0.5 and +0.5
 
 # selective tuning of input

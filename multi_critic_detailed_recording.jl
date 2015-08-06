@@ -61,6 +61,20 @@ function generate_test_sequence(seq_length::Int64)
     end
   end
 
+  # input interval is divided into two blocks, which meet at 0
+  #   within each block distributions are uniform random
+  #   but membership of each block is decided via biased random coin 
+  # assume problem left and right bounds are +/-1 for now
+  if (use_biased_cts_random_inputs)
+    x = zeros(seq_length,1);
+    half_interval_membership = rand(Uniform(0,1), seq_length);
+    within_interval_x_value = rand(Uniform(0,1),seq_length);
+
+    for (i = 1:seq_length)
+        x[i] = (half_interval_membership[i] > (0.5 + input_sequence_bias) ? (-within_interval_x_value[i]) : (within_interval_x_value[i]) );
+    end
+  end
+
   return x;
 end
 
