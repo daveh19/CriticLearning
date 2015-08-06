@@ -53,6 +53,9 @@ use_binary_random_inputs = false :: Bool;
 use_biased_cts_random_inputs = true :: Bool;
 input_sequence_bias = 0.0 :: Float64; # should be between -0.5 and +0.5
 
+# task sequence
+task_sequence_bias = 0.0 :: Float64; # should be between -0.5 and +0.5
+
 # selective tuning of input
 input_baseline = 2.0 :: Float64; #2.0;
 input_baseline_variance = 0.5^2; #0.25; #0.5 :: Float64; #0.5;
