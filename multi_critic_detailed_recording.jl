@@ -3,7 +3,7 @@ using Distributions
 using PyPlot
 using Grid
 
-#using Debug
+using Debug
 
 ########## Parameters #############
 
@@ -98,7 +98,7 @@ function generate_task_sequence(seq_length::Int64)
 end
 
 
-function perform_learning_block_single_problem(task_id::Int, tuning_type::TuningSelector, block_dat::Block)
+@debug function perform_learning_block_single_problem(task_id::Int, tuning_type::TuningSelector, block_dat::Block)
   # generate 80 trial values for x
   # loop through x: update_noise, update_weights
 
@@ -154,7 +154,20 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
       if(no_task_critics > 1)
         bias_task_critic_id = ( (task_id % 2) == 0 ? 1 : 2)
       end
-      multi_critic_running_av_reward(fixed_external_bias_value, bias_task_critic_id, 1)
+      # for probabilistic running of tasks
+      local_c = 0.5 + task_sequence_bias;
+      if (local_c != 1)
+        local_d = (local_c / (1-local_c));
+      else
+        print("Error: you want an infinite amount of hidden tasks for every one visible tasks\n");
+        exit(0);
+      end
+      #print("DEBUG: local_c $local_c, ratio of tasks 1:$local_d\n");
+      while(rand(Uniform(0,1)) < local_d)
+        multi_critic_running_av_reward(fixed_external_bias_value, bias_task_critic_id, 1)
+        #print("$local_d\n");
+        local_d -= 1;
+      end
     end
   end
   proportion_correct = monitor_reward / no_trials_in_block;

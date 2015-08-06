@@ -51,10 +51,11 @@ use_cts_random_inputs = false :: Bool;
 use_binary_alternating_inputs = false :: Bool;
 use_binary_random_inputs = false :: Bool;
 use_biased_cts_random_inputs = true :: Bool;
-input_sequence_bias = 0.0 :: Float64; # should be between -0.5 and +0.5
+input_sequence_bias = (0.0) :: Float64; # should be between -0.5 and +0.5
 
 # task sequence
-task_sequence_bias = 0.0 :: Float64; # should be between -0.5 and +0.5
+task_sequence_bias = (-0.1) :: Float64; # should be between -0.5 and +0.5, gives (1-(0.5+bias)):(0.5+bias) ratio of tasks
+print("Task ratio: $(1-(0.5+task_sequence_bias)):$(0.5+task_sequence_bias)\n");
 
 # selective tuning of input
 input_baseline = 2.0 :: Float64; #2.0;
