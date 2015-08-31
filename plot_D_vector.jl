@@ -84,7 +84,7 @@ A = eye(critic_dimensions) - C
 # Probabilistic presentation of individual tasks
 prob_task = ones(1,critic_dimensions);
 prob_task /= critic_dimensions;
-prob_task = [0.5, 1, 10, 10]; # manual tweaking
+prob_task = [1, 0.001, 10, 10]; # manual tweaking
 prob_task /= sum(prob_task); # normalise, so I can use arbitrary units
 # this influences Confustion matrix
 for k = 1:critic_dimensions
@@ -93,13 +93,13 @@ end
 A = eye(critic_dimensions) - C;
 
 # Input representation similarity parameter
-a = .1;
+a = 1;
 S = [1 a; a 1]
 
 # Noise and external bias
 sigma = 1; #sqrt(1); #sqrt(100);
 #rho_ext = -0.5;
-R_ext = 1; #1.001;
+R_ext = -1; #1.001;
 
 
 for i = 1:no_points 
@@ -184,11 +184,19 @@ for i = 1:no_points
 		# Bias from other tasks 
 		if(critic_dimensions > 2)
 			a_multiplier = (critic_dimensions - 2) / critic_dimensions
-			#=p_temp_a += Da[i] * (-0.5 * R_ext);
-			p_temp_b += Db[j] * (-0.5 * R_ext);=#
-			p_temp_a += Da[i] * (-a_multiplier * R_ext);
-			p_temp_b += Db[j] * (-a_multiplier * R_ext);
+			for(k = 3:critic_dimensions)
+				#=p_temp_a += Da[i] * (-0.5 * R_ext);
+				p_temp_b += Db[j] * (-0.5 * R_ext);=#
+				#=p_temp_a += Da[i] * (-a_multiplier * R_ext);
+				p_temp_b += Db[j] * (-a_multiplier * R_ext);=#
+				p_temp_a += Da[i] * (A[1,k] * R_ext);
+				p_temp_b += Db[j] * (A[2,k] * R_ext);
+			end
 		end
+
+		# Multiply by probability of occurence of each task
+		p_temp_a *= prob_task[1];
+		p_temp_b *= prob_task[2];
 
 		# putting it all together
 		p_deriv_D_a[i,j] = S[1,1] * p_temp_a + S[1,2] * p_temp_b;
