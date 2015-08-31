@@ -3,7 +3,7 @@ using Distributions
 using PyPlot
 using Grid
 
-using Debug
+#using Debug
 
 ########## Parameters #############
 
@@ -98,7 +98,7 @@ function generate_task_sequence(seq_length::Int64)
 end
 
 
-@debug function perform_learning_block_single_problem(task_id::Int, tuning_type::TuningSelector, block_dat::Block)
+function perform_learning_block_single_problem(task_id::Int, tuning_type::TuningSelector, block_dat::Block)
   # generate 80 trial values for x
   # loop through x: update_noise, update_weights
 
