@@ -1,5 +1,6 @@
 using PyPlot;
 using Distributions;
+using LaTeXStrings;
 
 ### Useful functions
 ## There are a number of alternative ways to calculate pdf and cdf inverse
@@ -21,8 +22,8 @@ no_points = 40;
 no_y_points = no_points;
 p = linspace(0, 1, no_points);
 p_y = linspace(0, 1, no_y_points);
-d_a = linspace(-6,6, no_points);
-d_b = linspace(-6,6, no_points);
+d_a = linspace(-3,3, no_points);
+d_b = linspace(-3,3, no_points);
 
 #debug vars
 Da = zeros(no_points);
@@ -84,8 +85,8 @@ A = eye(critic_dimensions) - C
 # Probabilistic presentation of individual tasks
 prob_task = ones(1,critic_dimensions);
 prob_task /= critic_dimensions;
-prob_task = [1, 0.001, 10, 10]; # manual tweaking
-prob_task /= sum(prob_task); # normalise, so I can use arbitrary units
+#prob_task = [1, 0.001, 10, 10]; # manual tweaking
+#prob_task /= sum(prob_task); # normalise, so I can use arbitrary units
 # this influences Confustion matrix
 for k = 1:critic_dimensions
 	C[k,:] = prob_task;
@@ -99,7 +100,7 @@ S = [1 a; a 1]
 # Noise and external bias
 sigma = 1; #sqrt(1); #sqrt(100);
 #rho_ext = -0.5;
-R_ext = -1; #1.001;
+R_ext = 1; #20; #1.001;
 
 
 for i = 1:no_points 
@@ -245,9 +246,20 @@ filename_stream = string("stream_",filename_base,".pdf")
 #streamplot(p,p_y,deriv_p_a',deriv_p_b')
 #savefig(filename_stream);
 
+## Difference in outputs view
 figure();
 #streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
 quiver(d_a,d_b,deriv_D_a',deriv_D_b');
+xtxt = latexstring("D_1");
+ytxt = latexstring("D_2");
+xlabel(xtxt)
+ylabel(ytxt) # L"D_2"
+title("Similarity s=$a");
+if (critic_dimensions > 2)
+	titletxt = latexstring();
+	title("Similarity s=$a, R_ext = $R_ext, no external processes = $(critic_dimensions-2)");
+end
+
 #plot(d_a, Db_null);
 ## x=0 and y=0 lines for visual inspection
 #=origin = zeros(no_points);
@@ -255,8 +267,9 @@ origin_space = linspace(-100,100,no_points);
 plot(origin, origin_space);
 plot(origin_space, origin);=#
 
-figure();
-#streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
-quiver(p,p_y,deriv_p_a',deriv_p_b');
+## probabilistic view
+#figure();
+##streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
+#quiver(p,p_y,deriv_p_a',deriv_p_b');
 
 

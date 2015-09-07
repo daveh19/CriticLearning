@@ -21,8 +21,8 @@ no_points = 40;
 no_y_points = no_points;
 p = linspace(0, 1, no_points);
 p_y = linspace(0, 1, no_y_points);
-d_a = linspace(-6,6, no_points);
-d_b = linspace(-6,6, no_points);
+d_a = linspace(-3,3, no_points);
+d_b = linspace(-3,3, no_points);
 
 #debug vars
 Da = zeros(no_points);
@@ -74,7 +74,7 @@ xa_norm_sq = 1.0;
 p_ext = 0.30;
 
 # Confusion parameter
-critic_dimensions = 20;
+critic_dimensions = 4;
 c = 1 / critic_dimensions; # currently equal confusion mix of all true critics
 C = ones(critic_dimensions,critic_dimensions)
 C *= c
@@ -83,7 +83,7 @@ A = eye(critic_dimensions) - C
 
 
 # Input representation similarity parameter
-a = 0;
+a = 1;
 S = [1 a; a 1]
 
 # Noise and external bias
@@ -225,6 +225,13 @@ filename_stream = string("stream_",filename_base,".pdf")
 figure();
 #streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
 quiver(d_a,d_b,deriv_D_a',deriv_D_b');
+xlabel("D_1")
+ylabel("D_2")
+title("Similarity s=$a");
+if (critic_dimensions > 2)
+	title("Similarity s=$a, Rext = $R_ext, no external processes = $(critic_dimensions-2)");
+end
+
 #plot(d_a, Db_null);
 ## x=0 and y=0 lines for visual inspection
 #=origin = zeros(no_points);
@@ -233,7 +240,7 @@ plot(origin, origin_space);
 plot(origin_space, origin);=#
 
 figure();
-#streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
+##streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
 quiver(p,p_y,deriv_p_a',deriv_p_b');
 
 
