@@ -61,6 +61,6 @@ p_high = 1 - p_low;
    elseif p == 1
       x = Inf;
    end
-   
+
    return x;
 end

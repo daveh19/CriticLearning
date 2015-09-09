@@ -22,7 +22,7 @@ type Trial
   # Note: dimension of w is 3, first dimension are the elements corresponding
   #   a set of unified inputs, second dimension the output directions, third
   #   dimension the separate input tasks
-  w :: Array{Float64, 3}; 
+  w :: Array{Float64, 3};
   dw :: Array{Float64, 3};
 end
 
@@ -65,7 +65,7 @@ function initialise_empty_block(no_blocks::Int, trials_per_block::Int, double_tr
   for i = 1:no_blocks
     local_trial = initialise_empty_trials(trials_per_block);
     block[i] = Block( local_trial, 0., 0., 0., 0., zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks) );
-  end  
+  end
 
   return block;
 end
@@ -77,7 +77,7 @@ type LinearInputsSubject <: Subject
   blocks :: Array{Block, 1}
   # summary information for this subject
   # inherent receptive field, this is unique per subject and does not change
-  a :: Array{Float64, 2} 
+  a :: Array{Float64, 2}
   b :: Array{Float64, 2}
   # initial weights at beginning of experiment
   w_initial :: Array{Float64, 3}
@@ -89,7 +89,7 @@ type GaussianInputsSubject <: Subject
   blocks :: Array{Block, 1}
   # summary information for this subject
   # inherent receptive field, this is unique per subject and does not change
-  a :: Array{gaussian_tc_type, 2} 
+  a :: Array{gaussian_tc_type, 2}
   #b :: Array{Float64, 2}
   # initial weights at beginning of experiment
   w_initial :: Array{Float64, 3}

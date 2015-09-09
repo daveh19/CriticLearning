@@ -63,7 +63,7 @@ function generate_test_sequence(seq_length::Int64)
 
   # input interval is divided into two blocks, which meet at 0
   #   within each block distributions are uniform random
-  #   but membership of each block is decided via biased random coin 
+  #   but membership of each block is decided via biased random coin
   # assume problem left and right bounds are +/-1 for now
   if (use_biased_cts_random_inputs)
     x = zeros(seq_length,1);
@@ -187,7 +187,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   block_dat.proportion_correct = proportion_correct;
   block_dat.proportion_task_correct[task_id] = proportion_correct;
   block_dat.average_choice = average_choice;
-  
+
   block_dat.average_reward = average_block_reward;
   block_dat.average_task_reward = average_task_reward;
 
@@ -329,7 +329,7 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
       n_critic[i,j] = 0;
     end
   end
-  
+
   for (i = 1:no_blocks_in_experiment)
     #=if(i == no_blocks_in_experiment && subject_id == 9)
       local_old_verbosity = verbosity;
@@ -399,7 +399,7 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
       n_critic[i,j] = 0;
     end
   end
-  
+
   if(double_no_of_trials_in_alternating_experiment)
     global no_trials_in_block = int(no_trials_in_block * 2);
   end
@@ -408,9 +408,9 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
     if(verbosity > -1)
       print("-------------------------------------------\n")
     end
-    
+
     perform_learning_block_trial_switching(tuning_type, subjects[subject_id, roving_experiment_id].blocks[i])
-    
+
     if (save_reward_from_running_average)
       # Remember, average_reward is a running average, not a block average.
       local_average_reward = 0.;
@@ -429,23 +429,23 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
     end
     enable_weight_updates = true;
   end
-  
+
   if(double_no_of_trials_in_alternating_experiment)
     no_trials_in_block = int(no_trials_in_block / 2);
   end
-  
+
   subjects[subject_id, roving_experiment_id].w_final = deepcopy(w);
-  
+
   return 0;
 end
 
 
 function perform_multi_subject_experiment(task_id::Int, tuning_type::TuningSelector, subjects::Array{Subject,2}, no_subjects::Int64=no_subjects, roving_experiment_id::Int64=1)
   #global subject = Array(Subject, no_subjects);
-  
+
   global debug_print_now = false;
   global verbosity;
-  
+
   for(i = 1:no_subjects)
     if(verbosity > -1)
       print("-----------Subject number $i------------\n")
@@ -523,17 +523,17 @@ function compare_three_trial_types_with_multiple_subjects()
     end
   else # experiment to have identical RND sequences
     for i = 1:no_subjects
-      initialise_pre_population(tuning_type); 
+      initialise_pre_population(tuning_type);
       latest_experiment_results.subjects_task[i,1].a = deepcopy(a);
       if( isa(tuning_type, linear_tc) )
         latest_experiment_results.subjects_task[i,1].b = deepcopy(b);
       end
-      initialise_pre_population(tuning_type); 
+      initialise_pre_population(tuning_type);
       latest_experiment_results.subjects_task[i,2].a = deepcopy(a);
       if( isa(tuning_type, linear_tc) )
         latest_experiment_results.subjects_task[i,2].b = deepcopy(b);
       end
-      initialise_pre_population(tuning_type); 
+      initialise_pre_population(tuning_type);
       latest_experiment_results.subjects_roving_task[i,1].a = deepcopy(a);
       if( isa(tuning_type, linear_tc) )
         latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
@@ -562,11 +562,11 @@ function compare_three_trial_types_with_multiple_subjects()
     # other deviation and range statistics
     err_correct[i] = std(local_prop);
     #err_correct[i] /= sqrt(no_subjects); # standard error correction to sample standard deviation
-    range_correct[i] = (maximum(local_prop) - minimum(local_prop)) / 2.0; 
+    range_correct[i] = (maximum(local_prop) - minimum(local_prop)) / 2.0;
   end
   # plot(mean_correct, "r", linewidth=2, label="Task 1")
   latest_experiment_results.task_correct[:,task_id] = mean_correct;
-  latest_experiment_results.task_error[:,task_id] = err_correct; 
+  latest_experiment_results.task_error[:,task_id] = err_correct;
   latest_experiment_results.task_range[:,task_id] = range_correct;
 
   print("-----Experiment: task 2------\n")
@@ -667,7 +667,7 @@ end
 
 function biased_compare_three_trial_types_with_multiple_subjects()
   ## fixed external bias sim comparison
-  global use_fixed_external_bias :: Bool; 
+  global use_fixed_external_bias :: Bool;
 
   if(use_gaussian_tuning_function)
     # use gaussian basis functions
@@ -701,17 +701,17 @@ function biased_compare_three_trial_types_with_multiple_subjects()
     end
   else # experiment to have identical RND sequences
     for i = 1:no_subjects
-      initialise_pre_population(tuning_type); 
+      initialise_pre_population(tuning_type);
       latest_experiment_results.subjects_task[i,1].a = deepcopy(a);
       if( isa(tuning_type, linear_tc) )
         latest_experiment_results.subjects_task[i,1].b = deepcopy(b);
       end
-      initialise_pre_population(tuning_type); 
+      initialise_pre_population(tuning_type);
       latest_experiment_results.subjects_task[i,2].a = deepcopy(a);
       if( isa(tuning_type, linear_tc) )
         latest_experiment_results.subjects_task[i,2].b = deepcopy(b);
       end
-      initialise_pre_population(tuning_type); 
+      initialise_pre_population(tuning_type);
       latest_experiment_results.subjects_roving_task[i,1].a = deepcopy(a);
       if( isa(tuning_type, linear_tc) )
         latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
@@ -720,7 +720,7 @@ function biased_compare_three_trial_types_with_multiple_subjects()
   end
 
   ## insert srand() here and before biased experiments if you want identical population behaviour
-  
+
   print("-----Experiment: task 1------\n")
   task_id = 1::Int;
   use_fixed_external_bias = false; # initally don't use
@@ -743,11 +743,11 @@ function biased_compare_three_trial_types_with_multiple_subjects()
     # other deviation and range statistics
     err_correct[i] = std(local_prop);
     #err_correct[i] /= sqrt(no_subjects); # standard error correction to sample standard deviation
-    range_correct[i] = (maximum(local_prop) - minimum(local_prop)) / 2.0; 
+    range_correct[i] = (maximum(local_prop) - minimum(local_prop)) / 2.0;
   end
   # plot(mean_correct, "r", linewidth=2, label="Task 1")
   latest_experiment_results.task_correct[:,task_id] = mean_correct;
-  latest_experiment_results.task_error[:,task_id] = err_correct; 
+  latest_experiment_results.task_error[:,task_id] = err_correct;
   latest_experiment_results.task_range[:,task_id] = range_correct;
 
   print("-----Experiment: task 2------\n")
@@ -849,7 +849,7 @@ function biased_compare_three_trial_types_with_multiple_subjects()
   #   the other task should occur.
   roving_experiment_id = 2 :: Int;
   task_id = 2::Int;
-  use_fixed_external_bias = true; 
+  use_fixed_external_bias = true;
   perform_multi_subject_experiment(task_id, tuning_type, latest_experiment_results.subjects_roving_task, no_subjects, roving_experiment_id);
   #print("DEBUG: skipping...\n");
 
@@ -943,7 +943,7 @@ function plot_multi_subject_experiment(latest_experiment_results::RovingExperime
   block_id = linspace(1,no_blocks_in_experiment, no_blocks_in_experiment);
 
   if(plotting_error_bars_on)
-    
+
     errorbar(block_id, latest_experiment_results.task_correct[:,1], latest_experiment_results.task_range[:,1], ecolor="r", color="r", linewidth=2)
     errorbar(block_id+0.1, latest_experiment_results.task_correct[:,2], latest_experiment_results.task_range[:,2], ecolor="g", color="g", linewidth=2)
     errorbar(block_id-0.1, latest_experiment_results.roving_correct[:,1], latest_experiment_results.roving_range[:,1], ecolor="b", color="b", linewidth=2)
@@ -974,7 +974,7 @@ function plot_multi_subject_experiment(latest_experiment_results::RovingExperime
   plot(block_id-0.1, latest_experiment_results.roving_correct[:,1], "b", linewidth=3, label="Roving tasks")
   plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,1,1], "k", linewidth=3, label="Task 1, from roving tasks")
   plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,1], "k", linewidth=3, label="Task 2, from roving tasks")
-  
+
   legend(loc=4)
 end
 
@@ -1114,8 +1114,8 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
   plot(block_id-0.1, latest_experiment_results.roving_correct[:,1], "b", linewidth=3, label="Roving tasks")
   plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,1,1], "k", linewidth=3, label="Task 1, from roving tasks")
   plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,1], "k", linewidth=3, label="Task 2, from roving tasks")
-  
-  
+
+
   legend(loc=4)
 end
 
@@ -1344,7 +1344,7 @@ function plot_multi_subject_experiment_choice_as_subplots(latest_experiment_resu
       for i = 1:no_blocks_in_experiment
         local_roving_choice[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_choice;
         local_roving_task_1_choice[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_task_choice[1] / 2.0 + 1.5;
-        local_roving_task_2_choice[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_task_choice[2] / 2.0 + 1.5;        
+        local_roving_task_2_choice[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].average_task_choice[2] / 2.0 + 1.5;
       end
       if(plotting_task_by_task_on)
         plot(block_id-0.1, local_roving_task_1_choice, "r")
@@ -1379,7 +1379,7 @@ function plot_multiplot(results::Array{RovingExperiment})
       plot(latest_experiment_results.roving_task_correct[:,2,1], "k", linewidth=3, label="Task 2, from roving tasks")
       i+=1;
     end
-    
+
     legend(loc=4)
     suptitle("Multiplot")
   else
@@ -1521,7 +1521,7 @@ function plot_single_subject_proportion_correct(subject::Subject)
   x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
   for i = 1:no_blocks_in_experiment
     local_av_reward[i] = subject.blocks[i].proportion_correct; #average_reward;
-    local_av_task_reward[i,:] = subject.blocks[i].proportion_task_correct; 
+    local_av_task_reward[i,:] = subject.blocks[i].proportion_task_correct;
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
@@ -1548,7 +1548,7 @@ function plot_single_subject_average_threshold(subject::Subject)
   x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
   for i = 1:no_blocks_in_experiment
     local_av_threshold[i] = subject.blocks[i].average_threshold; #average_reward;
-    local_av_task_threshold[i,:] = subject.blocks[i].average_task_threshold; 
+    local_av_task_threshold[i,:] = subject.blocks[i].average_task_threshold;
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
@@ -1575,7 +1575,7 @@ function plot_single_subject_average_reward(subject::Subject)
   x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
   for i = 1:no_blocks_in_experiment
     local_av_reward[i] = subject.blocks[i].average_reward;
-    local_av_task_reward[i,:] = subject.blocks[i].average_task_reward; 
+    local_av_task_reward[i,:] = subject.blocks[i].average_task_reward;
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
@@ -1689,7 +1689,7 @@ function plot_subjects_initial_weight_distributions(subjects::Array{Subject,2}, 
   figure()
   x1 = ones(no_pre_neurons_per_task);
   x2 = ones(no_pre_neurons_per_task) * lr_gap;
-  
+
   for i = 1:no_subjects
     restore_subject(subjects[i,task_id]);
     #=scatter(x1+( (i-1) * inter_subject_gap), w[:,1,1], c="b")
@@ -1723,7 +1723,7 @@ function will_subject_learn(subjects::Array{Subject,2}, task_id::Int=1, begin_id
     error(1);
   end
 
-  print("Heuristic for who will learn based on inital weights and tuning curves, error heuristic threshold $heuristic_threshold, weight sum threshold $weight_sum_threshold:\n") 
+  print("Heuristic for who will learn based on inital weights and tuning curves, error heuristic threshold $heuristic_threshold, weight sum threshold $weight_sum_threshold:\n")
   for i = begin_id:end_id
     global a = deepcopy(subjects[i,task_id].a);
     if( isa(tuning_type, linear_tc) )
@@ -1794,7 +1794,3 @@ print("------------NEW RUN--------------\n")
 #plot_multi_subject_results(10, 14)
 #plot_multi_subject_rewards(10, 14)
 #plot_multi_subject_reward_deltas(10, 14)
-
-
-
-

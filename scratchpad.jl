@@ -48,7 +48,7 @@ for i=1:no_pre_neurons;
 	tuning_sigma *= 0.25;
 	tuning_height = rand(Normal(2,0.25), no_curves);
 	c = tc_type(no_curves, tuning_mu, tuning_sigma, tuning_height);
-	
+
 	scatter(tuning_mu, tuning_height, c="r");
 	scatter(tuning_mu, tuning_sigma, c="b");
 	a[i] = c;
@@ -88,7 +88,7 @@ function plot_subjects_initial_weight_distributions(subjects::Array{Subject,2}, 
 	figure()
 	x1 = ones(no_pre_neurons_per_task);
 	x2 = ones(no_pre_neurons_per_task) * lr_gap;
-	
+
 	for i = 1:no_subjects
 		restore_subject(subjects[i,task_id]);
 		#=scatter(x1+( (i-1) * inter_subject_gap), w[:,1,1], c="b")
@@ -233,5 +233,3 @@ n1,bins1 = PyPlot.plt.hist(ksi[1,:]',100);
 figure()
 title("histogram of right noise")
 n2,bins2 = PyPlot.plt.hist(ksi[2,:]',100);
-
-

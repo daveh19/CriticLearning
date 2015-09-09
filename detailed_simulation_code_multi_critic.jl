@@ -46,7 +46,7 @@ function initialise_pre_population(tuning_type::gaussian_tc)
         tuning_height = tuning_height ./ no_tuning_curves_per_input_neuron;
       end
       a[j,i] = gaussian_tc_type(no_tuning_curves_per_input_neuron, tuning_mu, tuning_sigma, tuning_height);
-  
+
       #scatter(tuning_mu, tuning_height, c="r");
       #scatter(tuning_mu, tuning_sigma, c="b");
     end
@@ -88,7 +88,7 @@ function initialise_weight_matrix(tuning_type::gaussian_tc)
   #set initial weights
   global w = rand(Uniform(0,1), (no_pre_neurons_per_task, no_post_neurons, no_input_tasks));
   #w = ones(no_pre_neurons_per_task, no_post_neurons, no_input_tasks);
-  
+
   centre_of_mass = zeros(no_pre_neurons_per_task, no_input_tasks);
   #CONSIDER: adding height to centre of mass calculation (sum(mu.*h)/no_curves)
   for i = 1:no_input_tasks
@@ -147,7 +147,7 @@ function initialise()
   global instance_incorrect = 0;
 
   global proportion_1_correct = 0.0;
-  global proportion_2_correct = 0.0; 
+  global proportion_2_correct = 0.0;
 
   global exp_results = Array(RovingExperiment, 0);
 
@@ -225,10 +225,10 @@ end
 # Note: local_post returns a tuple where one value is 0. All comparisons to find the non zero value should use absolute comparison.
 function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::Bool=false)
 	local_pre = pre(x, task_id, tuning_type)
-  
+
   noise_free_left = sum(local_pre[:,task_id] .* w[:,1,task_id]);
   noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
-	
+
   left = noise_free_left + ksi[1]
 	right = noise_free_right+ ksi[2]
 
@@ -311,7 +311,7 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
           # finally we get to processing a single threshold calculation
           task_id = subjects[i,j].blocks[k].trial[l].task_type;
           w = deepcopy(subjects[i,j].blocks[k].trial[l].w);
-          
+
           x = linspace(0,1,no_points); # re-initialise due to sorting in loop below
           error_rate = zeros(no_points);
           split_error = zeros(no_points,2)
@@ -334,7 +334,7 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
             # probability, for a positive input (i) that we choose left
             p_pos_left = 0.5 + 0.5 * erf( (local_noise_free_post_pos_left - local_noise_free_post_pos_right) / (sqrt(output_noise_variance) / 2.0) );
             p_pos_right = (1. - p_pos_left);
-    
+
             if(verbosity > 2)
               print("p_pos_left: $p_pos_left, p_pos_right: $p_pos_right ")
             end
@@ -373,7 +373,7 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
             Al = [split_error[:,1] x];
             Al = sortrows(Al, by=x->(x[1],-x[2]), rev=false); #sort by ascending error, and descending distance from 0
             zl = InterpIrregular(Al[:,1],Al[:,2], 1, InterpLinear);
-    
+
             Ar = [split_error[end:-1:1,2] x[end:-1:1]];
             Ar = sortrows(Ar, by=x->(x[1],-x[2]), rev=false);
             zr = InterpIrregular(Ar[:,1],Ar[:,2], 1, InterpLinear);
@@ -436,7 +436,7 @@ function detect_threshold(tuning_type::TuningSelector, task_id::Int=1, split_out
     # probability, for a positive input (i) that we choose left
     p_pos_left = 0.5 + 0.5 * erf( (local_noise_free_post_pos_left - local_noise_free_post_pos_right) / (sqrt(output_noise_variance) / 2.0) );
     p_pos_right = (1. - p_pos_left);
-    
+
     if(verbosity > 2)
       print("p_pos_left: $p_pos_left, p_pos_right: $p_pos_right ")
     end
@@ -475,7 +475,7 @@ function detect_threshold(tuning_type::TuningSelector, task_id::Int=1, split_out
     Al = [split_error[:,1] x];
     Al = sortrows(Al, by=x->(x[1],-x[2]), rev=false); #sort by ascending error, and descending distance from 0
     zl = InterpIrregular(Al[:,1],Al[:,2], 1, InterpLinear);
-    
+
     Ar = [split_error[end:-1:1,2] x[end:-1:1]];
     Ar = sortrows(Ar, by=x->(x[1],-x[2]), rev=false);
     zr = InterpIrregular(Ar[:,1],Ar[:,2], 1, InterpLinear);
@@ -515,7 +515,7 @@ function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
 	 if ( (x > 0) && (abs(local_post[2]) > abs(local_post[1]) ) ) #(local_post[2] > local_post[1]) )#right
     if(verbosity > 1)
       global instance_correct += 1;
-      print("Greater than zero (x: $x)\n") 
+      print("Greater than zero (x: $x)\n")
     end
 		return (1);
 	 elseif ( (x <= 0) && (abs(local_post[1]) >= abs(local_post[2]) ) ) #(local_post[1] > local_post[2]) )#left
@@ -544,13 +544,13 @@ end
 function multi_critic_running_av_reward(R::Int, task_critic_id::Int, choice_critic_id::Int)
   global n_critic;
   global average_reward;
-  
+
   tau_r = running_av_window_length;
 
   if (n_critic[task_critic_id, choice_critic_id] < tau_r)
     n_critic[task_critic_id, choice_critic_id] += 1;
   end
-  
+
   tau = min(tau_r, n_critic[task_critic_id, choice_critic_id]);
 
   Rn = ( (tau - 1) * average_reward[task_critic_id, choice_critic_id] + R ) / tau;
@@ -692,24 +692,23 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
     right_sum_w = sum(w[:,2]);
     print("before weight change, sum w left: $left_sum_w, sum w right: $right_sum_w\n")
   end
-  
+
   # the weight update
   if(enable_weight_updates)
     global w += dw;
   end
-  if (verbosity > 3) 
+  if (verbosity > 3)
     #for now at least these sums are across all tasks, could make them task specific
     left_sum_w = sum(w[:,1,:]);
     right_sum_w = sum(w[:,2,:]);
     print("after weight change, sum w left: $left_sum_w, sum w right: $right_sum_w\n")
   end
-  
+
   trial_dat.mag_dw = sum(abs(dw));
-  
+
   # hard bound weights at +/- 10
   w[w .> weights_upper_bound] = weights_upper_bound;
   w[w .< weights_lower_bound] = weights_lower_bound;
 
   return (local_reward+1); # make it 0 or 2, rather than +/-1
 end
-
