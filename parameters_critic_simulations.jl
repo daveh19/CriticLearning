@@ -9,7 +9,7 @@ no_input_tasks = 2::Int;
 
 # trial length parameters
 no_trials_in_block = 80::Int; #80;
-no_blocks_in_experiment = 60::Int; #20::Int; #14;
+no_blocks_in_experiment = 150::Int; #20::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = true ::Bool;
 
@@ -24,8 +24,8 @@ fixed_external_bias_value = 1 :: Int;
 
 # changing the post part of the weight update rule
 floor_on_post = (-Inf) :: Float64; # applied in post()
-disable_winner_takes_all = false :: Bool; # applied in post()
-binary_outputs_mode = false :: Bool; # applied to dw
+disable_winner_takes_all = true :: Bool; # applied in post()
+binary_outputs_mode = true :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
 
@@ -42,19 +42,19 @@ initial_weight_bias = (2.0); #(2.0); #(2.0) :: Float64; # 2.0
 gaussian_weight_bias = (0.5) :: Float64;
 
 # weight constraints
-weights_upper_bound = (1e1) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
-weights_lower_bound = (-1e1) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
+weights_upper_bound = (1e3) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
+weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 
 
 # choose input sequence
 use_cts_random_inputs = false :: Bool;
 use_binary_alternating_inputs = false :: Bool;
-use_binary_random_inputs = false :: Bool;
-use_biased_cts_random_inputs = true :: Bool;
+use_binary_random_inputs = true :: Bool;
+use_biased_cts_random_inputs = false :: Bool;
 input_sequence_bias = (0.0) :: Float64; # should be between -0.5 and +0.5
 
 # task sequence
-task_sequence_bias = (-0.1) :: Float64; # should be between -0.5 and +0.5, gives (1-(0.5+bias)):(0.5+bias) ratio of tasks
+task_sequence_bias = (0.0) :: Float64; # should be between -0.5 and +0.5, gives (1-(0.5+bias)):(0.5+bias) ratio of tasks
 print("Task ratio: $(1-(0.5+task_sequence_bias)):$(0.5+task_sequence_bias)\n");
 
 # selective tuning of input
@@ -88,7 +88,7 @@ perform_post_hoc_detection_threshold = false :: Bool;
 detection_threshold = 0.25 :: Float64;
 
 # this mimics the same subject in each experiment, rather than new subjects throughout
-use_ab_persistence = false :: Bool; 
+use_ab_persistence = false :: Bool;
 
 # Reward can be saved from the state of the running average or on a per block basis
 #	reward averaging on a per task basis is only on a per block basis
@@ -107,9 +107,8 @@ const disable_learning_on_first_block = false :: Bool;
 verbosity = (-1) :: Int;
 
 # plotting options
-plotting_scatter_plot_on = true; #true :: Bool; # dots from scatter plot showing individual subject results 
+plotting_scatter_plot_on = true; #true :: Bool; # dots from scatter plot showing individual subject results
 plotting_individual_subjects_on = true; #true :: Bool; # lines joining the individual subject data points
 plotting_task_by_task_on = true :: Bool;
 plotting_error_bars_on = false :: Bool; # standard deviation from the mean
 use_plot_mean = false :: Bool; # plot mean rather than median for proportions correct
-
