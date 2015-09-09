@@ -13,9 +13,9 @@ invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 ## Space over which vector field is calculated / plotted
 no_points = 40;
 #no_points = 10;
-#no_y_points = no_points - 1; 
+#no_y_points = no_points - 1;
 # The no_y_points is to ensure that I plot the vector field in the right direction,
-#	 julia is column major but matplot lib is row major which causes confusion! 
+#	 julia is column major but matplot lib is row major which causes confusion!
 #	Set no_y_points = no_points - 1; to check if an error is thrown, no error means
 #		that the array access is correct.
 no_y_points = no_points;
@@ -83,24 +83,24 @@ A = eye(critic_dimensions) - C
 
 
 # Input representation similarity parameter
-a = 1;
+a = -1;
 S = [1 a; a 1]
 
 # Noise and external bias
 sigma = 1; #sqrt(1); #sqrt(100);
 #rho_ext = -0.5;
-R_ext = 1; #1.001;
+R_ext = -1; #1.001;
 
 
-for i = 1:no_points 
+for i = 1:no_points
 	for j = 1:(no_y_points)
 		#####
-		# 
+		#
 		# Calculation of change of difference in outputs
 		#
 		# for R^{true} = p
-		# temp_a = sigma^2 * pdf(Normal(0,sigma), d_a[i]); 
-		# temp_b = sigma^2 * pdf(Normal(0,sigma), d_b[j]); 
+		# temp_a = sigma^2 * pdf(Normal(0,sigma), d_a[i]);
+		# temp_b = sigma^2 * pdf(Normal(0,sigma), d_b[j]);
 		# # equations for R^{true} = p
 		# temp_a += A[1,1] * cdf(Normal(0,sigma), d_a[i]) * d_a[i];
 		# temp_a += A[1,2] * cdf(Normal(0,sigma), d_b[j]) * d_a[i];
@@ -116,14 +116,19 @@ for i = 1:no_points
 
 		temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * (2 * cdf(Normal(0,sigma),d_b[j]) - 1);
 		temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * (2 * cdf(Normal(0,sigma),d_b[j]) - 1);
-		
-		# Bias from other tasks 
+
+		# Bias from other tasks
 		if(critic_dimensions > 2)
+			# a_multiplier assumes equal for all
 			a_multiplier = (critic_dimensions - 2) / critic_dimensions
 			#=temp_a += (2 * cdf(Normal(0,sigma),d_a[i]) - 1) * (-0.5 * R_ext);
 			temp_b += (2 * cdf(Normal(0,sigma),d_b[j]) - 1) * (-0.5 * R_ext);=#
-			temp_a += (2 * cdf(Normal(0,sigma),d_a[i]) - 1) * (-a_multiplier * R_ext);
-			temp_b += (2 * cdf(Normal(0,sigma),d_b[j]) - 1) * (-a_multiplier * R_ext);
+			#=temp_a += (2 * cdf(Normal(0,sigma),d_a[i]) - 1) * (-a_multiplier * R_ext);
+			temp_b += (2 * cdf(Normal(0,sigma),d_b[j]) - 1) * (-a_multiplier * R_ext);=#
+			for(k = 3:critic_dimensions)
+				temp_a += (2 * cdf(Normal(0,sigma),d_a[i]) - 1) * (A[1,k] * R_ext);
+				temp_b += (2 * cdf(Normal(0,sigma),d_b[j]) - 1) * (A[2,k] * R_ext);
+			end
 		end
 
 
@@ -133,7 +138,7 @@ for i = 1:no_points
 
 
 		#####
-		# 
+		#
 		# Calculation of change of probability of outcome
 		#
 		# -ve for task B is for the opposite sign on rho
@@ -151,7 +156,7 @@ for i = 1:no_points
 		# effects of unsupervised bias
 		#deriv_p_a[i,j] = dist_pdf(invnorm(p[i])) * xa_norm_sq * rho_a[i,j] * (2 * p[i] - 1);
 		#deriv_p_b[i,j] = dist_pdf(invnorm(p[j])) * xa_norm_sq * rho_b[i,j] * (2 * p[j] - 1);
-		
+
 
 		## the following has not been updates to follow binary output rules yet!!
 		Da[i] = invphi(p[i]);
@@ -165,14 +170,18 @@ for i = 1:no_points
 		p_temp_b += A[2,1] * (2 * p[i] - 1) * (2 * p[j] - 1);
 		p_temp_b += A[2,2] * (2 * p[j] - 1) * (2 * p[j] - 1);
 
-		
-		# Bias from other tasks 
+
+		# Bias from other tasks
 		if(critic_dimensions > 2)
 			a_multiplier = (critic_dimensions - 2) / critic_dimensions
 			#=p_temp_a += (2 * p[i] - 1) * (-0.5 * R_ext);
 			p_temp_b += (2 * p[j] - 1) * (-0.5 * R_ext);=#
-			p_temp_a += (2 * p[i] - 1) * (-a_multiplier * R_ext);
-			p_temp_b += (2 * p[j] - 1) * (-a_multiplier * R_ext);
+			#=p_temp_a += (2 * p[i] - 1) * (-a_multiplier * R_ext);
+			p_temp_b += (2 * p[j] - 1) * (-a_multiplier * R_ext);=#
+			for(k = 3:critic_dimensions)
+				p_temp_a += (2 * p[i] - 1) * (A[1,k] * R_ext);
+				p_temp_b += (2 * p[j] - 1) * (A[2,k] * R_ext);
+			end
 		end
 
 		# putting it all together
@@ -224,12 +233,15 @@ filename_stream = string("stream_",filename_base,".pdf")
 
 figure();
 #streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
-quiver(d_a,d_b,deriv_D_a',deriv_D_b');
-xlabel("D_1")
-ylabel("D_2")
+quiver(d_a,d_b,deriv_D_a',deriv_D_b', units="width", scale=20.0);
+xtxt = latexstring("D_1");
+ytxt = latexstring("D_2");
+xlabel(xtxt)
+ylabel(ytxt) # L"D_2"
 title("Similarity s=$a");
 if (critic_dimensions > 2)
-	title("Similarity s=$a, Rext = $R_ext, no external processes = $(critic_dimensions-2)");
+	titletxt = latexstring();
+	title("Similarity s=$a, R_ext = $R_ext, no external processes = $(critic_dimensions-2)");
 end
 
 #plot(d_a, Db_null);
@@ -241,6 +253,4 @@ plot(origin_space, origin);=#
 
 figure();
 ##streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
-quiver(p,p_y,deriv_p_a',deriv_p_b');
-
-
+quiver(p,p_y,deriv_p_a',deriv_p_b', units="width", scale=1.0);
