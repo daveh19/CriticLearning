@@ -117,6 +117,12 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   end
 
   x = generate_test_sequence(no_trials_in_block);
+
+  # Warning: the size of the following should equal the number of distinctly identifiable
+  #   sub-tasks
+  proportion_sub_task_correct = zeros(no_input_tasks);
+  sub_task_count = zeros(no_input_tasks);
+
   monitor_reward = 0;
   global average_reward;
   global n_critic;
@@ -140,7 +146,14 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   #for(xi in x)
   for(i = 1:no_trials_in_block)
     update_noise()
-    monitor_reward += (update_weights(x[i], task_id, tuning_type, block_dat.trial[i]) / 2);
+    local_reward = (update_weights(x[i], task_id, tuning_type, block_dat.trial[i]) / 2);
+    monitor_reward += local_reward;
+    # adding a monitor of sub-task performance (eg. L, R distinction)
+    #   correct_answer contains +/- 1, need to correct for array indexing
+    #   the cast/round to int splits at 1.5 between outputs 1 and 2
+    sub_task_id = round((block_dat.trial[i].correct_answer / 2.0) + 1.5);
+    sub_task_count[sub_task_id] += 1;
+    proportion_sub_task_correct[sub_task_id] += local_reward; # local_reward = {0,1}
     if(perform_detection_threshold)
       local_average_threshold += block_dat.trial[i].error_threshold;
       local_average_task_threshold[task_id] += block_dat.trial[i].error_threshold;
@@ -171,6 +184,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
     end
   end
   proportion_correct = monitor_reward / no_trials_in_block;
+  proportion_sub_task_correct = proportion_sub_task_correct ./ sub_task_count;
   if(perform_detection_threshold)
     local_average_threshold /= no_trials_in_block;
     local_average_task_threshold[task_id] = local_average_task_threshold[task_id] ./ no_trials_in_block;
@@ -185,7 +199,9 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   end
 
   block_dat.proportion_correct = proportion_correct;
-  block_dat.proportion_task_correct[task_id] = proportion_correct;
+  #block_dat.proportion_task_correct[task_id] = proportion_correct;
+  # we'll store separate left and right task choices in this variable for single Task protocol
+  block_dat.proportion_task_correct = proportion_sub_task_correct;
   block_dat.average_choice = average_choice;
 
   block_dat.average_reward = average_block_reward;
@@ -1012,6 +1028,9 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
         scatter(i, latest_experiment_results.subjects_task[j,1].blocks[i].proportion_correct, marker="o", c="r")
+        # adding plotting of sub-task related results
+        scatter(i, latest_experiment_results.subjects_task[j,1].blocks[i].proportion_task_correct[1], marker="o", c="c")
+        scatter(i, latest_experiment_results.subjects_task[j,1].blocks[i].proportion_task_correct[2], marker="o", c="m")
       end
     end
   end
@@ -1024,10 +1043,18 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
   if(plotting_individual_subjects_on)
     for j = 1:no_subjects
       local_prop_1_correct = zeros(no_blocks_in_experiment);
+      # adding plotting of sub-task related results
+      local_prop_sub_1_correct = zeros(no_blocks_in_experiment);
+      local_prop_sub_2_correct = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
         local_prop_1_correct[i] = latest_experiment_results.subjects_task[j,1].blocks[i].proportion_correct;
+        local_prop_sub_1_correct[i] = latest_experiment_results.subjects_task[j,1].blocks[i].proportion_task_correct[1];
+        local_prop_sub_2_correct[i] = latest_experiment_results.subjects_task[j,1].blocks[i].proportion_task_correct[2];
       end
       plot(block_id, local_prop_1_correct, "r")
+      # adding plotting of sub-task related results
+      plot(block_id, local_prop_sub_1_correct, "c")
+      plot(block_id, local_prop_sub_2_correct, "m")
     end
   end
 
@@ -1046,6 +1073,9 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
         scatter(i+0.1, latest_experiment_results.subjects_task[j,2].blocks[i].proportion_correct, marker="o", c="g")
+        # adding plotting of sub-task related results
+        scatter(i+0.1, latest_experiment_results.subjects_task[j,2].blocks[i].proportion_task_correct[1], marker="o", c="c")
+        scatter(i+0.1, latest_experiment_results.subjects_task[j,2].blocks[i].proportion_task_correct[2], marker="o", c="m")
       end
     end
   end
@@ -1058,10 +1088,18 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
   if(plotting_individual_subjects_on)
     for j = 1:no_subjects
       local_prop_2_correct = zeros(no_blocks_in_experiment);
+      # adding plotting of sub-task related results
+      local_prop_sub_1_correct = zeros(no_blocks_in_experiment);
+      local_prop_sub_2_correct = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
         local_prop_2_correct[i] = latest_experiment_results.subjects_task[j,2].blocks[i].proportion_correct;
+        local_prop_sub_1_correct[i] = latest_experiment_results.subjects_task[j,2].blocks[i].proportion_task_correct[1];
+        local_prop_sub_2_correct[i] = latest_experiment_results.subjects_task[j,2].blocks[i].proportion_task_correct[2];
       end
       plot(block_id, local_prop_2_correct, "g")
+      # adding plotting of sub-task related results
+      plot(block_id, local_prop_sub_1_correct, "c")
+      plot(block_id, local_prop_sub_2_correct, "m")
     end
   end
 
