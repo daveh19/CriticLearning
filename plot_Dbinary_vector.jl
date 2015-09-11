@@ -82,14 +82,26 @@ C *= c
 A = eye(critic_dimensions) - C
 
 
+# Probabilistic presentation of individual tasks
+prob_task = ones(1,critic_dimensions);
+prob_task /= critic_dimensions;
+#prob_task = [1, 0.001, 10, 10]; # manual tweaking
+#prob_task /= sum(prob_task); # normalise, so I can use arbitrary units
+# this influences Confustion matrix
+for k = 1:critic_dimensions
+	C[k,:] = prob_task;
+end
+A = eye(critic_dimensions) - C;
+
+
 # Input representation similarity parameter
-a = -1;
+a = -0.9;
 S = [1 a; a 1]
 
 # Noise and external bias
 sigma = 1; #sqrt(1); #sqrt(100);
 #rho_ext = -0.5;
-R_ext = -1; #1.001;
+R_ext = -0.1; #1.001;
 
 
 for i = 1:no_points
@@ -254,3 +266,32 @@ plot(origin_space, origin);=#
 figure();
 ##streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
 quiver(p,p_y,deriv_p_a',deriv_p_b', units="width", scale=1.0);
+
+sub_task_id_to_plot = 2;
+
+function add_trajectories_to_linear_p_plot(latest_experiment_results, sub_task_id)
+	include("parameters_critic_simulations.jl"); # dont' change the paramters in between calls!
+
+
+	for j = 1:no_subjects
+		local_prop_sub_1_correct = zeros(no_blocks_in_experiment);
+		local_prop_sub_2_correct = zeros(no_blocks_in_experiment);
+		for i = 1:no_blocks_in_experiment
+			#scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[2], marker="o", c="c")
+			local_prop_sub_1_correct[i] = latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[1];
+			local_prop_sub_2_correct[i] = latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[2];
+		end
+		plot(local_prop_sub_1_correct, local_prop_sub_2_correct, "r")
+		#print("",local_prop_sub_1_correct, local_prop_sub_2_correct, "\n-----\n")
+	end
+	for j = 1:no_subjects
+		for i = 1:no_blocks_in_experiment
+			# start point
+			scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[1].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[1].proportion_task_correct[2], marker="s", c="r", s=40)
+			# end point
+			scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].proportion_task_correct[2], marker="D", c="g", s=60)
+		end
+	end
+end
+
+#add_trajectories_to_linear_p_plot(exp_results[1],sub_task_id_to_plot);
