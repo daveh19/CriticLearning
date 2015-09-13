@@ -997,8 +997,8 @@ end
 
 function plot_multi_subject_experiment_as_subplots(latest_experiment_results::RovingExperiment)
   figure(figsize=(12,12))
-    if (use_multi_critic)
-    suptitle("For x in ($problem_left_bound, $problem_right_bound), proportion correct. Comparing three task types. Multicritic: $use_multi_critic, no_task_critics: $no_task_critics, no_choices_per_task_critics: $no_choices_per_task_critics ")
+  if (use_multi_critic)
+    #suptitle("For x in ($problem_left_bound, $problem_right_bound), proportion correct. Comparing three task types. Multicritic: $use_multi_critic, no_task_critics: $no_task_critics, no_choices_per_task_critics: $no_choices_per_task_critics ")
   elseif (use_single_global_critic)
     suptitle("For x in ($problem_left_bound, $problem_right_bound), proportion correct. Comparing three task types. Single critic")
   else

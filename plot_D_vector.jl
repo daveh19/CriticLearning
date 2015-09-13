@@ -75,7 +75,7 @@ xa_norm_sq = 1.0;
 p_ext = 0.30;
 
 # Confusion parameter
-critic_dimensions = 4;
+critic_dimensions = 2;
 c = 1 / critic_dimensions; # currently equal confusion mix of all true critics
 C = ones(critic_dimensions,critic_dimensions)
 C *= c
@@ -272,6 +272,16 @@ plot(origin_space, origin);=#
 figure();
 ##streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
 quiver(p,p_y,deriv_p_a',deriv_p_b', units="width", scale=1.0);
+xtxt = latexstring("p_1");
+ytxt = latexstring("p_2");
+xlabel(xtxt)
+ylabel(ytxt) # L"D_2"
+aa = abs(a);
+title("Similarity s=$aa");
+if (critic_dimensions > 2)
+	titletxt = latexstring();
+	title("Similarity s=$aa, R_ext = $R_ext, no external processes = $(critic_dimensions-2)");
+end
 
 sub_task_id_to_plot = 2;
 
@@ -298,6 +308,8 @@ function add_trajectories_to_linear_p_plot(latest_experiment_results, sub_task_i
 			scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].proportion_task_correct[2], marker="D", c="g", s=60)
 		end
 	end
+
+	axis([-0.005,1.005,-0.005,1.005]);
 end
 
-#add_trajectories_to_linear_p_plot(exp_results[1],sub_task_id_to_plot);
+add_trajectories_to_linear_p_plot(exp_results[1],sub_task_id_to_plot);
