@@ -11,7 +11,7 @@ invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 
 
 ## Space over which vector field is calculated / plotted
-no_points = 40;
+no_points = 20;
 #no_points = 10;
 #no_y_points = no_points - 1;
 # The no_y_points is to ensure that I plot the vector field in the right direction,
@@ -101,7 +101,7 @@ S = [1 a; a 1]
 # Noise and external bias
 sigma = 1; #sqrt(1); #sqrt(100);
 #rho_ext = -0.5;
-R_ext = -0.1; #1.001;
+R_ext = 1; #1.001;
 
 
 for i = 1:no_points
