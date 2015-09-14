@@ -100,7 +100,7 @@ S = [1 a; a 1]
 # Noise and external bias
 sigma = 1; #sqrt(1); #sqrt(100);
 #rho_ext = -0.5;
-R_ext = 0.9; #20; #1.001;
+R_ext = -1; #20; #1.001;
 
 
 for i = 1:no_points
