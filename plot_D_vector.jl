@@ -94,8 +94,11 @@ end
 A = eye(critic_dimensions) - C;
 
 # Input representation similarity parameter
-a = 0; #-0.9;
+a = 0.9; #-0.9;
 S = [1 a; a 1]
+
+# Output correlation with +ve D
+O = [1; -1];
 
 # Noise and external bias
 sigma = 1; #sqrt(1); #sqrt(100);
@@ -119,14 +122,14 @@ for i = 1:no_points
 		# temp_b += A[2,2] * cdf(Normal(0,sigma), d_b[j]) * d_b[j];
 
 		# *2 for R^{true} = (2p-1)
-		temp_a = sigma^2 * pdf(Normal(0,sigma), d_a[i]) * 2;
-		temp_b = sigma^2 * pdf(Normal(0,sigma), d_b[j]) * 2;
+		temp_a = sigma^2 * pdf(Normal(0,sigma), (d_a[i]*O[1])) * 2;
+		temp_b = sigma^2 * pdf(Normal(0,sigma), (d_b[j]*O[2])) * 2;
 		# equations for R^{true} = (2p-1)
-		temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_a[i];
-		temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_a[i];
+		temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), (d_a[i]*O[1])) - 1) * (d_a[i]*O[1]);
+		temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), (d_b[j]*O[2])) - 1) * (d_a[i]*O[1]);
 
-		temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), d_a[i]) - 1) * d_b[j];
-		temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), d_b[j]) - 1) * d_b[j];
+		temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), (d_a[i]*O[1])) - 1) * (d_b[j]*O[2]);
+		temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), (d_b[j]*O[2])) - 1) * (d_b[j]*O[2]);
 
 		# Bias from other tasks
 		if(critic_dimensions > 2)
@@ -147,9 +150,12 @@ for i = 1:no_points
 		temp_b *= prob_task[2];
 
 		# putting it all together
-		deriv_D_a[i,j] = S[1,1] * temp_a + S[1,2] * temp_b;
-		deriv_D_b[i,j] = S[2,1] * temp_a + S[2,2] * temp_b;
+		deriv_D_a[i,j] = ( O[1] * S[1,1] * temp_a + O[2] * S[1,2] * temp_b ) #* O[1];
+		deriv_D_b[i,j] = ( O[1] * S[2,1] * temp_a + O[2] * S[2,2] * temp_b ) #* O[2];
 
+		# multiply again by output encoding to give +ve D for success representation
+		#deriv_D_a[i,j] *= O[1];
+		#deriv_D_b[i,j] *= O[2];
 
 		#####
 		#
@@ -312,4 +318,4 @@ function add_trajectories_to_linear_p_plot(latest_experiment_results, sub_task_i
 	axis([-0.005,1.005,-0.005,1.005]);
 end
 
-add_trajectories_to_linear_p_plot(exp_results[1],sub_task_id_to_plot);
+#add_trajectories_to_linear_p_plot(exp_results[1],sub_task_id_to_plot);
