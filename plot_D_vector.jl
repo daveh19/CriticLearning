@@ -40,13 +40,17 @@ deriv_D_b = zeros(no_points, no_y_points);
 
 # Confusion parameter
 critic_dimensions = 2;
-#=c = 1 / critic_dimensions; # currently equal confusion mix of all true critics
+# perfect critic (overwritten if any of the following are active)
+C = eye(critic_dimensions)
+#=
+# equal mix critic
+c = 1 / critic_dimensions; # currently equal confusion mix of all true critics
 C = ones(critic_dimensions,critic_dimensions)
 C *= c
-#C = eye(critic_dimensions) # perfect critic
+#
 A = eye(critic_dimensions) - C=#
 
-# Probabilistic presentation of individual tasks
+# Probabilistic presentation of individual tasks critic
 prob_task = ones(1,critic_dimensions);
 prob_task /= critic_dimensions;
 #prob_task = [1, 0.001, 10, 10]; # manual tweaking
@@ -58,7 +62,7 @@ end
 A = eye(critic_dimensions) - C;
 
 # Input representation similarity parameter
-a = 0; #-0.9;
+a = 0; #0.9;
 S = [1 a; a 1]
 
 # Output correlation with +ve D
@@ -177,8 +181,8 @@ filename_stream = string("stream_",filename_base,".pdf")
 figure();
 #streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
 quiver(d_a,d_b,deriv_D_a',deriv_D_b', units="width", scale=20.0);
-xtxt = latexstring("D_1");
-ytxt = latexstring("D_2");
+xtxt = latexstring("D_1^+");
+ytxt = latexstring("D_2^+");
 xlabel(xtxt)
 ylabel(ytxt) # L"D_2"
 title("Similarity s=$a");
