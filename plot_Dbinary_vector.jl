@@ -136,8 +136,37 @@ for i = 1:no_points
 		#
 		# no correction for -ve association in plotting of D with reward (use d_a as d_a)
 		if (use_plot_over_D)
-			#TODO
+			# *2 for R^{true} = (2p-1)
+			temp_a = 4 * cdf(Normal(0,sigma), (d_a[i]*O[1]) ) * (1 - cdf(Normal(0,sigma), (d_a[i]*O[1]) ) )
+			temp_b = 4 * cdf(Normal(0,sigma), (d_b[j]*O[2]) ) * (1 - cdf(Normal(0,sigma), (d_b[j]*O[2]) ) )
+			# equations for R^{true} = (2p-1)
+			temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), (d_a[i]*O[1]) ) - 1) * (2 * cdf(Normal(0,sigma), (d_a[i]*O[1]) ) - 1);
+			temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), (d_b[j]*O[2]) ) - 1) * (2 * cdf(Normal(0,sigma), (d_a[i]*O[1]) ) - 1);
 
+			temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), (d_a[i]*O[1]) ) - 1) * (2 * cdf(Normal(0,sigma), (d_b[j]*O[2]) ) - 1);
+			temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), (d_b[j]*O[2]) ) - 1) * (2 * cdf(Normal(0,sigma), (d_b[j]*O[2]) ) - 1);
+
+			# Bias from other tasks
+			if(critic_dimensions > 2)
+				# a_multiplier assumes equal for all
+				a_multiplier = (critic_dimensions - 2) / critic_dimensions
+				#=temp_a += (2 * cdf(Normal(0,sigma),d_a[i]) - 1) * (-0.5 * R_ext);
+				temp_b += (2 * cdf(Normal(0,sigma),d_b[j]) - 1) * (-0.5 * R_ext);=#
+				#=temp_a += (2 * cdf(Normal(0,sigma),d_a[i]) - 1) * (-a_multiplier * R_ext);
+				temp_b += (2 * cdf(Normal(0,sigma),d_b[j]) - 1) * (-a_multiplier * R_ext);=#
+				for(k = 3:critic_dimensions)
+					temp_a += (2 * cdf(Normal(0,sigma), (d_a[i]*O[1]) ) - 1) * (A[1,k] * R_ext);
+					temp_b += (2 * cdf(Normal(0,sigma), (d_b[j]*O[2]) ) - 1) * (A[2,k] * R_ext);
+				end
+			end
+
+			# Multiply by probability of occurence of each task
+			temp_a *= prob_task[1];
+			temp_b *= prob_task[2];
+
+			# putting it all together
+			deriv_D_a[i,j] = ( O[1] * S[1,1] * temp_a + O[2] * S[1,2] * temp_b );
+			deriv_D_b[i,j] = ( O[1] * S[2,1] * temp_a + O[2] * S[2,2] * temp_b );
 		end
 
 
