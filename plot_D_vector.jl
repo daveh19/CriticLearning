@@ -60,7 +60,6 @@ C = eye(critic_dimensions)
 c = 1 / critic_dimensions; # currently equal confusion mix of all true critics
 C = ones(critic_dimensions,critic_dimensions)
 C *= c
-#
 A = eye(critic_dimensions) - C=#
 
 # Probabilistic presentation of individual tasks critic
@@ -82,9 +81,8 @@ S = [1 a; a 1]
 O = [1; -1];
 
 # Noise and external bias
-sigma = 1; #sqrt(1); #sqrt(100);
-#rho_ext = -0.5;
-R_ext = 1; #20; #1.001;
+sigma = 1;
+R_ext = 0;
 
 
 for i = 1:no_points
@@ -239,7 +237,7 @@ filename_stream = string("stream_",filename_base,".pdf")
 #savefig(filename_stream);
 
 if (use_plot_over_D_pos)
-	## Difference in outputs view
+	## Difference in positive outputs view
 	figure();
 	#streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
 	quiver(d_a,d_b,deriv_D_a_pos',deriv_D_b_pos', units="width", scale=D_pos_scale);
