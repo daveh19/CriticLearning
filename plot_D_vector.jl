@@ -19,7 +19,7 @@ use_add_trajectories_to_plot = false :: Bool;
 
 
 ## Space over which vector field is calculated / plotted
-no_points = 30;
+no_points = 20; #30;
 #no_points = 10;
 #no_y_points = no_points - 1;
 # The no_y_points is to ensure that I plot the vector field in the right direction,
@@ -52,7 +52,7 @@ deriv_D_b_pos = zeros(no_points, no_y_points);
 
 
 # Confusion parameter
-critic_dimensions = 2;
+critic_dimensions = 4;
 # perfect critic (overwritten if any of the following are active)
 C = eye(critic_dimensions)
 #=
@@ -75,7 +75,7 @@ end
 A = eye(critic_dimensions) - C;
 
 # Input representation similarity parameter
-a = 0; #0.9;
+a = 0.9; #0.9;
 S = [1 a; a 1]
 
 # Output correlation with +ve D
@@ -174,40 +174,47 @@ for i = 1:no_points
 		#
 		# Calculation of change of probability of outcome
 		#
-		Da[i] = invphi(p[i]);
-		Db[j] = invphi(p_y[j]);
-		p_temp_a = sigma^2 * pdf(Normal(0,sigma), Da[i]) * 2;
-		p_temp_b = sigma^2 * pdf(Normal(0,sigma), Db[j]) * 2;
-		# equations for R^{true} = (2p-1)
-		p_temp_a += A[1,1] * (2 * p[i] - 1) * Da[i];
-		p_temp_a += A[1,2] * (2 * p[j] - 1) * Da[i];
+		if (use_plot_over_p)
+			Da[i] = invphi(p[i]);
+			Db[j] = invphi(p_y[j]);
+			p_temp_a = sigma^2 * pdf(Normal(0,sigma), Da[i]) * 2;
+			p_temp_b = sigma^2 * pdf(Normal(0,sigma), Db[j]) * 2;
+			# equations for R^{true} = (2p-1)
+			p_temp_a += A[1,1] * (2 * p[i] - 1) * Da[i];
+			p_temp_a += A[1,2] * (2 * p[j] - 1) * Da[i];
 
-		p_temp_b += A[2,1] * (2 * p[i] - 1) * Db[j];
-		p_temp_b += A[2,2] * (2 * p[j] - 1) * Db[j];
+			p_temp_b += A[2,1] * (2 * p[i] - 1) * Db[j];
+			p_temp_b += A[2,2] * (2 * p[j] - 1) * Db[j];
 
-		# Bias from other tasks
-		if(critic_dimensions > 2)
-			a_multiplier = (critic_dimensions - 2) / critic_dimensions
-			#=p_temp_a += Da[i] * (-0.5 * R_ext);
-			p_temp_b += Db[j] * (-0.5 * R_ext);=#
-			#=p_temp_a += Da[i] * (-a_multiplier * R_ext);
-			p_temp_b += Db[j] * (-a_multiplier * R_ext);=#
-			for(k = 3:critic_dimensions)
-				p_temp_a += Da[i] * (A[1,k] * R_ext);
-				p_temp_b += Db[j] * (A[2,k] * R_ext);
+			# Bias from other tasks
+			if(critic_dimensions > 2)
+				a_multiplier = (critic_dimensions - 2) / critic_dimensions
+				#=p_temp_a += Da[i] * (-0.5 * R_ext);
+				p_temp_b += Db[j] * (-0.5 * R_ext);=#
+				#=p_temp_a += Da[i] * (-a_multiplier * R_ext);
+				p_temp_b += Db[j] * (-a_multiplier * R_ext);=#
+				for(k = 3:critic_dimensions)
+					p_temp_a += Da[i] * (A[1,k] * R_ext);
+					p_temp_b += Db[j] * (A[2,k] * R_ext);
+				end
 			end
+
+			# Multiply by probability of occurence of each task
+			p_temp_a *= prob_task[1];
+			p_temp_b *= prob_task[2];
+
+			# putting it all together
+			p_deriv_D_a[i,j] = (O[1] * S[1,1] * p_temp_a + O[2] * S[1,2] * p_temp_b);
+			p_deriv_D_b[i,j] = (O[1] * S[2,1] * p_temp_a + O[2] * S[2,2] * p_temp_b);
+
+			# we need to transform derivatives to D_pos space
+			p_deriv_D_a[i,j] *= O[1];
+			p_deriv_D_b[i,j] *= O[2];
+
+			# and we scale everything by the pdf of the underlying probability
+			deriv_p_a[i,j] = pdf(Normal(0,sigma), Da[i]) * p_deriv_D_a[i,j];
+			deriv_p_b[i,j] = pdf(Normal(0,sigma), Db[j]) * p_deriv_D_b[i,j];
 		end
-
-		# Multiply by probability of occurence of each task
-		p_temp_a *= prob_task[1];
-		p_temp_b *= prob_task[2];
-
-		# putting it all together
-		p_deriv_D_a[i,j] = S[1,1] * p_temp_a + S[1,2] * p_temp_b;
-		p_deriv_D_b[i,j] = S[2,1] * p_temp_a + S[2,2] * p_temp_b;
-
-		deriv_p_a[i,j] = pdf(Normal(0,sigma), Da[i]) * p_deriv_D_a[i,j];
-		deriv_p_b[i,j] = pdf(Normal(0,sigma), Db[j]) * p_deriv_D_b[i,j];
 	end
 end
 
