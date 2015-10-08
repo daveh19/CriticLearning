@@ -11,6 +11,13 @@ include("inverse_cdf.jl"); #contains invnorm(), consider switching to invphi()
 invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 
 
+## Plotting over D, D~ (+ve), and p optional
+use_plot_over_D = true :: Bool;
+use_plot_over_D_pos = true :: Bool;
+use_plot_over_p = true :: Bool;
+use_add_trajectories_to_plot = false :: Bool;
+
+
 ## Space over which vector field is calculated / plotted
 no_points = 30;
 #no_points = 10;
@@ -80,41 +87,44 @@ for i = 1:no_points
 		#
 		# Calculation of change of difference in outputs
 		#
-		# *2 for R^{true} = (2p-1)
-		temp_a = sigma^2 * pdf(Normal(0,sigma), (d_a[i])) * 2;
-		temp_b = sigma^2 * pdf(Normal(0,sigma), (d_b[j])) * 2;
-		# equations for R^{true} = (2p-1)
-		temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), (d_a[i])) - 1) * (d_a[i]);
-		temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), (d_b[j])) - 1) * (d_a[i]);
+		# positive association in plotting of D with reward (use d_a as d_a^~)
+		if (use_plot_over_D_pos)
+			# *2 for R^{true} = (2p-1)
+			temp_a = sigma^2 * pdf(Normal(0,sigma), (d_a[i])) * 2;
+			temp_b = sigma^2 * pdf(Normal(0,sigma), (d_b[j])) * 2;
+			# equations for R^{true} = (2p-1)
+			temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), (d_a[i])) - 1) * (d_a[i]);
+			temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), (d_b[j])) - 1) * (d_a[i]);
 
-		temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), (d_a[i])) - 1) * (d_b[j]);
-		temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), (d_b[j])) - 1) * (d_b[j]);
+			temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), (d_a[i])) - 1) * (d_b[j]);
+			temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), (d_b[j])) - 1) * (d_b[j]);
 
-		# Bias from other tasks
-		if(critic_dimensions > 2)
-			# a_multiplier assumes equal for all
-			a_multiplier = (critic_dimensions - 2) / critic_dimensions
-			#=temp_a += d_a[i] * (-0.5 * R_ext);
-			temp_b += d_b[j] * (-0.5 * R_ext);=#
-			#=temp_a += d_a[i] * (-a_multiplier * R_ext);
-			temp_b += d_b[j] * (-a_multiplier * R_ext);=#
-			for(k = 3:critic_dimensions)
-				temp_a += d_a[i] * (A[1,k] * R_ext);
-				temp_b += d_b[j] * (A[2,k] * R_ext);
+			# Bias from other tasks
+			if(critic_dimensions > 2)
+				# a_multiplier assumes equal for all
+				a_multiplier = (critic_dimensions - 2) / critic_dimensions
+				#=temp_a += d_a[i] * (-0.5 * R_ext);
+				temp_b += d_b[j] * (-0.5 * R_ext);=#
+				#=temp_a += d_a[i] * (-a_multiplier * R_ext);
+				temp_b += d_b[j] * (-a_multiplier * R_ext);=#
+				for(k = 3:critic_dimensions)
+					temp_a += d_a[i] * (A[1,k] * R_ext);
+					temp_b += d_b[j] * (A[2,k] * R_ext);
+				end
 			end
+
+			# Multiply by probability of occurence of each task
+			temp_a *= prob_task[1];
+			temp_b *= prob_task[2];
+
+			# putting it all together
+			deriv_D_a[i,j] = ( O[1] * S[1,1] * temp_a + O[2] * S[1,2] * temp_b );
+			deriv_D_b[i,j] = ( O[1] * S[2,1] * temp_a + O[2] * S[2,2] * temp_b );
+
+			# multiply again by output encoding to give +ve D for success representation
+			deriv_D_a[i,j] *= O[1];
+			deriv_D_b[i,j] *= O[2];
 		end
-
-		# Multiply by probability of occurence of each task
-		temp_a *= prob_task[1];
-		temp_b *= prob_task[2];
-
-		# putting it all together
-		deriv_D_a[i,j] = ( O[1] * S[1,1] * temp_a + O[2] * S[1,2] * temp_b ) * O[1];
-		deriv_D_b[i,j] = ( O[1] * S[2,1] * temp_a + O[2] * S[2,2] * temp_b ) * O[2];
-
-		# multiply again by output encoding to give +ve D for success representation
-		#deriv_D_a[i,j] *= O[1];
-		#deriv_D_b[i,j] *= O[2];
 
 		#####
 		#
@@ -177,47 +187,50 @@ filename_stream = string("stream_",filename_base,".pdf")
 #streamplot(p,p_y,deriv_p_a',deriv_p_b')
 #savefig(filename_stream);
 
-## Difference in outputs view
-figure();
-#streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
-quiver(d_a,d_b,deriv_D_a',deriv_D_b', units="width", scale=20.0);
-xtxt = latexstring("D_1^+");
-ytxt = latexstring("D_2^+");
-xlabel(xtxt)
-ylabel(ytxt) # L"D_2"
-title("Similarity s=$a");
-if (critic_dimensions > 2)
-	titletxt = latexstring();
-	title("Similarity s=$a, R_ext = $R_ext, no external processes = $(critic_dimensions-2)");
+if (use_plot_over_D_pos)
+	## Difference in outputs view
+	figure();
+	#streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
+	quiver(d_a,d_b,deriv_D_a',deriv_D_b', units="width", scale=20.0);
+	xtxt = latexstring("D_1^+");
+	ytxt = latexstring("D_2^+");
+	xlabel(xtxt)
+	ylabel(ytxt) # L"D_2"
+	title("Similarity s=$a");
+	if (critic_dimensions > 2)
+		titletxt = latexstring();
+		title("Similarity s=$a, R_ext = $R_ext, no external processes = $(critic_dimensions-2)");
+	end
+
+	#plot(d_a, Db_null);
+	## x=0 and y=0 lines for visual inspection
+	#=origin = zeros(no_points);
+	origin_space = linspace(-100,100,no_points);
+	plot(origin, origin_space);
+	plot(origin_space, origin);=#
 end
 
-#plot(d_a, Db_null);
-## x=0 and y=0 lines for visual inspection
-#=origin = zeros(no_points);
-origin_space = linspace(-100,100,no_points);
-plot(origin, origin_space);
-plot(origin_space, origin);=#
 
-## probabilistic view
-figure();
-##streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
-quiver(p,p_y,deriv_p_a',deriv_p_b', units="width", scale=1.0);
-xtxt = latexstring("p_1");
-ytxt = latexstring("p_2");
-xlabel(xtxt)
-ylabel(ytxt) # L"D_2"
-aa = abs(a);
-title("Similarity s=$aa");
-if (critic_dimensions > 2)
-	titletxt = latexstring();
-	title("Similarity s=$aa, R_ext = $R_ext, no external processes = $(critic_dimensions-2)");
+if (use_plot_over_p)
+	## probabilistic view
+	figure();
+	##streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
+	quiver(p,p_y,deriv_p_a',deriv_p_b', units="width", scale=1.0);
+	xtxt = latexstring("p_1");
+	ytxt = latexstring("p_2");
+	xlabel(xtxt)
+	ylabel(ytxt) # L"D_2"
+	aa = abs(a);
+	title("Similarity s=$aa");
+	if (critic_dimensions > 2)
+		titletxt = latexstring();
+		title("Similarity s=$aa, R_ext = $R_ext, no external processes = $(critic_dimensions-2)");
+	end
 end
 
-sub_task_id_to_plot = 2;
 
 function add_trajectories_to_linear_p_plot(latest_experiment_results, sub_task_id)
 	include("parameters_critic_simulations.jl"); # dont' change the paramters in between calls!
-
 
 	for j = 1:no_subjects
 		local_prop_sub_1_correct = zeros(no_blocks_in_experiment);
@@ -242,4 +255,8 @@ function add_trajectories_to_linear_p_plot(latest_experiment_results, sub_task_i
 	axis([-0.005,1.005,-0.005,1.005]);
 end
 
-#add_trajectories_to_linear_p_plot(exp_results[1],sub_task_id_to_plot);
+
+if (use_plot_over_p && use_add_trajectories_to_plot)
+	sub_task_id_to_plot = 2;
+	add_trajectories_to_linear_p_plot(exp_results[1],sub_task_id_to_plot);
+end
