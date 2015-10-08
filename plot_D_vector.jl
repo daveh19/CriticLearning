@@ -264,7 +264,7 @@ if (use_plot_over_D)
 	## Difference in outputs view
 	figure();
 	#streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
-	quiver(d_a,d_b,deriv_D_a',deriv_D_b', units="width", scale=D_pos_scale);
+	quiver(d_a,d_b,deriv_D_a',deriv_D_b', units="width", scale=D_scale);
 	xtxt = latexstring("D_1");
 	ytxt = latexstring("D_2");
 	xlabel(xtxt)
