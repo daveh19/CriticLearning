@@ -52,7 +52,7 @@ deriv_D_b_pos = zeros(no_points, no_y_points);
 
 
 # Confusion parameter
-critic_dimensions = 2;
+critic_dimensions = 4;
 # perfect critic (overwritten if any of the following are active)
 C = eye(critic_dimensions)
 #=
@@ -84,7 +84,7 @@ O = [1; -1];
 
 # Noise and external bias
 sigma = 1;
-R_ext = 1;
+R_ext = 0;
 
 
 for i = 1:no_points
@@ -175,7 +175,6 @@ for i = 1:no_points
 		# Calculation of change of probability of outcome
 		#
 		if (use_plot_over_p)
-			## the following has not been updates to follow binary output rules yet!!
 			Da[i] = invphi(p[i]);
 			Db[j] = invphi(p_y[j]);
 			p_temp_a = 4 * cdf(Normal(0,sigma),Da[i]) * (1 - cdf(Normal(0,sigma),Da[i]))
@@ -201,10 +200,19 @@ for i = 1:no_points
 				end
 			end
 
-			# putting it all together
-			p_deriv_D_a[i,j] = S[1,1] * p_temp_a + S[1,2] * p_temp_b;
-			p_deriv_D_b[i,j] = S[2,1] * p_temp_a + S[2,2] * p_temp_b;
+			# Multiply by probability of occurence of each task
+			p_temp_a *= prob_task[1];
+			p_temp_b *= prob_task[2];
 
+			# putting it all together
+			p_deriv_D_a[i,j] = (O[1] * S[1,1] * p_temp_a + O[2] * S[1,2] * p_temp_b);
+			p_deriv_D_b[i,j] = (O[1] * S[2,1] * p_temp_a + O[2] * S[2,2] * p_temp_b);
+
+			# we need to transform derivatives to D_pos space
+			p_deriv_D_a[i,j] *= O[1];
+			p_deriv_D_b[i,j] *= O[2];
+
+			# and we scale everything by the pdf of the underlying probability
 			deriv_p_a[i,j] = pdf(Normal(0,sigma), Da[i]) * p_deriv_D_a[i,j];
 			deriv_p_b[i,j] = pdf(Normal(0,sigma), Db[j]) * p_deriv_D_b[i,j];
 		end
