@@ -15,7 +15,8 @@ invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 use_plot_over_D_pos = true :: Bool;
 use_plot_over_D = false :: Bool;
 use_plot_over_p = true :: Bool;
-use_add_trajectories_to_plot = false :: Bool;
+use_add_trajectories_to_plot = true :: Bool;
+sub_task_id_to_plot = 2;
 
 
 ## Space over which vector field is calculated / plotted
@@ -52,7 +53,7 @@ deriv_D_b_pos = zeros(no_points, no_y_points);
 
 
 # Confusion parameter
-critic_dimensions = 4;
+critic_dimensions = 2;
 # perfect critic (overwritten if any of the following are active)
 C = eye(critic_dimensions)
 #=
@@ -76,6 +77,11 @@ A = eye(critic_dimensions) - C;
 # Input representation similarity parameter
 a = 0.9; #0.9;
 S = [1 a; a 1]
+
+S = [
+1.0      0.939578;
+1.02445  1.0
+]
 
 # Output correlation with +ve D
 O = [1; -1];
@@ -313,15 +319,15 @@ function add_trajectories_to_linear_p_plot(latest_experiment_results, sub_task_i
 			local_prop_sub_1_correct[i] = latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[1];
 			local_prop_sub_2_correct[i] = latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[2];
 		end
-		plot(local_prop_sub_1_correct, local_prop_sub_2_correct, "r")
+		plot(local_prop_sub_1_correct, local_prop_sub_2_correct, "r", zorder=1)
 		#print("",local_prop_sub_1_correct, local_prop_sub_2_correct, "\n-----\n")
 	end
 	for j = 1:no_subjects
 		for i = 1:no_blocks_in_experiment
 			# start point
-			scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[1].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[1].proportion_task_correct[2], marker="s", c="r", s=40)
+			scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[1].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[1].proportion_task_correct[2], marker="s", c="r", s=40, zorder=2)
 			# end point
-			scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].proportion_task_correct[2], marker="D", c="g", s=60)
+			scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].proportion_task_correct[2], marker="D", c="g", s=60, zorder=3)
 		end
 	end
 
@@ -330,6 +336,5 @@ end
 
 
 if (use_plot_over_p && use_add_trajectories_to_plot)
-	sub_task_id_to_plot = 2;
 	add_trajectories_to_linear_p_plot(exp_results[1],sub_task_id_to_plot);
 end
