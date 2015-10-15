@@ -210,6 +210,15 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   block_dat.average_threshold = local_average_threshold;
   block_dat.average_task_threshold = local_average_task_threshold;
 
+  # calculate and record noise-free output for the given task, for the extremal potential inputs
+  #task_id is fixed as this is a single task block
+  block_dat.noise_free_positive_output[task_id, 1] = noise_free_output_positive_difference(problem_left_bound, task_id, tuning_type);
+  block_dat.noise_free_positive_output[task_id, 2] = noise_free_output_positive_difference(problem_right_bound, task_id, tuning_type);
+
+  # calculate and record Probability(correct | task, input) for the given task, for the extremal potential inputs
+  block_dat.probability_correct[task_id, 1] = probability_correct(problem_left_bound, task_id, tuning_type);
+  block_dat.probability_correct[task_id, 2] = probability_correct(problem_right_bound, task_id, tuning_type);
+
   return proportion_correct;
 end
 
@@ -303,6 +312,12 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
 
   block_dat.average_threshold = local_average_threshold;
   block_dat.average_task_threshold = local_average_task_threshold;
+
+#TODO
+  # calculate and record noise-free output for each of the given tasks, for the extremal potential inputs
+
+  # calculate and record Probability(correct | task, input) for each of the given tasks, for the extremal potential inputs
+
 
   return proportion_correct;
 end

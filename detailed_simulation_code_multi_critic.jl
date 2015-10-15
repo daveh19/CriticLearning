@@ -257,6 +257,31 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
 end
 
 
+# calculate the noise-free difference in the outputs for a given input
+#   return value is positively associated with correct classification
+function noise_free_output_positive_difference(x::Float64, task_id::Int, tuning_type::TuningSelector)
+  local_pre = pre(x, task_id, tuning_type)
+
+  noise_free_left = sum(local_pre[:,task_id] .* w[:,1,task_id]);
+  noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
+
+  output_sign_selector = 1;
+  if (x > 0)
+    # then output right should be larger
+    output_sign_selector = -1;
+  end
+
+  return ( output_sign_selector * (noise_free_left - noise_free_right) );
+end
+
+
+function probability_correct(x::Float64, task_id::Int, tuning_type::TuningSelector)
+  local_noise_free_output_positive_difference = noise_free_output_positive_difference(x, task_id, tuning_type);
+
+  return (0.5 + 0.5 * erf( ( local_noise_free_output_positive_difference ) / sqrt(output_noise_variance) / 2 ) );
+end
+
+
 function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Array{Subject,2}, split_output::Bool=false)
   # globals required for correct processing of pre()
   global a,b,w;
