@@ -313,11 +313,15 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
   block_dat.average_threshold = local_average_threshold;
   block_dat.average_task_threshold = local_average_task_threshold;
 
-#TODO
-  # calculate and record noise-free output for each of the given tasks, for the extremal potential inputs
+  for local_task_id = 1:no_input_tasks
+    # calculate and record noise-free output for each of the given tasks, for the extremal potential inputs
+    block_dat.noise_free_positive_output[local_task_id, 1] = noise_free_output_positive_difference(problem_left_bound, local_task_id, tuning_type);
+    block_dat.noise_free_positive_output[local_task_id, 2] = noise_free_output_positive_difference(problem_right_bound, local_task_id, tuning_type);
 
-  # calculate and record Probability(correct | task, input) for each of the given tasks, for the extremal potential inputs
-
+    # calculate and record Probability(correct | task, input) for each of the given tasks, for the extremal potential inputs
+    block_dat.probability_correct[local_task_id, 1] = probability_correct(problem_left_bound, local_task_id, tuning_type);
+    block_dat.probability_correct[local_task_id, 2] = probability_correct(problem_right_bound, local_task_id, tuning_type);
+  end
 
   return proportion_correct;
 end
@@ -1754,6 +1758,63 @@ function plot_multi_subject_proportion_correct(subjects::Array{Subject,2}, task_
   end
   xlabel("Block number")
   ylabel("Proportion correct")
+  axis([0,no_blocks_in_experiment,0,1])
+end
+
+
+function plot_single_subject_noise_free_positive_output(subject::Subject, task_id::Int=1)
+  #figure()
+  local_av_output = zeros(no_blocks_in_experiment);
+  local_task_output = zeros(no_blocks_in_experiment, no_input_tasks, no_classifications_per_task);
+  x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
+  for i = 1:no_blocks_in_experiment
+    #local_output[i] = subject.blocks[i].proportion_correct; #average_reward;
+    local_task_output[i,:] = subject.blocks[i].noise_free_positive_output;
+    local_av_output[i] = sum(local_task_output[i,task_id,:]) / no_classifications_per_task;
+    #print("", x[i], " ", local_reward_received[i], "\n")
+  end
+  #print("", size(local_reward_received), " ", size(x),"\n")
+  plot(x, local_task_output[:,task_id,1], linewidth=2, c="r")
+  plot(x, local_task_output[:,task_id,2], linewidth=2, c="g")
+  plot(x, local_av_output, linewidth=2, c="k", zorder=3)
+end
+
+function plot_multi_subject_noise_free_positive_output(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
+  figure()
+  for i = begin_id:end_id
+    plot_single_subject_noise_free_positive_output(subjects[i,task_id],task_id)
+  end
+  xlabel("Block number")
+  ylabel("Noise-free positive difference in outputs")
+  axis([0,no_blocks_in_experiment,-300,500])
+end
+
+
+function plot_single_subject_probability_correct(subject::Subject, task_id::Int=1)
+  #figure()
+  local_av_probability = zeros(no_blocks_in_experiment);
+  local_task_probability = zeros(no_blocks_in_experiment, no_input_tasks, no_classifications_per_task);
+  x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
+  task_ratio = [1 - (0.5 + input_sequence_bias), (0.5 + input_sequence_bias)];
+  for i = 1:no_blocks_in_experiment
+    #local_output[i] = subject.blocks[i].proportion_correct; #average_reward;
+    local_task_probability[i,:] = subject.blocks[i].probability_correct;
+    local_av_probability[i] = sum(local_task_probability[i,task_id,:].*task_ratio) / no_classifications_per_task;
+    #print("", x[i], " ", local_reward_received[i], "\n")
+  end
+  #print("", size(local_reward_received), " ", size(x),"\n")
+  plot(x, local_task_probability[:,task_id,1], linewidth=2, c="r")
+  plot(x, local_task_probability[:,task_id,2], linewidth=2, c="g")
+  plot(x, local_av_probability, linewidth=2, c="k", zorder=3)
+end
+
+function plot_multi_subject_probability_correct(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
+  figure()
+  for i = begin_id:end_id
+    plot_single_subject_probability_correct(subjects[i,task_id],task_id)
+  end
+  xlabel("Block number")
+  ylabel("Probability correct")
   axis([0,no_blocks_in_experiment,0,1])
 end
 
