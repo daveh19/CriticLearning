@@ -15,8 +15,9 @@ invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 use_plot_over_D_pos = true :: Bool;
 use_plot_over_D = false :: Bool;
 use_plot_over_p = true :: Bool;
-use_add_trajectories_to_plot = false :: Bool;
-sub_task_id_to_plot = 1;
+use_add_trajectories_to_plot = true :: Bool;
+sub_task_id_to_plot = 2;
+use_plot_measured_proportion_correct = false ::Bool;
 
 
 ## Space over which vector field is calculated / plotted
@@ -77,8 +78,15 @@ A = eye(critic_dimensions) - C;
 
 
 # Input representation similarity parameter
-a = 1;
+a = 0.99;
 S = [1 a; a 1]
+
+S = [
+1.0      0.939578;
+1.02445  1.0
+]
+#S = [1 a; a 1]
+
 
 # Output correlation with +ve D
 O = [1; -1];
@@ -255,6 +263,28 @@ if (use_plot_over_D_pos)
 		title("Similarity s=$a, R_ext = $R_ext, no external processes = $(critic_dimensions-2)");
 	end
 
+	if ( use_add_trajectories_to_plot )
+		scalar_for_d_pos = 10.0 / sigma; # since sigma in simulation is 10 times sigma here
+		for j = 1:no_subjects
+			local_prop_sub_1_correct = zeros(no_blocks_in_experiment);
+			local_prop_sub_2_correct = zeros(no_blocks_in_experiment);
+			for i = 1:no_blocks_in_experiment
+				#scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[2], marker="o", c="c")
+				local_prop_sub_1_correct[i] = (exp_results[1].subjects_task[j,sub_task_id_to_plot].blocks[i].noise_free_positive_output[sub_task_id_to_plot,1]) / scalar_for_d_pos;
+				local_prop_sub_2_correct[i] = (exp_results[1].subjects_task[j,sub_task_id_to_plot].blocks[i].noise_free_positive_output[sub_task_id_to_plot,2]) / scalar_for_d_pos;
+			end
+			plot(local_prop_sub_1_correct, local_prop_sub_2_correct, "r", zorder=1)
+			#print("",local_prop_sub_1_correct, local_prop_sub_2_correct, "\n-----\n")
+		end
+		for j = 1:no_subjects
+			for i = 1:no_blocks_in_experiment
+				# start point
+				scatter(exp_results[1].subjects_task[j,sub_task_id_to_plot].blocks[1].noise_free_positive_output[sub_task_id_to_plot,1] / scalar_for_d_pos, exp_results[1].subjects_task[j,sub_task_id_to_plot].blocks[1].noise_free_positive_output[sub_task_id_to_plot,2] / scalar_for_d_pos, marker="s", c="r", s=40, zorder=2)
+				# end point
+				scatter(exp_results[1].subjects_task[j,sub_task_id_to_plot].blocks[end].noise_free_positive_output[sub_task_id_to_plot,1] /scalar_for_d_pos, exp_results[1].subjects_task[j,sub_task_id_to_plot].blocks[end].noise_free_positive_output[sub_task_id_to_plot,2] / scalar_for_d_pos, marker="D", c="g", s=60, zorder=3)
+			end
+		end
+	end
 	#plot(d_a, Db_null);
 	## x=0 and y=0 lines for visual inspection
 	#=origin = zeros(no_points);
@@ -306,28 +336,39 @@ if (use_plot_over_p)
 end
 
 
-function add_trajectories_to_linear_p_plot(latest_experiment_results, sub_task_id)
-	include("parameters_critic_simulations.jl"); # dont' change the paramters in between calls!
 
+function add_trajectories_to_linear_p_plot(latest_experiment_results, sub_task_id)
+	include("parameters_critic_simulations.jl"); # don't change the paramters in between calls!
 
 	for j = 1:no_subjects
 		local_prop_sub_1_correct = zeros(no_blocks_in_experiment);
 		local_prop_sub_2_correct = zeros(no_blocks_in_experiment);
 		for i = 1:no_blocks_in_experiment
 			#scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[2], marker="o", c="c")
-			local_prop_sub_1_correct[i] = latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[1];
-			local_prop_sub_2_correct[i] = latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[2];
+			if(use_plot_measured_proportion_correct)
+				local_prop_sub_1_correct[i] = latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[1];
+				local_prop_sub_2_correct[i] = latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].proportion_task_correct[2];
+			else
+				local_prop_sub_1_correct[i] = latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].probability_correct[sub_task_id,1];
+				local_prop_sub_2_correct[i] = latest_experiment_results.subjects_task[j,sub_task_id].blocks[i].probability_correct[sub_task_id,2];
+			end
 		end
 		plot(local_prop_sub_1_correct, local_prop_sub_2_correct, "r", zorder=1)
 		#print("",local_prop_sub_1_correct, local_prop_sub_2_correct, "\n-----\n")
 	end
-
 	for j = 1:no_subjects
 		for i = 1:no_blocks_in_experiment
-			# start point
-			scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[1].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[1].proportion_task_correct[2], marker="s", c="r", s=40, zorder=2)
-			# end point
-			scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].proportion_task_correct[2], marker="D", c="g", s=60, zorder=3)
+			if(use_plot_measured_proportion_correct)
+				# start point
+				scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[1].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[1].proportion_task_correct[2], marker="s", c="r", s=40, zorder=2)
+				# end point
+				scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].proportion_task_correct[1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].proportion_task_correct[2], marker="D", c="g", s=60, zorder=3)
+			else
+				# start point
+				scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[1].probability_correct[sub_task_id,1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[1].probability_correct[sub_task_id,2], marker="s", c="r", s=40, zorder=2)
+				# end point
+				scatter(latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].probability_correct[sub_task_id,1], latest_experiment_results.subjects_task[j,sub_task_id].blocks[end].probability_correct[sub_task_id,2], marker="D", c="g", s=60, zorder=3)
+			end
 		end
 	end
 
