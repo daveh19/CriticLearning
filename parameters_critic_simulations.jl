@@ -1,5 +1,5 @@
-########## Parameters  for Linear outputs #############
-random_seed = 3::Int;#3;
+########## Parameters  for Binary outputs #############
+random_seed = 4::Int;#3;
 
 # network parameters
 #no_pre_neurons = 100;
@@ -24,8 +24,8 @@ fixed_external_bias_value = (1) :: Int;
 
 # changing the post part of the weight update rule
 floor_on_post = (-Inf) :: Float64; # applied in post()
-disable_winner_takes_all = false :: Bool; # applied in post()
-binary_outputs_mode = false :: Bool; # applied to dw
+disable_winner_takes_all = true :: Bool; # applied in post()
+binary_outputs_mode = true :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
 
@@ -35,7 +35,7 @@ problem_right_bound = (1.) :: Float64; #0.5;
 
 running_av_window_length = 50 :: Int; #50::Int;
 
-learning_rate = (0.000002) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
+learning_rate = (0.0001) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
 output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 
 initial_weight_bias = (2.0); #(2.0); #(2.0) :: Float64; # 2.0
@@ -95,7 +95,7 @@ use_ab_persistence = false :: Bool;
 save_reward_from_running_average = true :: Bool;
 
 # first block of each experiment is just used to build up a running average
-const disable_learning_on_first_block = false :: Bool;
+const disable_learning_on_first_block = true :: Bool;
 
 # used in high_dim_array2 setup, might be useful to keep generic rather than putting the int into code directly
 const no_classifications_per_task = 2::Int;

@@ -12,12 +12,12 @@ invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 
 
 ## Plotting over D, D~ (+ve), and p optional
-use_plot_over_D_pos = true :: Bool;
+use_plot_over_D_pos = false :: Bool;
 use_plot_over_D = false :: Bool;
 use_plot_over_p = true :: Bool;
-use_add_trajectories_to_plot = true :: Bool;
+use_add_trajectories_to_plot = false :: Bool;
 sub_task_id_to_plot = 2 ::Int;
-use_plot_measured_proportion_correct = true ::Bool;
+use_plot_measured_proportion_correct = false ::Bool;
 
 ## Space over which vector field is calculated / plotted
 no_points = 20; #30;
@@ -33,9 +33,9 @@ p_y = linspace(0, 1, no_y_points);
 d_a = linspace(-3,3, no_points);
 d_b = linspace(-3,3, no_points);
 
-D_pos_scale = 20.0 :: Float64;
+D_pos_scale = 20.0:: Float64;
 D_scale = 20.0 :: Float64;
-p_scale = 1.0 :: Float64;
+p_scale = 1.0:: Float64;
 
 #debug vars
 Da = zeros(no_points);
@@ -76,7 +76,7 @@ A = eye(critic_dimensions) - C;
 
 # Input representation similarity parameter
 a = 0.9; #0.9;
-S = [1 a; a 1]
+#=S = [1 a; a 1]
 
 S = [
 1.0      0.939578;
@@ -84,6 +84,20 @@ S = [
 ]
 #S = [1 a; a 1]
 
+S = [
+230.53	201.06;
+201.06	221.16
+]
+S[1,:] /= S[1,1];
+S[2,:] /= S[2,2];
+
+S = [
+254.28	211.97;
+211.97	218.56
+]
+S /= S[1,1];
+#S[1,:] /= S[1,1];
+#S[2,:] /= S[2,2];=#
 
 # Output correlation with +ve D
 O = [1; -1];

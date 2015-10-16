@@ -12,10 +12,10 @@ invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 
 
 ## Plotting over D, D~ (+ve), and p optional
-use_plot_over_D_pos = true :: Bool;
+use_plot_over_D_pos = false :: Bool;
 use_plot_over_D = false :: Bool;
 use_plot_over_p = true :: Bool;
-use_add_trajectories_to_plot = true :: Bool;
+use_add_trajectories_to_plot = false :: Bool;
 sub_task_id_to_plot = 2;
 use_plot_measured_proportion_correct = false ::Bool;
 
