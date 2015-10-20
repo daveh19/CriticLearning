@@ -120,8 +120,8 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
 
   # Warning: the size of the following should equal the number of distinctly identifiable
   #   sub-tasks
-  proportion_sub_task_correct = zeros(no_input_tasks);
-  sub_task_count = zeros(no_input_tasks);
+  proportion_sub_task_correct = zeros(no_classifications_per_task);
+  sub_task_count = zeros(no_classifications_per_task);
 
   monitor_reward = 0;
   global average_reward;
@@ -151,6 +151,8 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
     # adding a monitor of sub-task performance (eg. L, R distinction)
     #   correct_answer contains +/- 1, need to correct for array indexing
     #   the cast/round to int splits at 1.5 between outputs 1 and 2
+    #   This is one of the places where a non-zero classification offset should be corrected
+    #   for (if ever implemented).
     sub_task_id = round((block_dat.trial[i].correct_answer / 2.0) + 1.5);
     sub_task_count[sub_task_id] += 1;
     proportion_sub_task_correct[sub_task_id] += local_reward; # local_reward = {0,1}
@@ -164,8 +166,8 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
     if (use_fixed_external_bias)
       # this is where the external bias gets applied
       bias_task_critic_id = 1;
-      if(no_task_critics > 1)
-        bias_task_critic_id = ( (task_id % 2) == 0 ? 1 : 2)
+      if(no_task_critics > 1) # currently only cope with two task critics in the actual bias
+        bias_task_critic_id = ( (task_id % 2) == 0 ? 1 : 2) # bias is applied to the other task critic, so in mulit-critic setup no confusion can occur
       end
       # for probabilistic running of tasks
       local_c = 0.5 + task_sequence_bias;
@@ -177,6 +179,8 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
       end
       #print("DEBUG: local_c $local_c, ratio of tasks 1:$local_d\n");
       while(rand(Uniform(0,1)) < local_d)
+        # update running average of reward with bias_value, in task_critic_id, with choice_critic_id=1 since
+        #   we don't want to start worrying here about which choice_critic_id should receive bias
         multi_critic_running_av_reward(fixed_external_bias_value, bias_task_critic_id, 1)
         #print("$local_d\n");
         local_d -= 1;
@@ -200,15 +204,18 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
 
   block_dat.proportion_correct = proportion_correct;
   #block_dat.proportion_task_correct[task_id] = proportion_correct;
-  # we'll store separate left and right task choices in this variable for single Task protocol
+  # we'll store separate left and right task choices in this variable for single Task protocol,
+  #   this is a hack but one which obviates the need for more storage variables
   block_dat.proportion_task_correct = proportion_sub_task_correct;
   block_dat.average_choice = average_choice;
 
   block_dat.average_reward = average_block_reward;
   block_dat.average_task_reward = average_task_reward;
 
-  block_dat.average_threshold = local_average_threshold;
-  block_dat.average_task_threshold = local_average_task_threshold;
+  if(perform_detection_threshold)
+    block_dat.average_threshold = local_average_threshold;
+    block_dat.average_task_threshold = local_average_task_threshold;
+  end
 
   # calculate and record noise-free output for the given task, for the extremal potential inputs
   #task_id is fixed as this is a single task block
@@ -345,8 +352,8 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
 
   initialise_weight_matrix(tuning_type) # must be called after a and b are setup
   if (!use_fixed_external_bias)
-    subjects_dat[subject_id, task_id].w_initial = deepcopy(w);
-  else
+    subjects_dat[subject_id, local_save_task_id].w_initial = deepcopy(w);
+  else # the only thing this is doing is cutting down on copying of weights which are never used
     subjects_dat[subject_id, local_save_task_id].w_initial[:,:,task_id] = deepcopy(w[:,:,task_id]);
   end
 
@@ -397,7 +404,7 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
 
   if (!use_fixed_external_bias)
     subjects_dat[subject_id, task_id].w_final = deepcopy(w);
-  else
+  else # again we're cutting down on saving of weights which are never used
     subjects_dat[subject_id, local_save_task_id].w_final[:,:,task_id] = deepcopy(w[:,:,task_id]);
   end
 
