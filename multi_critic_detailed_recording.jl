@@ -877,7 +877,7 @@ function biased_compare_three_trial_types_with_multiple_subjects()
   # plot(mean_task_1_correct, "k", linewidth=3, label="Task 1, from alternating tasks")
   # plot(mean_task_2_correct, "k", linewidth=3, label="Task 2, from alternating tasks")
 
-  #latest_experiment_results.roving_correct[:,roving_experiment_id] = mean_correct;
+  latest_experiment_results.roving_correct[:,roving_experiment_id] = mean_task_1_correct;
   latest_experiment_results.roving_task_correct[:,1,roving_experiment_id] = mean_task_1_correct;
   #latest_experiment_results.roving_task_correct[:,2,roving_experiment_id] = mean_task_2_correct;
   #latest_experiment_results.roving_error[:,roving_experiment_id] = err_correct;
@@ -935,7 +935,7 @@ function biased_compare_three_trial_types_with_multiple_subjects()
   # plot(mean_task_1_correct, "k", linewidth=3, label="Task 1, from alternating tasks")
   # plot(mean_task_2_correct, "k", linewidth=3, label="Task 2, from alternating tasks")
 
-  #latest_experiment_results.roving_correct[:,roving_experiment_id] = mean_correct;
+  latest_experiment_results.roving_correct[:,roving_experiment_id] = mean_task_2_correct;
   #latest_experiment_results.roving_task_correct[:,1,roving_experiment_id] = mean_task_1_correct;
   latest_experiment_results.roving_task_correct[:,2,roving_experiment_id] = mean_task_2_correct;
   #latest_experiment_results.roving_error[:,roving_experiment_id] = err_correct;
@@ -1016,6 +1016,69 @@ function plot_multi_subject_experiment(latest_experiment_results::RovingExperime
   plot(block_id-0.1, latest_experiment_results.roving_correct[:,1], "b", linewidth=3, label="Roving tasks")
   plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,1,1], "k", linewidth=3, label="Task 1, from roving tasks")
   plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,1], "k", linewidth=3, label="Task 2, from roving tasks")
+
+  legend(loc=4)
+end
+
+
+function plot_biased_multi_subject_experiment(latest_experiment_results::RovingExperiment)
+  #figure()
+  xlim((0.5,no_blocks_in_experiment+0.5))
+  ylim((0,1))
+  xlabel("Block number")
+  ylabel("Proportion correct")
+  title("For x in ($problem_left_bound, $problem_right_bound), proportion correct. Comparing three task types.")
+
+  if(plotting_scatter_plot_on)
+    for i = 1:no_blocks_in_experiment
+      for j = 1:no_subjects
+        scatter(i, latest_experiment_results.subjects_task[j,1].blocks[i].proportion_correct, marker="o", c="r")
+        scatter(i+0.1, latest_experiment_results.subjects_task[j,2].blocks[i].proportion_correct, marker="o", c="g")
+        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct, marker="o", c="c")
+        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_correct, marker="o", c="m")
+      end
+    end
+  end
+
+  block_id = linspace(1,no_blocks_in_experiment, no_blocks_in_experiment);
+
+  #=  if(plotting_error_bars_on)
+
+    errorbar(block_id, latest_experiment_results.task_correct[:,1], latest_experiment_results.task_range[:,1], ecolor="r", color="r", linewidth=2)
+    errorbar(block_id+0.1, latest_experiment_results.task_correct[:,2], latest_experiment_results.task_range[:,2], ecolor="g", color="g", linewidth=2)
+    errorbar(block_id-0.1, latest_experiment_results.roving_correct[:,1], latest_experiment_results.roving_range[:,1], ecolor="b", color="b", linewidth=2)
+
+    errorbar(block_id, latest_experiment_results.task_correct[:,1], latest_experiment_results.task_error[:,1], ecolor="k", color="r", linewidth=2)
+    errorbar(block_id+0.1, latest_experiment_results.task_correct[:,2], latest_experiment_results.task_error[:,2], ecolor="k", color="g", linewidth=2)
+    errorbar(block_id-0.1, latest_experiment_results.roving_correct[:,1], latest_experiment_results.roving_error[:,1], ecolor="k", color="b", linewidth=2)
+  end =#
+
+  if(plotting_individual_subjects_on)
+    for j = 1:no_subjects
+      local_prop_1_correct = zeros(no_blocks_in_experiment);
+      local_prop_2_correct = zeros(no_blocks_in_experiment);
+      local_prop_roving_1_correct = zeros(no_blocks_in_experiment);
+      local_prop_roving_2_correct = zeros(no_blocks_in_experiment);
+      for i = 1:no_blocks_in_experiment
+        local_prop_1_correct[i] = latest_experiment_results.subjects_task[j,1].blocks[i].proportion_correct;
+        local_prop_2_correct[i] = latest_experiment_results.subjects_task[j,2].blocks[i].proportion_correct;
+        local_prop_roving_1_correct[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct;
+        local_prop_roving_2_correct[i] = latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_correct;
+      end
+      plot(block_id, local_prop_1_correct, "r")
+      plot(block_id+0.1, local_prop_2_correct, "g")
+      plot(block_id-0.1, local_prop_roving_1_correct, "c")
+      plot(block_id-0.1, local_prop_roving_2_correct, "m")
+    end
+  end
+
+  plot(block_id, latest_experiment_results.task_correct[:,1], "r", linewidth=2, label="Task 1")
+  plot(block_id+0.1, latest_experiment_results.task_correct[:,2], "g", linewidth=2, label="Task 2")
+  #plot(block_id-0.1, latest_experiment_results.roving_correct[:,1], "b", linewidth=3, label="Roving tasks")
+  plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,1,1], "c", linewidth=3, label="Biased task 1") #, label="Task 1, from roving tasks")
+  #plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,1], "k", linewidth=3) #, label="Task 2, from roving tasks")
+  #plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,1,2], "y", linewidth=3) #, label="Task 1, from roving tasks")
+  plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,2], "m", linewidth=3, label="Biased task 2") #, label="Task 2, from roving tasks")
 
   legend(loc=4)
 end
@@ -1185,7 +1248,7 @@ end
 
 
 function plot_biased_multi_subject_experiment_as_subplots(latest_experiment_results::RovingExperiment)
-  figure(figsize=(12,12))
+  figure(figsize=(18,12))
   if (use_multi_critic)
     #suptitle("For x in ($problem_left_bound, $problem_right_bound), proportion correct. Comparing three task types. Multicritic: $use_multi_critic, no_task_critics: $no_task_critics, no_choices_per_task_critics: $no_choices_per_task_critics ")
   elseif (use_single_global_critic)
@@ -1193,21 +1256,21 @@ function plot_biased_multi_subject_experiment_as_subplots(latest_experiment_resu
   else
     suptitle("For x in ($problem_left_bound, $problem_right_bound), proportion correct. Comparing three task types. No critic")
   end
-  subplot(221);
+  subplot(231);
   xlim((0,no_blocks_in_experiment))
   ylim((0,1))
   xlabel("Block number")
   ylabel("Proportion correct")
 
   ## Plot all in one pane
-  plot_multi_subject_experiment(latest_experiment_results);
+  plot_biased_multi_subject_experiment(latest_experiment_results);
   title("");
 
   block_id = linspace(1,no_blocks_in_experiment, no_blocks_in_experiment);
 
 
   ## Task 1 subplot
-  subplot(222)
+  subplot(232)
   xlim((0,no_blocks_in_experiment))
   ylim((0,1))
   xlabel("Block number")
@@ -1252,7 +1315,7 @@ function plot_biased_multi_subject_experiment_as_subplots(latest_experiment_resu
 
 
   ## Task 2 subplot
-  subplot(223)
+  subplot(233)
   xlim((0,no_blocks_in_experiment))
   ylim((0,1))
   xlabel("Block number")
@@ -1296,8 +1359,8 @@ function plot_biased_multi_subject_experiment_as_subplots(latest_experiment_resu
   legend(loc=4)
 
 
-  ## Roving subplot
-  subplot(224)
+  ## Biased 1 subplot
+  subplot(235)
   xlim((0,no_blocks_in_experiment))
   ylim((0,1))
   xlabel("Block number")
@@ -1306,11 +1369,11 @@ function plot_biased_multi_subject_experiment_as_subplots(latest_experiment_resu
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        #scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct, marker="o", c="b")
+        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct[1], marker="o", c="r")
         if(plotting_task_by_task_on)
           # plotting fixed bias, from task 1 on exp 1 and task 2 on exp 2
-          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[1], marker="o", c="r")
-          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_task_correct[2], marker="o", c="g")
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[1], marker="o", c="c")
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[2], marker="o", c="m")
         end
       end
     end
@@ -1327,21 +1390,71 @@ function plot_biased_multi_subject_experiment_as_subplots(latest_experiment_resu
       local_prop_roving_task_1_correct = zeros(no_blocks_in_experiment);
       local_prop_roving_task_2_correct = zeros(no_blocks_in_experiment);
       for i = 1:no_blocks_in_experiment
-        #local_prop_roving_correct[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct;
+        local_prop_roving_correct[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct;
         local_prop_roving_task_1_correct[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[1];
-        local_prop_roving_task_2_correct[i] = latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_task_correct[2];
+        local_prop_roving_task_2_correct[i] = latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[2];
       end
       if(plotting_task_by_task_on)
-        plot(block_id-0.1, local_prop_roving_task_1_correct, "r")
-        plot(block_id-0.1, local_prop_roving_task_2_correct, "g")
+        plot(block_id-0.1, local_prop_roving_task_1_correct, "c")
+        plot(block_id-0.1, local_prop_roving_task_2_correct, "m")
       end
-      #plot(block_id-0.1, local_prop_roving_correct, "b")
+      plot(block_id-0.1, local_prop_roving_correct, "r")
     end
   end
 
-  #plot(block_id-0.1, latest_experiment_results.roving_correct[:,1], "b", linewidth=3, label="Roving tasks")
-  plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,1,1], "c", linewidth=3, label="Task 1, from roving tasks")
-  plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,2], "m", linewidth=3, label="Task 2, from roving tasks")
+  plot(block_id-0.1, latest_experiment_results.roving_correct[:,1], "r", linewidth=3, label="Biased task 1")
+  #plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,1,1], "c", linewidth=3, label="Subtask 1, from biased tasks")
+  ##plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,1], "m", linewidth=3, label="Subtask 2, from biased tasks")
+
+  legend(loc=4)
+
+
+  ## Biased 2 subplot
+  subplot(236)
+  xlim((0,no_blocks_in_experiment))
+  ylim((0,1))
+  xlabel("Block number")
+  ylabel("Proportion correct")
+
+  if(plotting_scatter_plot_on)
+    for i = 1:no_blocks_in_experiment
+      for j = 1:no_subjects
+        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_correct, marker="o", c="g")
+        if(plotting_task_by_task_on)
+          # plotting fixed bias, from task 1 on exp 1 and task 2 on exp 2
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_task_correct[1], marker="o", c="c")
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_task_correct[2], marker="o", c="m")
+        end
+      end
+    end
+  end
+
+  #=if(plotting_error_bars_on)
+    errorbar(block_id-0.1, latest_experiment_results.roving_correct[:,1], latest_experiment_results.roving_range[:,1], ecolor="b", color="b", linewidth=2)
+    errorbar(block_id-0.1, latest_experiment_results.roving_correct[:,1], latest_experiment_results.roving_error[:,1], ecolor="k", color="b", linewidth=2)
+  end=#
+
+  if(plotting_individual_subjects_on)
+    for j = 1:no_subjects
+      local_prop_roving_correct = zeros(no_blocks_in_experiment);
+      local_prop_roving_task_1_correct = zeros(no_blocks_in_experiment);
+      local_prop_roving_task_2_correct = zeros(no_blocks_in_experiment);
+      for i = 1:no_blocks_in_experiment
+        local_prop_roving_correct[i] = latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_correct;
+        local_prop_roving_task_1_correct[i] = latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_task_correct[1];
+        local_prop_roving_task_2_correct[i] = latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_task_correct[2];
+      end
+      if(plotting_task_by_task_on)
+        plot(block_id-0.1, local_prop_roving_task_1_correct, "c")
+        plot(block_id-0.1, local_prop_roving_task_2_correct, "m")
+      end
+      plot(block_id-0.1, local_prop_roving_correct, "g")
+    end
+  end
+
+  plot(block_id-0.1, latest_experiment_results.roving_correct[:,2], "g", linewidth=3, label="Biased task 2")
+  ##plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,1], "c", linewidth=3, label="Subtask 1, from biased tasks")
+  #plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,2], "m", linewidth=3, label="Subtask 2, from biased tasks")
 
 
   legend(loc=4)
