@@ -18,7 +18,7 @@ use_plot_over_D = false :: Bool;
 use_plot_over_p = true :: Bool;
 use_overlay_performance_on_D = true :: Bool;
 use_add_trajectories_to_plot = true :: Bool;
-sub_task_id_to_plot = 1 ::Int;
+sub_task_id_to_plot = 2 ::Int;
 use_plot_measured_proportion_correct = false ::Bool;
 
 ## Space over which vector field is calculated / plotted
@@ -78,7 +78,7 @@ end
 A = eye(critic_dimensions) - C;
 
 # Input representation similarity parameter
-a = 0; #0.9; #0.9;
+a = 0.9; #0.9;
 S = [1 a; a 1]
 
 #=
