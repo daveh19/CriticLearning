@@ -16,21 +16,23 @@ include("plotting_assist_functions.jl");
 use_plot_over_D_pos = false :: Bool;
 use_plot_over_D = false :: Bool;
 use_plot_over_p = true :: Bool;
-use_add_trajectories_to_plot = false :: Bool;
-sub_task_id_to_plot = 2 ::Int;
+use_overlay_performance_on_D = true :: Bool;
+use_add_trajectories_to_plot = true :: Bool;
+sub_task_id_to_plot = 1 ::Int;
 use_plot_measured_proportion_correct = false ::Bool;
 
 ## Space over which vector field is calculated / plotted
-no_points = 20; #30;
+no_points = 25; #30;
 #no_points = 10;
 #no_y_points = no_points - 1;
 # The no_y_points is to ensure that I plot the vector field in the right direction,
 #	 julia is column major but matplot lib is row major which causes confusion!
 #	Set no_y_points = no_points - 1; to check if an error is thrown, no error means
 #		that the array access is correct.
+epsilon = 1e-7
 no_y_points = no_points;
-p = linspace(0, 1, no_points);
-p_y = linspace(0, 1, no_y_points);
+p = linspace(0+epsilon, 1-epsilon, no_points);
+p_y = linspace(0+epsilon, 1-epsilon, no_y_points);
 d_a = linspace(-3,3, no_points);
 d_b = linspace(-3,3, no_points);
 
@@ -76,9 +78,10 @@ end
 A = eye(critic_dimensions) - C;
 
 # Input representation similarity parameter
-a = 0.9; #0.9;
-#=S = [1 a; a 1]
+a = 0; #0.9; #0.9;
+S = [1 a; a 1]
 
+#=
 S = [
 1.0      0.939578;
 1.02445  1.0
@@ -105,7 +108,7 @@ O = [1; -1];
 
 # Noise and external bias
 sigma = 1;
-R_ext = 0;
+R_ext = 1;
 
 
 for i = 1:no_points
@@ -297,12 +300,42 @@ if (use_plot_over_D_pos)
 			end
 		end
 	end
-	#plot(d_a, Db_null);
-	## x=0 and y=0 lines for visual inspection
-	#=origin = zeros(no_points);
-	origin_space = linspace(-100,100,no_points);
-	plot(origin, origin_space);
-	plot(origin_space, origin);=#
+
+	if ( use_overlay_performance_on_D )
+		overlay_level_80 = invphi(0.8);
+		overlay_level_90 = invphi(0.9);
+		overlay_level_95 = invphi(0.95);
+		overlay_level_99 = invphi(0.99);
+
+		performance_overlay = ones(no_points);
+
+		plot(performance_overlay * overlay_level_80, d_a, linewidth=2, c="c", zorder=0);
+		#plot(performance_overlay * overlay_level_90, d_a, linewidth=2, c="m", zorder=0);
+		plot(performance_overlay * overlay_level_95, d_a, linewidth=2, c="y", zorder=0);
+		plot(performance_overlay * overlay_level_99, d_a, linewidth=2, c="g", zorder=0);
+
+		plot(-performance_overlay * overlay_level_80, d_a, linewidth=2, c="c", zorder=0);
+		#plot(-performance_overlay * overlay_level_90, d_a, linewidth=2, c="m", zorder=0);
+		plot(-performance_overlay * overlay_level_95, d_a, linewidth=2, c="y", zorder=0);
+		plot(-performance_overlay * overlay_level_99, d_a, linewidth=2, c="g", zorder=0);
+
+		plot(d_a, performance_overlay * overlay_level_80, linewidth=2, c="c", zorder=0);
+		#plot(d_a, performance_overlay * overlay_level_90, linewidth=2, c="m", zorder=0);
+		plot(d_a, performance_overlay * overlay_level_95, linewidth=2, c="y", zorder=0);
+		plot(d_a, performance_overlay * overlay_level_99, linewidth=2, c="g", zorder=0);
+
+		plot(d_a, -performance_overlay * overlay_level_80, linewidth=2, c="c", zorder=0);
+		#plot(d_a, -performance_overlay * overlay_level_90, linewidth=2, c="m", zorder=0);
+		plot(d_a, -performance_overlay * overlay_level_95, linewidth=2, c="y", zorder=0);
+		plot(d_a, -performance_overlay * overlay_level_99, linewidth=2, c="g", zorder=0);
+
+		#plot(d_a, Db_null);
+		## x=0 and y=0 lines for visual inspection
+		origin = zeros(no_points);
+		#origin_space = linspace(-100,100,no_points);
+		plot(origin, d_a, linewidth=1, c="0.75", zorder=-1);
+		plot(d_b, origin, linewidth=1, c="0.75", zorder=-1);
+	end
 end
 
 
@@ -321,12 +354,41 @@ if (use_plot_over_D)
 		title("Similarity s=$a, R_ext = $R_ext, no external processes = $(critic_dimensions-2)");
 	end
 
-	#plot(d_a, Db_null);
-	## x=0 and y=0 lines for visual inspection
-	#=origin = zeros(no_points);
-	origin_space = linspace(-100,100,no_points);
-	plot(origin, origin_space);
-	plot(origin_space, origin);=#
+	if ( use_overlay_performance_on_D )
+		overlay_level_80 = invphi(0.8);
+		overlay_level_90 = invphi(0.9);
+		overlay_level_95 = invphi(0.95);
+		overlay_level_99 = invphi(0.99);
+
+		performance_overlay = ones(no_points);
+
+		plot(performance_overlay * overlay_level_80, d_a, linewidth=2, c="c", zorder=0);
+		#plot(performance_overlay * overlay_level_90, d_a, linewidth=2, c="m", zorder=0);
+		plot(performance_overlay * overlay_level_95, d_a, linewidth=2, c="y", zorder=0);
+		plot(performance_overlay * overlay_level_99, d_a, linewidth=2, c="g", zorder=0);
+
+		plot(-performance_overlay * overlay_level_80, d_a, linewidth=2, c="c", zorder=0);
+		#plot(-performance_overlay * overlay_level_90, d_a, linewidth=2, c="m", zorder=0);
+		plot(-performance_overlay * overlay_level_95, d_a, linewidth=2, c="y", zorder=0);
+		plot(-performance_overlay * overlay_level_99, d_a, linewidth=2, c="g", zorder=0);
+
+		plot(d_a, performance_overlay * overlay_level_80, linewidth=2, c="c", zorder=0);
+		#plot(d_a, performance_overlay * overlay_level_90, linewidth=2, c="m", zorder=0);
+		plot(d_a, performance_overlay * overlay_level_95, linewidth=2, c="y", zorder=0);
+		plot(d_a, performance_overlay * overlay_level_99, linewidth=2, c="g", zorder=0);
+
+		plot(d_a, -performance_overlay * overlay_level_80, linewidth=2, c="c", zorder=0);
+		#plot(d_a, -performance_overlay * overlay_level_90, linewidth=2, c="m", zorder=0);
+		plot(d_a, -performance_overlay * overlay_level_95, linewidth=2, c="y", zorder=0);
+		plot(d_a, -performance_overlay * overlay_level_99, linewidth=2, c="g", zorder=0);
+
+		#plot(d_a, Db_null);
+		## x=0 and y=0 lines for visual inspection
+		origin = zeros(no_points);
+		#origin_space = linspace(-100,100,no_points);
+		plot(origin, d_a, linewidth=1, c="0.75", zorder=-1);
+		plot(d_b, origin, linewidth=1, c="0.75", zorder=-1);
+	end
 end
 
 
@@ -349,5 +411,10 @@ end
 
 
 if (use_plot_over_p && use_add_trajectories_to_plot)
-	add_trajectories_to_linear_p_plot(exp_results[1],sub_task_id_to_plot);
+	if (critic_dimensions == 2)
+		add_trajectories_to_linear_p_plot(exp_results[1],sub_task_id_to_plot);
+	elseif (critic_dimensions == 4)
+		#TODO: plotting wrong trajectories here
+		add_biased_trajectories_to_linear_p_plot(exp_results[1],sub_task_id_to_plot);
+	end
 end
