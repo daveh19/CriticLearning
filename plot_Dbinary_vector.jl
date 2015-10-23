@@ -17,22 +17,23 @@ use_plot_over_D_pos = false :: Bool;
 use_plot_over_D = false :: Bool;
 use_plot_over_p = true :: Bool;
 use_overlay_performance_on_D = true :: Bool;
-use_add_trajectories_to_plot = false :: Bool;
+use_add_trajectories_to_plot = true :: Bool;
 sub_task_id_to_plot = 1;
 use_plot_measured_proportion_correct = true ::Bool;
 
 
 ## Space over which vector field is calculated / plotted
-no_points = 20;
+no_points = 25;
 #no_points = 10;
 #no_y_points = no_points - 1;
 # The no_y_points is to ensure that I plot the vector field in the right direction,
 #	 julia is column major but matplot lib is row major which causes confusion!
 #	Set no_y_points = no_points - 1; to check if an error is thrown, no error means
 #		that the array access is correct.
+epsilon = 1e-7
 no_y_points = no_points;
-p = linspace(0, 1, no_points);
-p_y = linspace(0, 1, no_y_points);
+p = linspace(0+epsilon, 1-epsilon, no_points);
+p_y = linspace(0+epsilon, 1-epsilon, no_y_points);
 d_a = linspace(-3,3, no_points);
 d_b = linspace(-3,3, no_points);
 
@@ -80,7 +81,7 @@ A = eye(critic_dimensions) - C;
 
 
 # Input representation similarity parameter
-a = 0; #0.9;
+a = 0.999;
 S = [1 a; a 1]
 
 #=S = [
