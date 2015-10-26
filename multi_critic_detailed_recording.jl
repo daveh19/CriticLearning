@@ -357,6 +357,7 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
     subjects_dat[subject_id, local_save_task_id].w_initial[:,:,task_id] = deepcopy(w[:,:,task_id]);
   end
 
+
   if(disable_learning_on_first_block)
     enable_weight_updates = false :: Bool;
   end
@@ -725,7 +726,7 @@ function biased_compare_three_trial_types_with_multiple_subjects()
   no_roving_experiments = 2::Int;
   latest_experiment_results = initialise_empty_roving_experiment(tuning_type, no_subjects, no_blocks_in_experiment, no_trials_in_block, no_roving_experiments);
 
-  if(use_ab_persistence)
+  if(use_ab_persistence) # each Subject is recycled across protocols
     for i = 1:no_subjects
       initialise_pre_population(tuning_type);
       for j = 1:no_input_tasks
@@ -734,29 +735,30 @@ function biased_compare_three_trial_types_with_multiple_subjects()
           latest_experiment_results.subjects_task[i,j].b = deepcopy(b);
         end
       end
-      latest_experiment_results.subjects_roving_task[i,1].a = deepcopy(a);
-      if( isa(tuning_type, linear_tc) )
-        latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
+      for j = 1:no_roving_experiments
+        latest_experiment_results.subjects_roving_task[i,j].a = deepcopy(a);
+        if( isa(tuning_type, linear_tc) )
+          latest_experiment_results.subjects_roving_task[i,j].b = deepcopy(b);
+        end
       end
       initialise_pre_population(tuning_type);
       initialise_pre_population(tuning_type);
     end
-  else # experiment to have identical RND sequences
+  else # new Subjects per protocol but identical random sequences (for comparison)
     for i = 1:no_subjects
-      initialise_pre_population(tuning_type);
-      latest_experiment_results.subjects_task[i,1].a = deepcopy(a);
-      if( isa(tuning_type, linear_tc) )
-        latest_experiment_results.subjects_task[i,1].b = deepcopy(b);
+      for j = 1:no_input_tasks
+        initialise_pre_population(tuning_type);
+        latest_experiment_results.subjects_task[i,j].a = deepcopy(a);
+        if( isa(tuning_type, linear_tc) )
+          latest_experiment_results.subjects_task[i,j].b = deepcopy(b);
+        end
       end
-      initialise_pre_population(tuning_type);
-      latest_experiment_results.subjects_task[i,2].a = deepcopy(a);
-      if( isa(tuning_type, linear_tc) )
-        latest_experiment_results.subjects_task[i,2].b = deepcopy(b);
-      end
-      initialise_pre_population(tuning_type);
-      latest_experiment_results.subjects_roving_task[i,1].a = deepcopy(a);
-      if( isa(tuning_type, linear_tc) )
-        latest_experiment_results.subjects_roving_task[i,1].b = deepcopy(b);
+      for j = 1:no_input_tasks
+        initialise_pre_population(tuning_type);
+        latest_experiment_results.subjects_roving_task[i,j].a = deepcopy(a);
+        if( isa(tuning_type, linear_tc) )
+          latest_experiment_results.subjects_roving_task[i,j].b = deepcopy(b);
+        end
       end
     end
   end
