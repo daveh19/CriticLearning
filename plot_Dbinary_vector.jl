@@ -18,8 +18,8 @@ use_plot_over_D = false :: Bool;
 use_plot_over_p = true :: Bool;
 use_overlay_performance_on_D = true :: Bool;
 use_add_trajectories_to_plot = true :: Bool;
-sub_task_id_to_plot = 1;
-use_plot_measured_proportion_correct = true ::Bool;
+sub_task_id_to_plot = 2;
+use_plot_measured_proportion_correct = false ::Bool;
 
 
 ## Space over which vector field is calculated / plotted
@@ -57,7 +57,7 @@ deriv_D_b_pos = zeros(no_points, no_y_points);
 
 
 # Confusion parameter
-critic_dimensions = 2;
+critic_dimensions = 4;
 # perfect critic (overwritten if any of the following are active)
 C = eye(critic_dimensions)
 #=
@@ -81,7 +81,7 @@ A = eye(critic_dimensions) - C;
 
 
 # Input representation similarity parameter
-a = 0.999;
+a = 0.9;
 S = [1 a; a 1]
 
 #=S = [
@@ -96,7 +96,7 @@ O = [1; -1];
 
 # Noise and external bias
 sigma = 1;
-R_ext = 1;
+R_ext = 0;
 
 
 for i = 1:no_points

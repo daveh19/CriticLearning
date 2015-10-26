@@ -5,8 +5,8 @@
 #   accurate flow fields for each simulation in turn
 
 task_id = 2;
-exp_id = 2; # only for biased roving simulation
-use_linear_out = true :: Bool;
+exp_id = 2;
+use_linear_out = false :: Bool;
 use_roving_subjects = false :: Bool;
 
 # set critic_dimensions and
@@ -21,6 +21,7 @@ for i=1:no_subjects
 	if (!use_roving_subjects)
   	restore_subject(exp_results[1].subjects_task[i, task_id], false);
 	else
+		print("Roving subject\n");
 		task_id = exp_id;
 		restore_subject(exp_results[1].subjects_roving_task[i, exp_id], false);
 	end
@@ -28,6 +29,7 @@ for i=1:no_subjects
   neg = sum( pre(-1.0,task_id,linear_tc()) .* pre(-1.0, task_id, linear_tc()) );
   pn = sum( pre(1.0,task_id,linear_tc()) .* pre(-1.0, task_id, linear_tc()) );
 
+	print("$pos $neg $pn\n")
 	global a = pn;
   global S = [pos pn; pn neg];
 	print("",S,"\n")
