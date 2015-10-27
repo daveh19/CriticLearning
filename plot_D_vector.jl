@@ -10,7 +10,7 @@ dist_cdf(x) = cdf(Normal(0,1), x);
 include("inverse_cdf.jl"); #contains invnorm(), consider switching to invphi()
 invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 include("plotting_assist_functions.jl");
-
+include("p_space_outcome_integrator_linear.jl");
 
 ## Plotting over D, D~ (+ve), and p optional
 use_plot_over_D_pos = false :: Bool;
@@ -20,6 +20,7 @@ use_overlay_performance_on_D = true :: Bool;
 use_add_trajectories_to_plot = false :: Bool;
 sub_task_id_to_plot = 1 ::Int;
 use_plot_measured_proportion_correct = false ::Bool;
+use_overlay_p_Euler_trajectories = true :: Bool;
 
 ## Space over which vector field is calculated / plotted
 no_points = 25; #30;
@@ -56,7 +57,7 @@ deriv_D_b_pos = zeros(no_points, no_y_points);
 
 
 # Confusion parameter
-critic_dimensions = 2;
+critic_dimensions = 4;
 # perfect critic (overwritten if any of the following are active)
 C = eye(critic_dimensions)
 #=
@@ -108,7 +109,7 @@ O = [1; -1];
 
 # Noise and external bias
 sigma = 1;
-R_ext = 0;
+R_ext = -1;
 
 
 for i = 1:no_points
@@ -406,6 +407,11 @@ if (use_plot_over_p)
 	if (critic_dimensions > 2)
 		titletxt = latexstring();
 		title("Similarity s=$aa, R_ext = $R_ext, no external processes = $(critic_dimensions-2)");
+	end
+
+	if (use_overlay_p_Euler_trajectories)
+		p_trajectories = calculate_p_trajectories();
+		plot_p_space_trajectories(p_trajectories)
 	end
 end
 
