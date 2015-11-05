@@ -55,7 +55,7 @@ function calculate_p_trajectories()
   dt_euler = 0.1 :: Float64;
   global euler_integration_timesteps = int(duration_euler_integration / dt_euler) :: Int;
   # p_trajectories : [ trajectory_id, p1, p2, time ]
-  p_trajectories = zeros(no_euler_trajectories, no_euler_trajectories, 2, euler_integration_timesteps);
+  global p_trajectories = zeros(no_euler_trajectories, no_euler_trajectories, 2, euler_integration_timesteps);
   # set initial values for trajectories
   for i = 1:no_euler_trajectories
     for j = 1:no_euler_trajectories
@@ -182,6 +182,7 @@ end
 function report_end_point_results(p_trajectories)
   all_correct = 1 # line 193:
   ball_radius = 0.01 # line 195:
+
   count_both_correct = 0 # line 196:
   count_task1_correct = 0 # line 197:
   count_task2_correct = 0 # line 198:
@@ -189,10 +190,26 @@ function report_end_point_results(p_trajectories)
 
   for trajectory_id_1 = 1:no_euler_trajectories
     for trajectory_id_2 = 1:no_euler_trajectories
-
+      print("Initial point ",p_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]," ",p_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]," end point ",p_trajectories[trajectory_id_1, trajectory_id_2, 1, end]," ",p_trajectories[trajectory_id_1, trajectory_id_2, 2, end]) # line 204:
+      if ( abs(p_trajectories[trajectory_id_1, trajectory_id_2, 1, end] - all_correct) < ball_radius )
+        if ( abs(p_trajectories[trajectory_id_1, trajectory_id_2, 2, end] - all_correct) < ball_radius )
+          print(" Both win \n")
+          count_both_correct += 1;
+        else
+          print(" Task 1 win \n")
+          count_task1_correct += 1;
+        end
+      elseif ( abs(p_trajectories[trajectory_id_1, trajectory_id_2, 2, end] - all_correct) < ball_radius )
+        print(" Task 2 win \n")
+        count_task2_correct += 1;
+      else
+        print(" Both fail \n")
+        count_other += 1;
+      end
     end
   end
 
+  print("Counts ", count_both_correct, " ", count_task1_correct, " ", count_task2_correct, " ", count_other, "\n")
   print("Done\n")
 end
 
@@ -202,4 +219,5 @@ function run_local_p_trajectories()
   p_trajectories = calculate_p_trajectories()
   figure()
   plot_p_space_trajectories(p_trajectories)
+  report_end_point_results(p_trajectories);
 end
