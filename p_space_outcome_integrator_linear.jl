@@ -14,65 +14,19 @@ include("plotting_assist_functions.jl");
 
 function setup_p_space_basic_variables()
   print("Setting generic parameters for space for Euler trajectory integration\n")
-  ## Plotting over D, D~ (+ve), and p optional
-  global use_plot_over_D_pos = false :: Bool;
-  global use_plot_over_D = false :: Bool;
-  global use_plot_over_p = true :: Bool;
-  global use_overlay_performance_on_D = true :: Bool;
-  global use_add_trajectories_to_plot = false :: Bool;
-  global sub_task_id_to_plot = 1 ::Int;
-  global use_plot_measured_proportion_correct = false ::Bool;
-
   ## Space over which vector field is calculated / plotted
   global no_points = 25; #30;
-  #no_points = 10;
-  #no_y_points = no_points - 1;
-  # The no_y_points is to ensure that I plot the vector field in the right direction,
-  #	 julia is column major but matplot lib is row major which causes confusion!
-  #	Set no_y_points = no_points - 1; to check if an error is thrown, no error means
-  #		that the array access is correct.
   global epsilon = 1e-7
   global no_y_points = no_points;
-  global p = linspace(0+epsilon, 1-epsilon, no_points);
-  global p_y = linspace(0+epsilon, 1-epsilon, no_y_points);
-  global d_a = linspace(-3,3, no_points);
-  global d_b = linspace(-3,3, no_points);
-
-  global D_pos_scale = 20.0:: Float64;
-  global D_scale = 20.0 :: Float64;
-  global p_scale = 1.0:: Float64;
-
-  #debug vars
-  global Da = zeros(no_points);
-  global Db = zeros(no_y_points);
-
-  ## Vector flow field variables
-  global deriv_p_a = zeros(no_points, no_y_points);
-  global deriv_p_b = zeros(no_points, no_y_points);
-  global p_deriv_D_a = zeros(no_points, no_y_points);
-  global p_deriv_D_b = zeros(no_points, no_y_points);
-  global deriv_D_a = zeros(no_points, no_y_points);
-  global deriv_D_b = zeros(no_points, no_y_points);
-  global deriv_D_a_pos = zeros(no_points, no_y_points);
-  global deriv_D_b_pos = zeros(no_points, no_y_points);
-
 
   # Confusion parameter
   global critic_dimensions = 2;
   # perfect critic (overwritten if any of the following are active)
   global C = eye(critic_dimensions)
-#=
-  # equal mix critic
-  c = 1 / critic_dimensions; # currently equal confusion mix of all true critics
-  C = ones(critic_dimensions,critic_dimensions)
-  C *= c
-  A = eye(critic_dimensions) - C=#
 
   # Probabilistic presentation of individual tasks critic
   global prob_task = ones(1,critic_dimensions);
   prob_task /= critic_dimensions;
-  #prob_task = [1, 0.001, 10, 10]; # manual tweaking
-  #prob_task /= sum(prob_task); # normalise, so I can use arbitrary units
   # this influences Confustion matrix
   for k = 1:critic_dimensions
 	   C[k,:] = prob_task;
@@ -178,10 +132,13 @@ function calculate_p_trajectories()
 		  deriv_p_a = pdf(Normal(0,sigma), Da) * p_deriv_D_a;
 		  deriv_p_b = pdf(Normal(0,sigma), Db) * p_deriv_D_b;
 
+      #TODO: add code which checks for NaN condition and changes to a 0
+
       # Now do a forward Euler update of the trajectory
       p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] = p_trajectories[trajectory_id_1, trajectory_id_2, 1, t-1] + (dt_euler * deriv_p_a);
       p_trajectories[trajectory_id_1, trajectory_id_2, 2, t] = p_trajectories[trajectory_id_1, trajectory_id_2, 2, t-1] + (dt_euler * deriv_p_b);
 
+      #TODO: consider whether it's really a good idea to bounce back inside the boundary rather than onto it (set epsilon = 0)
       if (p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] <= 0)
         p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] = 0+epsilon;
       elseif (p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] >= 1)
@@ -203,15 +160,6 @@ end
 function plot_p_space_trajectories(p_trajectories)
   ## Plotting
   print("Plotting...\n")
-  #figure();
-  #=for t = 2:euler_integration_timesteps
-  # Loop over time
-  for trajectory_id_1 = 1:no_euler_trajectories
-    for trajectory_id_2 = 1:no_euler_trajectories
-      scatter(p_trajectories[trajectory_id_1, trajectory_id_2, 1, :], p_trajectories[trajectory_id_1, trajectory_id_2, 2, :])
-    end
-  end
-  end=#
   for trajectory_id_1 = 1:no_euler_trajectories
     for trajectory_id_2 = 1:no_euler_trajectories
       local_line_1 = zeros(euler_integration_timesteps,1);
@@ -229,6 +177,25 @@ function plot_p_space_trajectories(p_trajectories)
 
   print("Done\n")
 end
+
+
+function report_end_point_results(p_trajectories)
+  all_correct = 1 # line 193:
+  ball_radius = 0.01 # line 195:
+  count_both_correct = 0 # line 196:
+  count_task1_correct = 0 # line 197:
+  count_task2_correct = 0 # line 198:
+  count_other = 0 # line 200:
+
+  for trajectory_id_1 = 1:no_euler_trajectories
+    for trajectory_id_2 = 1:no_euler_trajectories
+
+    end
+  end
+
+  print("Done\n")
+end
+
 
 function run_local_p_trajectories()
   setup_p_space_basic_variables()
