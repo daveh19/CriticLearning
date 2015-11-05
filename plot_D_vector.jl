@@ -57,7 +57,7 @@ deriv_D_b_pos = zeros(no_points, no_y_points);
 
 
 # Confusion parameter
-critic_dimensions = 4;
+critic_dimensions = 2;
 # perfect critic (overwritten if any of the following are active)
 C = eye(critic_dimensions)
 #=
@@ -79,7 +79,7 @@ end
 A = eye(critic_dimensions) - C;
 
 # Input representation similarity parameter
-a = 0.99; #0.9;
+a = 0.5; #0.9;
 S = [1 a; a 1]
 
 #=
@@ -242,6 +242,7 @@ for i = 1:no_points
 		end
 	end
 end
+
 
 ## Plotting
 print("Plotting...\n")
@@ -412,6 +413,7 @@ if (use_plot_over_p)
 	if (use_overlay_p_Euler_trajectories)
 		p_trajectories = calculate_p_trajectories();
 		plot_p_space_trajectories(p_trajectories)
+		report_end_point_results(p_trajectories)
 	end
 end
 
