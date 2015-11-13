@@ -1,6 +1,7 @@
 using PyPlot;
 using Distributions;
 using LaTeXStrings;
+using Debug;
 
 ### Useful functions
 ## There are a number of alternative ways to calculate pdf and cdf inverse
@@ -16,7 +17,7 @@ function setup_p_space_basic_variables()
   print("Setting generic parameters for space for Euler trajectory integration\n")
   ## Space over which vector field is calculated / plotted
   global no_points = 25; #30;
-  global epsilon = 1e-7
+  global epsilon = 0; #1e-7
   global no_y_points = no_points;
 
   # Confusion parameter
@@ -34,7 +35,7 @@ function setup_p_space_basic_variables()
   global A = eye(critic_dimensions) - C;
 
   # Input representation similarity parameter
-  global a = 0.99; #0.9;
+  global a = 0.5; #0.9;
   global S = [1 a; a 1]
 
   # Output correlation with +ve D
@@ -50,19 +51,21 @@ end
 function calculate_p_trajectories()
   print("Calculating forward Euler trajectories in p-space\n")
   ## Tracking of p-space trajectories (forward Euler integrated) over time
-  global no_euler_trajectories = 5 :: Int;
-  duration_euler_integration = 10000.0 :: Float64;
+  global no_euler_trajectories = 1 :: Int;
+  duration_euler_integration = 1000.0 :: Float64;
   dt_euler = 0.1 :: Float64;
   global euler_integration_timesteps = int(duration_euler_integration / dt_euler) :: Int;
   # p_trajectories : [ trajectory_id, p1, p2, time ]
   global p_trajectories = zeros(no_euler_trajectories, no_euler_trajectories, 2, euler_integration_timesteps);
   # set initial values for trajectories
-  for i = 1:no_euler_trajectories
+  #=for i = 1:no_euler_trajectories
     for j = 1:no_euler_trajectories
       p_trajectories[i,j,1,1] = i * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
       p_trajectories[i,j,2,1] = j * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
     end
-  end
+  end=#
+  p_trajectories[1,1,1,1] = 0.3 #i * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
+  p_trajectories[1,1,2,1] = 0.1 #j * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
 
   for t = 2:euler_integration_timesteps
     # Loop over time
@@ -81,18 +84,17 @@ function calculate_p_trajectories()
       #=if (Da == Inf || Da == -Inf || Db == Inf || Db == -Inf)
         print("DEBUG, $trajectory_id_1, $trajectory_id_2, $t, $Da, $Db \n")
       end=#
-      #=if(Da==Inf)
-        Da = 100;
+      large_bound = 1e6;
+      if(Da > large_bound)
+        Da = large_bound;
+      elseif(Da < -large_bound)
+        Da = -large_bound;
       end
-      if(Da==-Inf)
-        Da = -100;
+      if(Db > large_bound)
+        Db = large_bound;
+      elseif(Db < -large_bound)
+        Db = -large_bound;
       end
-      if(Db==Inf)
-        Db = 100;
-      end
-      if(Db==-Inf)
-        Db = -100;
-      end=#
 
 		  p_temp_a = sigma^2 * pdf(Normal(0,sigma), Da) * 2;
 		  p_temp_b = sigma^2 * pdf(Normal(0,sigma), Db) * 2;
@@ -102,7 +104,7 @@ function calculate_p_trajectories()
 
 		  p_temp_b += A[2,1] * (2 * p_a - 1) * Db;
 		  p_temp_b += A[2,2] * (2 * p_b - 1) * Db;
-
+#@bp (p_temp_a == Inf)
 		  # Bias from other tasks
 		  if(critic_dimensions > 2)
 			  a_multiplier = (critic_dimensions - 2) / critic_dimensions
@@ -123,22 +125,83 @@ function calculate_p_trajectories()
 		  # putting it all together
 		  p_deriv_D_a = (O[1] * S[1,1] * p_temp_a + O[2] * S[1,2] * p_temp_b);
 		  p_deriv_D_b = (O[1] * S[2,1] * p_temp_a + O[2] * S[2,2] * p_temp_b);
-
+#@bp isnan(p_deriv_D_a)
 		  # we need to transform derivatives to D_pos space
 		  p_deriv_D_a *= O[1];
 		  p_deriv_D_b *= O[2];
-
+#@bp isnan(p_deriv_D_a)
 		  # and we scale everything by the pdf of the underlying probability
-		  deriv_p_a = pdf(Normal(0,sigma), Da) * p_deriv_D_a;
-		  deriv_p_b = pdf(Normal(0,sigma), Db) * p_deriv_D_b;
 
-      #TODO: add code which checks for NaN condition and changes to a 0
+      #=if( abs(p_deriv_D_a) < Inf )
+        if (pdf(Normal(0,sigma),Da) > 0)
+		        deriv_p_a = pdf(Normal(0,sigma), Da) * p_deriv_D_a;
+        else
+            deriv_p_a = 0.0;
+        end
+      else
+        if (pdf(Normal(0,sigma),Da) == 0)
+          deriv_p_a = 0.0;
+          print("handle NaN\n")
+        elseif (isnan(p_deriv_D_a))
+          @bp
+          print("handle NaN\n")
+        else
+          @bp
+          print("handle infinity\n")
+          deriv_p_a = pdf(Normal(0,sigma), Da) * p_deriv_D_a;
+        end
+      end=#
+
+      #=if( abs(p_deriv_D_b) < Inf )
+        if (pdf(Normal(0,sigma),Db) > 0)
+		        deriv_p_b = pdf(Normal(0,sigma), Db) * p_deriv_D_b;
+        else
+            deriv_p_b = 0.0;
+        end
+      else
+        if (pdf(Normal(0,sigma),Db) == 0)
+          deriv_p_b = 0.0;
+          print("handle NaN b\n")
+        elseif (isnan(p_deriv_D_b))
+          @bp
+          print("handle another NaN\n")
+        else
+          @bp
+          print("handle infinity b\n")
+          deriv_p_b = pdf(Normal(0,sigma), Db) * p_deriv_D_b;
+        end
+      end=#
+
+      deriv_p_a = pdf(Normal(0,sigma), Da) * p_deriv_D_a;
+      deriv_p_b = pdf(Normal(0,sigma), Db) * p_deriv_D_b;
 
       # Now do a forward Euler update of the trajectory
-      p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] = p_trajectories[trajectory_id_1, trajectory_id_2, 1, t-1] + (dt_euler * deriv_p_a);
-      p_trajectories[trajectory_id_1, trajectory_id_2, 2, t] = p_trajectories[trajectory_id_1, trajectory_id_2, 2, t-1] + (dt_euler * deriv_p_b);
+      if (abs(deriv_p_a) < Inf )
+        p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] = p_trajectories[trajectory_id_1, trajectory_id_2, 1, t-1] + (dt_euler * deriv_p_a);
+      elseif (deriv_p_a == Inf)
+        @bp
+        p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] = 1;
+      elseif (deriv_p_a == -Inf)
+        @bp
+        p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] = 0;
+      else
+        @bp
+        print("Catch error!!\n")
+      end
+      if ( abs(deriv_p_b) < Inf )
+        p_trajectories[trajectory_id_1, trajectory_id_2, 2, t] = p_trajectories[trajectory_id_1, trajectory_id_2, 2, t-1] + (dt_euler * deriv_p_b);
+      elseif (deriv_p_b == Inf)
+        @bp
+        p_trajectories[trajectory_id_1, trajectory_id_2, 2, t] = 1;
+      elseif (deriv_p_b == -Inf)
+        @bp
+        p_trajectories[trajectory_id_1, trajectory_id_2, 2, t] = 0;
+      else
+        @bp
+        print("Catch error!\n")
+      end
 
-      #TODO: consider whether it's really a good idea to bounce back inside the boundary rather than onto it (set epsilon = 0)
+#TODO: consider whether it's really a good idea to bounce back inside the boundary rather than onto it (set epsilon = 0)
       if (p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] <= 0)
         p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] = 0+epsilon;
       elseif (p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] >= 1)
@@ -211,6 +274,15 @@ function report_end_point_results(p_trajectories)
 
   print("Counts ", count_both_correct, " ", count_task1_correct, " ", count_task2_correct, " ", count_other, "\n")
   print("Done\n")
+end
+
+
+function print_single_trajectory(p_trajectories, trajectory_id_1, trajectory_id_2, t_begin=1,t_end=euler_integration_timesteps)
+  for t = t_begin:t_end
+    print("$t ", p_trajectories[trajectory_id_1, trajectory_id_2, 1, t], " ", p_trajectories[trajectory_id_1, trajectory_id_2, 2, t]," \n");
+  end
+  print("\n\n1  : ", p_trajectories[trajectory_id_1, trajectory_id_2, 1, 1], " ", p_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]," \n");
+  print("end: ", p_trajectories[trajectory_id_1, trajectory_id_2, 1, end], " ", p_trajectories[trajectory_id_1, trajectory_id_2, 2, end]," \n");
 end
 
 
