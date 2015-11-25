@@ -13,7 +13,7 @@ invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 include("plotting_assist_functions.jl");
 
 
-function setup_p_space_basic_variables()
+function setup_p_space_basic_variables(local_a = 0.5, local_c = -1)
   print("Setting generic parameters for space for Euler trajectory integration\n")
   ## Space over which vector field is calculated / plotted
   global no_points = 25; #30;
@@ -30,12 +30,16 @@ function setup_p_space_basic_variables()
   prob_task /= critic_dimensions;
   # this influences Confustion matrix
   for k = 1:critic_dimensions
-	   C[k,:] = prob_task;
-   end
+	  C[k,:] = prob_task;
+  end
   global A = eye(critic_dimensions) - C;
 
+  if(local_c != -1)
+    global A = eye(critic_dimensions) - local_c;
+  end
+
   # Input representation similarity parameter
-  global a = 0.5; #0.9;
+  global a = local_a; #0.5; #0.9;
   global S = [1 a; a 1]
 
   # Output correlation with +ve D
