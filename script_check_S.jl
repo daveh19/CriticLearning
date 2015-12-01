@@ -6,7 +6,7 @@
 
 task_id = 2;
 exp_id = 2;
-use_linear_out = false :: Bool;
+use_linear_out = true :: Bool;
 use_roving_subjects = false :: Bool;
 
 # set critic_dimensions and
@@ -29,18 +29,28 @@ for i=1:no_subjects
   neg = sum( pre(-1.0,task_id,linear_tc()) .* pre(-1.0, task_id, linear_tc()) );
   pn = sum( pre(1.0,task_id,linear_tc()) .* pre(-1.0, task_id, linear_tc()) );
 
+	if(use_linear_out)
+    include("plot_D_vector.jl");
+		setup_plot_D_basic_variables();
+	end
+
 	print("$pos $neg $pn\n")
-	global a = pn;
-  global S = [pos pn; pn neg];
+	global a = neg;
+  global S = [neg pn; pn pos];
 	print("",S,"\n")
   S /= S[1,1];
+	a = S[1,2];
   #S[1,:] /= S[1,1];
   #S[2,:] /= S[2,2];
 
   print("$i: \n", S , "\n");
   if(use_linear_out)
-    include("plot_D_vector.jl")
-  else
+    #include("plot_D_vector.jl");
+		#setup_plot_D_basic_variables();
+		global use_overlay_p_Euler_trajectories = false;
+		calculate_linear_model_flow_vectors()
+		plot_linear_model_flow_vectors()
+	else
     include("plot_Dbinary_vector.jl")
   end
 	if (!use_roving_subjects)
