@@ -84,11 +84,11 @@ function setup_plot_D_binary_basic_variables(local_a = 0.5, local_c = -1)
 
 	# Input representation similarity parameter
 	global a = local_a; #0.5; #0.9;
-	S = [1 a; a 1]
+	global S = [1 a; a 1]
 	S /= S[1,1];
 
 	# Output correlation with +ve D
-	O = [1; -1];
+	global O = [1; -1];
 
 	# Noise and external bias
 	global sigma = 1;
