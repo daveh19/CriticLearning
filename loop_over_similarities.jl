@@ -3,12 +3,17 @@ using Distributions;
 using LaTeXStrings;
 using Debug;
 
-include("p_space_outcome_integrator_linear.jl");
-include("plot_D_vector.jl");
-
+use_linear_outputs = false :: Bool;
 no_similarities = 11;
-use_trajectory_tracing_only = true :: Bool;
-use_show_plots = false :: Bool;
+use_trajectory_tracing_only = false :: Bool;
+use_show_plots = true :: Bool;
+
+if (use_linear_outputs)
+  include("p_space_outcome_integrator_linear.jl");
+  include("plot_D_vector.jl");
+else
+  include("plot_Dbinary_vector.jl");
+end
 
 similarity_set = linspace(0,1,no_similarities);
 
@@ -28,10 +33,17 @@ else
   ## or loop over plotting of vector fields (which costs almost nothing)
   for i = 1:no_similarities
     similarity = similarity_set[i];
-    setup_plot_D_basic_variables(similarity);
-    use_plot_over_p = true;
-    calculate_linear_model_flow_vectors();
-    plot_linear_model_flow_vectors();
+    if (use_linear_outputs)
+      setup_plot_D_basic_variables(similarity);
+      use_plot_over_p = true;
+      calculate_linear_model_flow_vectors();
+      plot_linear_model_flow_vectors();
+    else
+      setup_plot_D_binary_basic_variables(similarity);
+      use_plot_over_p = true;
+      calculate_binary_model_flow_vectors();
+      plot_binary_model_flow_vectors();
+    end
   end
 end
 
