@@ -86,6 +86,14 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 	# Input representation similarity parameter
 	global a = local_a; #0.5; #0.9;
 	global S = [1 a; a 1]
+	#=S = [25 -25; -25 25]
+	S = [4 -4; -4 4]
+	S = [50.2 48; 48 50.2]
+	S = [62.5 37.5; 37.5 62.5]
+	S = [12.5 -12.5; -12.5 12.5]
+	S = [1 -1; -1 1]=#
+
+	S /= S[1,1];
 
 	#=
 	S = [
@@ -211,6 +219,8 @@ function calculate_linear_model_flow_vectors()
 				Db[j] = invphi(p_y[j]);
 				p_temp_a = sigma^2 * pdf(Normal(0,sigma), Da[i]) * 2;
 				p_temp_b = sigma^2 * pdf(Normal(0,sigma), Db[j]) * 2;
+				#=p_temp_a = 0;
+				p_temp_b = 0;=#
 				# equations for R^{true} = (2p-1)
 				p_temp_a += A[1,1] * (2 * p[i] - 1) * Da[i];
 				p_temp_a += A[1,2] * (2 * p[j] - 1) * Da[i];
@@ -221,10 +231,10 @@ function calculate_linear_model_flow_vectors()
 				# Bias from other tasks
 				if(critic_dimensions > 2)
 					a_multiplier = (critic_dimensions - 2) / critic_dimensions
-					#=p_temp_a += Da[i] * (-0.5 * R_ext);
-					p_temp_b += Db[j] * (-0.5 * R_ext);=#
-					#=p_temp_a += Da[i] * (-a_multiplier * R_ext);
-					p_temp_b += Db[j] * (-a_multiplier * R_ext);=#
+					#p_temp_a += Da[i] * (-0.5 * R_ext);
+					#p_temp_b += Db[j] * (-0.5 * R_ext);
+					#p_temp_a += Da[i] * (-a_multiplier * R_ext);
+					#p_temp_b += Db[j] * (-a_multiplier * R_ext);
 					for(k = 3:critic_dimensions)
 						p_temp_a += Da[i] * (A[1,k] * R_ext);
 						p_temp_b += Db[j] * (A[2,k] * R_ext);
@@ -412,6 +422,7 @@ function plot_linear_model_flow_vectors()
 		xlabel(xtxt)
 		ylabel(ytxt) # L"D_2"
 		aa = abs(a);
+		aa = a;
 		title("Similarity s=$aa");
 		if (critic_dimensions > 2)
 			titletxt = latexstring();
