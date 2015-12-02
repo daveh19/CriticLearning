@@ -189,8 +189,10 @@ function calculate_binary_model_flow_vectors()
 				Db[j] = invphi(p_y[j]);
 				p_temp_a = 4 * cdf(Normal(0,sigma),Da[i]) * (1 - cdf(Normal(0,sigma),Da[i]))
 				p_temp_b = 4 * cdf(Normal(0,sigma),Db[j]) * (1 - cdf(Normal(0,sigma),Db[j]))
+				#=p_temp_a = 0;
+				p_temp_b = 0;=#
 				# equations for R^{true} = (2p-1)
-				p_temp_a += A[1,1] * (2 * p[i] - 1) * (2 * p[i] - 1);
+#=				p_temp_a += A[1,1] * (2 * p[i] - 1) * (2 * p[i] - 1);
 				p_temp_a += A[1,2] * (2 * p[j] - 1) * (2 * p[i] - 1);
 
 				p_temp_b += A[2,1] * (2 * p[i] - 1) * (2 * p[j] - 1);
@@ -200,16 +202,16 @@ function calculate_binary_model_flow_vectors()
 				# Bias from other tasks
 				if(critic_dimensions > 2)
 					a_multiplier = (critic_dimensions - 2) / critic_dimensions
-					#=p_temp_a += (2 * p[i] - 1) * (-0.5 * R_ext);
-					p_temp_b += (2 * p[j] - 1) * (-0.5 * R_ext);=#
-					#=p_temp_a += (2 * p[i] - 1) * (-a_multiplier * R_ext);
-					p_temp_b += (2 * p[j] - 1) * (-a_multiplier * R_ext);=#
+					#p_temp_a += (2 * p[i] - 1) * (-0.5 * R_ext);
+					#p_temp_b += (2 * p[j] - 1) * (-0.5 * R_ext);
+					#p_temp_a += (2 * p[i] - 1) * (-a_multiplier * R_ext);
+					#p_temp_b += (2 * p[j] - 1) * (-a_multiplier * R_ext);
 					for(k = 3:critic_dimensions)
 						p_temp_a += (2 * p[i] - 1) * (A[1,k] * R_ext);
 						p_temp_b += (2 * p[j] - 1) * (A[2,k] * R_ext);
 					end
 				end
-
+=#
 				# Multiply by probability of occurence of each task
 				p_temp_a *= prob_task[1];
 				p_temp_b *= prob_task[2];
