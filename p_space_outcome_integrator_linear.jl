@@ -52,24 +52,35 @@ function setup_p_space_basic_variables(local_a = 0.5, local_c = -1)
 end
 
 
+function set_initial_trajectory_points_in_p_space(no_euler_trajectories)
+  global p_trajectories;
+
+  # set initial values for trajectories
+  for i = 1:no_euler_trajectories
+    for j = 1:no_euler_trajectories
+      p_trajectories[i,j,1,1] = i * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
+      p_trajectories[i,j,2,1] = j * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
+    end
+  end
+  #=D_pos_trajectories[1,1,1,1] = 0.3 #i * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
+  D_pos_trajectories[1,1,2,1] = 0.1 #j * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
+=#
+
+  return p_trajectories;
+end
+
+
 function calculate_p_trajectories()
   print("Calculating forward Euler trajectories in p-space\n")
   ## Tracking of p-space trajectories (forward Euler integrated) over time
-  global no_euler_trajectories = 1 :: Int;
+  global no_euler_trajectories = 5; #1 :: Int;
   duration_euler_integration = 1000.0 :: Float64;
   dt_euler = 0.1 :: Float64;
   global euler_integration_timesteps = int(duration_euler_integration / dt_euler) :: Int;
   # p_trajectories : [ trajectory_id, p1, p2, time ]
   global p_trajectories = zeros(no_euler_trajectories, no_euler_trajectories, 2, euler_integration_timesteps);
-  # set initial values for trajectories
-  #=for i = 1:no_euler_trajectories
-    for j = 1:no_euler_trajectories
-      p_trajectories[i,j,1,1] = i * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
-      p_trajectories[i,j,2,1] = j * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
-    end
-  end=#
-  p_trajectories[1,1,1,1] = 0.3 #i * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
-  p_trajectories[1,1,2,1] = 0.1 #j * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
+
+  p_trajectories = set_initial_trajectory_points_in_p_space(no_euler_trajectories);
 
   for t = 2:euler_integration_timesteps
     # Loop over time
