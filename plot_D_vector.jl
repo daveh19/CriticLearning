@@ -11,6 +11,7 @@ include("inverse_cdf.jl"); #contains invnorm(), consider switching to invphi()
 invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 include("plotting_assist_functions.jl");
 include("p_space_outcome_integrator_linear.jl");
+include("d_pos_space_outcome_integrator_linear.jl");
 
 function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 	## Plotting over D, D~ (+ve), and p optional
@@ -20,8 +21,9 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 	global use_overlay_performance_on_D = true :: Bool;
 	global use_add_trajectories_to_plot = false :: Bool;
 	global sub_task_id_to_plot = 1 ::Int;
-	global use_plot_measured_proportion_correct = false ::Bool;
-	global use_overlay_p_Euler_trajectories = true :: Bool;
+	global use_plot_measured_proportion_correct = false :: Bool;
+	global use_overlay_p_Euler_trajectories = false :: Bool;
+	global use_overlay_D_pos_Euler_trajectories = true :: Bool;
 
 	## Space over which vector field is calculated / plotted
 	global no_points = 25; #30;
@@ -86,36 +88,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 	# Input representation similarity parameter
 	global a = local_a; #0.5; #0.9;
 	global S = [1 a; a 1]
-	#=S = [25 -25; -25 25]
-	S = [4 -4; -4 4]
-	S = [50.2 48; 48 50.2]
-	S = [62.5 37.5; 37.5 62.5]
-	S = [12.5 -12.5; -12.5 12.5]
-	S = [1 -1; -1 1]=#
-
 	S /= S[1,1];
-
-	#=
-	S = [
-	1.0      0.939578;
-	1.02445  1.0
-	]
-	#S = [1 a; a 1]
-
-	S = [
-	230.53	201.06;
-	201.06	221.16
-	]
-	S[1,:] /= S[1,1];
-	S[2,:] /= S[2,2];
-
-	S = [
-	254.28	211.97;
-	211.97	218.56
-	]
-	S /= S[1,1];
-	#S[1,:] /= S[1,1];
-	#S[2,:] /= S[2,2];=#
 
 	# Output correlation with +ve D
 	global O = [1; -1];
@@ -356,6 +329,13 @@ function plot_linear_model_flow_vectors()
 			plot(origin, d_a, linewidth=1, c="0.75", zorder=-1);
 			plot(d_b, origin, linewidth=1, c="0.75", zorder=-1);
 		end
+
+		if (use_overlay_D_pos_Euler_trajectories)
+			D_pos_trajectories = calculate_D_pos_trajectories();
+			plot_D_pos_space_trajectories(D_pos_trajectories)
+			#report_end_point_results(p_trajectories)
+			axis([-5,5,-5,5])
+		end
 	end
 
 
@@ -433,6 +413,11 @@ function plot_linear_model_flow_vectors()
 			p_trajectories = calculate_p_trajectories();
 			plot_p_space_trajectories(p_trajectories)
 			report_end_point_results(p_trajectories)
+		end
+		if (use_overlay_D_pos_Euler_trajectories)
+			D_pos_trajectories = calculate_D_pos_trajectories();
+			plot_D_pos_space_trajectories_in_p_space(D_pos_trajectories)
+			#report_end_point_results(p_trajectories)
 		end
 	end
 
