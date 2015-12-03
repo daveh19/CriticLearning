@@ -52,8 +52,11 @@ function setup_D_pos_space_basic_variables(local_a = 0.5, local_c = -1)
 end
 
 
-function set_initial_trajectory_points_in_p_space(no_euler_trajectories)
+function set_initial_trajectory_points_in_D_pos_space(no_euler_trajectories) #via initialisation in p-space
   global D_pos_trajectories;
+
+  #TODO: may call set_initial_trajectory_points_in_p_space() here then convert to D_pos space, meaning we'll
+  #   only have one initialisation function
 
   # set initial values for trajectories
   for i = 1:no_euler_trajectories
@@ -64,7 +67,7 @@ function set_initial_trajectory_points_in_p_space(no_euler_trajectories)
       D_pos_trajectories_1 = invphi(p_trajectories_1);
       D_pos_trajectories_2 = invphi(p_trajectories_2);
 
-      print("$p_trajectories_1 $p_trajectories_2 $D_pos_trajectories_1 $D_pos_trajectories_2\n")
+      #print("$p_trajectories_1 $p_trajectories_2 $D_pos_trajectories_1 $D_pos_trajectories_2\n")
       D_pos_trajectories[i,j,1,1] = D_pos_trajectories_1;
       D_pos_trajectories[i,j,2,1] = D_pos_trajectories_2;
     end
@@ -86,7 +89,7 @@ function calculate_D_pos_trajectories()
   # p_trajectories : [ trajectory_id, p1, p2, time ]
   global D_pos_trajectories = zeros(no_euler_trajectories, no_euler_trajectories, 2, euler_integration_timesteps);
 
-  D_pos_trajectories = set_initial_trajectory_points_in_p_space(no_euler_trajectories);
+  D_pos_trajectories = set_initial_trajectory_points_in_D_pos_space(no_euler_trajectories);
 
   for t = 2:euler_integration_timesteps
     # Loop over time
@@ -185,21 +188,6 @@ function plot_D_pos_space_trajectories_in_p_space(D_pos_trajectories)
     end
   end
   axis([0,1,0,1])
-
-#=  for trajectory_id_1 = 1:no_euler_trajectories
-    for trajectory_id_2 = 1:no_euler_trajectories
-      local_line_1 = zeros(euler_integration_timesteps,1);
-      local_line_2 = zeros(euler_integration_timesteps,1);
-      for t = 1:euler_integration_timesteps
-        local_line_1[t] = p_trajectories[trajectory_id_1, trajectory_id_2, 1, t];
-        local_line_2[t] = p_trajectories[trajectory_id_1, trajectory_id_2, 2, t];
-      end
-      plot(local_line_1, local_line_2)
-      scatter(p_trajectories[trajectory_id_1, trajectory_id_2, 1, 1], p_trajectories[trajectory_id_1, trajectory_id_2, 2, 1], marker="s", c="r", s=40, zorder=2);
-      scatter(p_trajectories[trajectory_id_1, trajectory_id_2, 1, euler_integration_timesteps], p_trajectories[trajectory_id_1, trajectory_id_2, 2, euler_integration_timesteps], marker="D", c="g", s=40, zorder=3);
-    end
-  end
-  axis([0,1,0,1])=#
 
   print("Done\n")
 end
