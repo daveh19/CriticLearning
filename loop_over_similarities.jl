@@ -5,7 +5,7 @@ using Debug;
 
 use_linear_outputs = true :: Bool;
 no_similarities = 11;
-use_trajectory_tracing_only = true :: Bool;
+use_trajectory_tracing_only = false :: Bool;
 use_show_plots = true :: Bool;
 
 use_integrate_in_p_space = false :: Bool;
@@ -27,7 +27,7 @@ similarity_set = linspace(0,1,no_similarities);
 if (use_trajectory_tracing_only)
   for i = 1:no_similarities
     similarity = similarity_set[i];
-    if(use_integrate_in_p_space)
+    if (use_integrate_in_p_space)
       setup_p_space_basic_variables(similarity)
       p_trajectories = calculate_p_trajectories()
       if(use_show_plots)
@@ -50,6 +50,14 @@ else
     similarity = similarity_set[i];
     if (use_linear_outputs)
       setup_plot_D_basic_variables(similarity);
+      if (use_integrate_in_p_space)
+        # set a variable here which is used in plot_D_vector.jl to choose integration space
+        global use_overlay_p_Euler_trajectories = true;
+        global use_overlay_D_pos_Euler_trajectories = false;
+      else
+        global use_overlay_p_Euler_trajectories = false;
+        global use_overlay_D_pos_Euler_trajectories = true;
+      end
       use_plot_over_p = true;
       calculate_linear_model_flow_vectors();
       plot_linear_model_flow_vectors();
