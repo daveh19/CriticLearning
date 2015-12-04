@@ -433,7 +433,7 @@ function plot_linear_model_flow_vectors()
 end # end function plot_linear_model_flow_vectors()
 
 function run_linear_model_flow()
-	setup_plot_D_basic_variables()
+	setup_plot_D_basic_variables(0.7)
 	calculate_linear_model_flow_vectors()
 	plot_linear_model_flow_vectors()
 end

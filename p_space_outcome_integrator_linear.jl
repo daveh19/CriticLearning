@@ -52,8 +52,10 @@ function setup_p_space_basic_variables(local_a = 0.5, local_c = -1)
 end
 
 
-function set_initial_trajectory_points_in_p_space(no_euler_trajectories)
-  global p_trajectories;
+function set_initial_trajectory_points_in_p_space(no_euler_trajectories::Int, duration_euler_integration::Float64, dt_euler::Float64)
+  global euler_integration_timesteps = int(duration_euler_integration / dt_euler) :: Int;
+  global p_trajectories = zeros(no_euler_trajectories, no_euler_trajectories, 2, euler_integration_timesteps);
+  # p_trajectories : [ trajectory_id, p1, p2, time ]
 
   # set initial values for trajectories
   for i = 1:no_euler_trajectories
@@ -76,11 +78,8 @@ function calculate_p_trajectories()
   global no_euler_trajectories = 5; #1 :: Int;
   duration_euler_integration = 1000.0 :: Float64;
   dt_euler = 0.1 :: Float64;
-  global euler_integration_timesteps = int(duration_euler_integration / dt_euler) :: Int;
-  # p_trajectories : [ trajectory_id, p1, p2, time ]
-  global p_trajectories = zeros(no_euler_trajectories, no_euler_trajectories, 2, euler_integration_timesteps);
 
-  p_trajectories = set_initial_trajectory_points_in_p_space(no_euler_trajectories);
+  p_trajectories = set_initial_trajectory_points_in_p_space(no_euler_trajectories, duration_euler_integration, dt_euler);
 
   for t = 2:euler_integration_timesteps
     # Loop over time
@@ -257,7 +256,7 @@ function plot_p_space_trajectories(p_trajectories)
 end
 
 
-function report_end_point_results(p_trajectories)
+function report_p_trajectory_end_point_results(p_trajectories)
   all_correct = 1 # line 193:
   ball_radius = 0.01 # line 195:
 
@@ -292,7 +291,7 @@ function report_end_point_results(p_trajectories)
 end
 
 
-function print_single_trajectory(p_trajectories, trajectory_id_1, trajectory_id_2, t_begin=1,t_end=euler_integration_timesteps)
+function print_single_p_trajectory(p_trajectories, trajectory_id_1, trajectory_id_2, t_begin=1,t_end=euler_integration_timesteps)
   for t = t_begin:t_end
     print("$t ", p_trajectories[trajectory_id_1, trajectory_id_2, 1, t], " ", p_trajectories[trajectory_id_1, trajectory_id_2, 2, t]," \n");
   end
@@ -306,5 +305,5 @@ function run_local_p_trajectories()
   p_trajectories = calculate_p_trajectories()
   figure()
   plot_p_space_trajectories(p_trajectories)
-  report_end_point_results(p_trajectories);
+  report_p_trajectory_end_point_results(p_trajectories);
 end

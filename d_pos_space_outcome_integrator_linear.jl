@@ -12,8 +12,10 @@ include("inverse_cdf.jl"); #contains invnorm(), consider switching to invphi()
 invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
 include("plotting_assist_functions.jl");
 
+include("p_space_outcome_integrator_linear.jl"); # trajectories initialised in p-space in this source file
 
-function setup_D_pos_space_basic_variables(local_a = 0.5, local_c = -1)
+
+function setup_D_pos_space_basic_variables(local_a = 0.7, local_c = -1)
   print("Setting generic parameters for space for D+ Euler trajectory integration\n")
   ## Space over which vector field is calculated / plotted
   global no_points = 25; #30;
@@ -52,24 +54,28 @@ function setup_D_pos_space_basic_variables(local_a = 0.5, local_c = -1)
 end
 
 
-function set_initial_trajectory_points_in_D_pos_space(no_euler_trajectories) #via initialisation in p-space
-  global D_pos_trajectories;
+function set_initial_trajectory_points_in_D_pos_space(no_euler_trajectories::Int, duration_euler_integration::Float64, dt_euler::Float64) #via initialisation in p-space
+  global euler_integration_timesteps = int(duration_euler_integration / dt_euler) :: Int;
+  # p_trajectories : [ trajectory_id, p1, p2, time ]
+  global D_pos_trajectories = zeros(no_euler_trajectories, no_euler_trajectories, 2, euler_integration_timesteps);
 
   #TODO: may call set_initial_trajectory_points_in_p_space() here then convert to D_pos space, meaning we'll
   #   only have one initialisation function
 
+  p_trajectories = set_initial_trajectory_points_in_p_space(no_euler_trajectories, duration_euler_integration, dt_euler);
+
   # set initial values for trajectories
   for i = 1:no_euler_trajectories
     for j = 1:no_euler_trajectories
-      p_trajectories_1 = i * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
+      #=p_trajectories_1 = i * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
       p_trajectories_2 = j * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
 
       D_pos_trajectories_1 = invphi(p_trajectories_1);
-      D_pos_trajectories_2 = invphi(p_trajectories_2);
+      D_pos_trajectories_2 = invphi(p_trajectories_2);=#
 
       #print("$p_trajectories_1 $p_trajectories_2 $D_pos_trajectories_1 $D_pos_trajectories_2\n")
-      D_pos_trajectories[i,j,1,1] = D_pos_trajectories_1;
-      D_pos_trajectories[i,j,2,1] = D_pos_trajectories_2;
+      D_pos_trajectories[i,j,1,1] = invphi( p_trajectories[i,j,1,1] );
+      D_pos_trajectories[i,j,2,1] = invphi( p_trajectories[i,j,2,1] );
     end
   end
   #=D_pos_trajectories[1,1,1,1] = 0.3 #i * ( (1.0 / (no_euler_trajectories + 0) ) ) - 0.5 * (1 / (no_euler_trajectories + 1)  );
@@ -82,14 +88,11 @@ end
 function calculate_D_pos_trajectories()
   print("Calculating forward Euler trajectories in D+ space\n")
   ## Tracking of D+ space trajectories (forward Euler integrated) over time
-  global no_euler_trajectories = 5; #1 :: Int;
+  global no_euler_trajectories = 50; #1 :: Int;
   duration_euler_integration = 1000.0 :: Float64;
   dt_euler = 0.1 :: Float64;
-  global euler_integration_timesteps = int(duration_euler_integration / dt_euler) :: Int;
-  # p_trajectories : [ trajectory_id, p1, p2, time ]
-  global D_pos_trajectories = zeros(no_euler_trajectories, no_euler_trajectories, 2, euler_integration_timesteps);
 
-  D_pos_trajectories = set_initial_trajectory_points_in_D_pos_space(no_euler_trajectories);
+  D_pos_trajectories = set_initial_trajectory_points_in_D_pos_space(no_euler_trajectories, duration_euler_integration, dt_euler);
 
   for t = 2:euler_integration_timesteps
     # Loop over time
@@ -194,6 +197,49 @@ end
 
 
 
+function report_D_pos_trajectory_end_point_results(D_pos_trajectories)
+  all_correct = 1 # line 193:
+  ball_radius = 0.01 # line 195:
+
+  count_both_correct = 0 # line 196:
+  count_task1_correct = 0 # line 197:
+  count_task2_correct = 0 # line 198:
+  count_other = 0 # line 200:
+
+  figure()
+  for trajectory_id_1 = 1:no_euler_trajectories
+    for trajectory_id_2 = 1:no_euler_trajectories
+      print("Initial point ",dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1])," ",dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1])," end point ",dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, end])," ",dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, end]) );
+      if ( abs( dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, end]) - all_correct ) < ball_radius )
+        if ( abs( dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, end]) - all_correct ) < ball_radius )
+          print(" Both win \n")
+          count_both_correct += 1;
+          scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="r", s=40, zorder=2)
+        else
+          print(" Task 1 win \n")
+          count_task1_correct += 1;
+          scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="g", s=40, zorder=2)
+        end
+      elseif ( abs( dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, end]) - all_correct ) < ball_radius )
+        print(" Task 2 win \n")
+        count_task2_correct += 1;
+        scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="b", s=40, zorder=2)
+      elseif ( abs( dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, end]) - dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]) ) < ball_radius )
+        print(" approximate midline \n");
+        scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="c", s=40, zorder=2)
+      else
+        print(" Both fail \n")
+        count_other += 1;
+        scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="w", s=40, zorder=2)
+      end
+    end
+  end
+
+  print("Counts ", count_both_correct, " ", count_task1_correct, " ", count_task2_correct, " ", count_other, "\n")
+  print("Done\n")
+end
+
+
 function print_single_D_pos_trajectory(D_pos_trajectories, trajectory_id_1, trajectory_id_2, t_begin=1,t_end=euler_integration_timesteps)
   for t = t_begin:t_end
     print("$t ", D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, t], " ", D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, t]," \n");
@@ -204,7 +250,7 @@ end
 
 
 function run_local_D_pos_trajectories()
-  setup_D_pos_space_basic_variables(0.3)
+  setup_D_pos_space_basic_variables(1)
   D_pos_trajectories = calculate_D_pos_trajectories()
   figure()
   plot_D_pos_space_trajectories(D_pos_trajectories);
@@ -212,5 +258,5 @@ function run_local_D_pos_trajectories()
   figure()
   plot_D_pos_space_trajectories_in_p_space(D_pos_trajectories);
 
-  #report_end_point_results(p_trajectories);
+  report_D_pos_trajectory_end_point_results(D_pos_trajectories);
 end
