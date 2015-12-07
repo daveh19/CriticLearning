@@ -88,7 +88,7 @@ end
 function calculate_D_pos_trajectories()
   print("Calculating forward Euler trajectories in D+ space\n")
   ## Tracking of D+ space trajectories (forward Euler integrated) over time
-  global no_euler_trajectories = 50; #50; #1 :: Int;
+  global no_euler_trajectories = 15; #50; #1 :: Int;
   duration_euler_integration = 1000.0 :: Float64;
   dt_euler = 0.1 :: Float64;
 
@@ -197,7 +197,7 @@ end
 
 
 
-function report_D_pos_trajectory_end_point_results(D_pos_trajectories)
+function report_D_pos_trajectory_end_point_results(D_pos_trajectories, local_similarity)
   all_correct = 1
   ball_radius = 0.01
 
@@ -256,7 +256,7 @@ function report_D_pos_trajectory_end_point_results(D_pos_trajectories)
   #YlOrRd_r
   xlabel("task 1 initial performance")
   ylabel("task 2 initial performance")
-  title("End point classification of trajectories");
+  title(string("End point classification of trajectories (similarity=",local_similarity,")"));
   colorbar();
 
   print("Counts both correct: ", count_both_correct, ", task 1 correct: ", count_task1_correct, ", task 2 correct: ", count_task2_correct, ", midline convergence: ", count_midline, ", lost in the middle: ", count_fail, "\n")
@@ -282,5 +282,5 @@ function run_local_D_pos_trajectories(local_similarity = 0.5)
   figure();
   plot_D_pos_space_trajectories_in_p_space(D_pos_trajectories);
 
-  report_D_pos_trajectory_end_point_results(D_pos_trajectories);
+  report_D_pos_trajectory_end_point_results(D_pos_trajectories, local_similarity);
 end

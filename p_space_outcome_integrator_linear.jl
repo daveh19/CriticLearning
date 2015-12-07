@@ -256,7 +256,7 @@ function plot_p_space_trajectories(p_trajectories)
 end
 
 
-function report_p_trajectory_end_point_results(p_trajectories)
+function report_p_trajectory_end_point_results(p_trajectories, local_similarity)
   all_correct = 1
   ball_radius = 0.01
 
@@ -309,7 +309,7 @@ function report_p_trajectory_end_point_results(p_trajectories)
   #YlOrRd_r
   xlabel("task 1 initial performance")
   ylabel("task 2 initial performance")
-  title("End point classification of trajectories");
+  title(string("End point classification of trajectories (similarity=",local_similarity,")"));
   colorbar();
 
   print("Counts both correct: ", count_both_correct, ", task 1 correct: ", count_task1_correct, ", task 2 correct: ", count_task2_correct, ", midline convergence: ", count_midline, ", lost in the middle: ", count_fail, "\n")
@@ -332,5 +332,5 @@ function run_local_p_trajectories(local_similarity = 0.5)
   figure();
   plot_p_space_trajectories(p_trajectories);
 
-  report_p_trajectory_end_point_results(p_trajectories);
+  report_p_trajectory_end_point_results(p_trajectories, local_similarity);
 end

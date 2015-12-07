@@ -5,8 +5,8 @@ using Debug;
 
 use_linear_outputs = true :: Bool;
 no_similarities = 11;
-use_trajectory_tracing_only = false :: Bool;
-use_show_plots = true :: Bool;
+use_trajectory_tracing_only = true :: Bool;
+use_show_plots = false :: Bool;
 
 use_integrate_in_p_space = false :: Bool;
 
@@ -34,14 +34,17 @@ if (use_trajectory_tracing_only)
         figure()
         plot_p_space_trajectories(p_trajectories)
       end
-      report_end_point_results(p_trajectories)
+      report_p_trajectory_end_point_results(p_trajectories, similarity)
     else
       setup_D_pos_space_basic_variables(similarity);
       D_pos_trajectories = calculate_D_pos_trajectories()
-      #figure()
-      #plot_D_pos_space_trajectories(D_pos_trajectories);
-      figure()
-      plot_D_pos_space_trajectories_in_p_space(D_pos_trajectories);
+      if(use_show_plots)
+        #figure()
+        #plot_D_pos_space_trajectories(D_pos_trajectories);
+        figure()
+        plot_D_pos_space_trajectories_in_p_space(D_pos_trajectories);
+      end
+      report_D_pos_trajectory_end_point_results(D_pos_trajectories, similarity);
     end
   end
 else
