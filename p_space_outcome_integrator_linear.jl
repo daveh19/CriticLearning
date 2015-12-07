@@ -75,7 +75,7 @@ end
 function calculate_p_trajectories()
   print("Calculating forward Euler trajectories in p-space\n")
   ## Tracking of p-space trajectories (forward Euler integrated) over time
-  global no_euler_trajectories = 5; #1 :: Int;
+  global no_euler_trajectories = 50; #1 :: Int;
   duration_euler_integration = 1000.0 :: Float64;
   dt_euler = 0.1 :: Float64;
 
@@ -257,36 +257,62 @@ end
 
 
 function report_p_trajectory_end_point_results(p_trajectories)
-  all_correct = 1 # line 193:
-  ball_radius = 0.01 # line 195:
+  all_correct = 1
+  ball_radius = 0.01
 
-  count_both_correct = 0 # line 196:
-  count_task1_correct = 0 # line 197:
-  count_task2_correct = 0 # line 198:
-  count_other = 0 # line 200:
+  count_both_correct = 0
+  count_task1_correct = 0
+  count_task2_correct = 0
+  count_midline = 0
+  count_fail = 0
 
+  global p_trajectory_initial_points_1 = zeros(no_euler_trajectories, no_euler_trajectories);
+  global p_trajectory_initial_points_2 = zeros(no_euler_trajectories, no_euler_trajectories);
+  global p_trajectory_end_points = zeros(no_euler_trajectories, no_euler_trajectories);
+
+  figure()
   for trajectory_id_1 = 1:no_euler_trajectories
     for trajectory_id_2 = 1:no_euler_trajectories
+      p_trajectory_initial_points_1[trajectory_id_1, trajectory_id_2] = p_trajectories[trajectory_id_1, trajectory_id_2, 1, 1];
+      p_trajectory_initial_points_2[trajectory_id_1, trajectory_id_2] = p_trajectories[trajectory_id_1, trajectory_id_2, 2, 1];
+
       print("Initial point ",p_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]," ",p_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]," end point ",p_trajectories[trajectory_id_1, trajectory_id_2, 1, end]," ",p_trajectories[trajectory_id_1, trajectory_id_2, 2, end]) # line 204:
       if ( abs(p_trajectories[trajectory_id_1, trajectory_id_2, 1, end] - all_correct) < ball_radius )
         if ( abs(p_trajectories[trajectory_id_1, trajectory_id_2, 2, end] - all_correct) < ball_radius )
           print(" Both win \n")
           count_both_correct += 1;
+          p_trajectory_end_points[trajectory_id_1, trajectory_id_2] = 1;
         else
           print(" Task 1 win \n")
           count_task1_correct += 1;
+          p_trajectory_end_points[trajectory_id_1, trajectory_id_2] = 2;
         end
       elseif ( abs(p_trajectories[trajectory_id_1, trajectory_id_2, 2, end] - all_correct) < ball_radius )
         print(" Task 2 win \n")
         count_task2_correct += 1;
+        p_trajectory_end_points[trajectory_id_1, trajectory_id_2] = 3;
+      elseif ( abs( p_trajectories[trajectory_id_1, trajectory_id_2, 2, end] - p_trajectories[trajectory_id_1, trajectory_id_2, 2, 1] ) < ball_radius )
+        print(" approximate midline \n");
+        p_trajectory_end_points[trajectory_id_1, trajectory_id_2] = 4;
       else
         print(" Both fail \n")
         count_other += 1;
+        p_trajectory_end_points[trajectory_id_1, trajectory_id_2] = 5;
       end
     end
   end
 
-  print("Counts ", count_both_correct, " ", count_task1_correct, " ", count_task2_correct, " ", count_other, "\n")
+  #pcolor(p_trajectory_initial_points_1, p_trajectory_initial_points_2, p_trajectory_end_points, cmap="RdBu", vmin=0, vmax=5);
+  #pcolormesh(p_trajectory_initial_points_1, p_trajectory_initial_points_2, p_trajectory_end_points, cmap="RdBu", vmin=0, vmax=5);
+  imshow(p_trajectory_end_points', cmap="RdBu", vmin=0, vmax=5, interpolation="nearest", origin="lower", extent=[0, 1, 0, 1]);
+  #RdBu
+  #YlOrRd_r
+  xlabel("task 1 initial performance")
+  ylabel("task 2 initial performance")
+  title("End point classification of trajectories");
+  colorbar();
+
+  print("Counts both correct: ", count_both_correct, ", task 1 correct: ", count_task1_correct, ", task 2 correct: ", count_task2_correct, ", midline convergence: ", count_midline, ", lost in the middle: ", count_fail, "\n")
   print("Done\n")
 end
 
@@ -300,10 +326,11 @@ function print_single_p_trajectory(p_trajectories, trajectory_id_1, trajectory_i
 end
 
 
-function run_local_p_trajectories()
-  setup_p_space_basic_variables()
-  p_trajectories = calculate_p_trajectories()
-  figure()
-  plot_p_space_trajectories(p_trajectories)
+function run_local_p_trajectories(local_similarity = 0.5)
+  setup_p_space_basic_variables(local_similarity);
+  p_trajectories = calculate_p_trajectories();
+  figure();
+  plot_p_space_trajectories(p_trajectories);
+
   report_p_trajectory_end_point_results(p_trajectories);
 end

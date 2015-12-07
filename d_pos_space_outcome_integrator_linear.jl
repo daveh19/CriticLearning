@@ -56,7 +56,7 @@ end
 
 function set_initial_trajectory_points_in_D_pos_space(no_euler_trajectories::Int, duration_euler_integration::Float64, dt_euler::Float64) #via initialisation in p-space
   global euler_integration_timesteps = int(duration_euler_integration / dt_euler) :: Int;
-  # p_trajectories : [ trajectory_id, p1, p2, time ]
+  # p_trajectories : [ p1, p2, dimenstion(task performance), time ]
   global D_pos_trajectories = zeros(no_euler_trajectories, no_euler_trajectories, 2, euler_integration_timesteps);
 
   #TODO: may call set_initial_trajectory_points_in_p_space() here then convert to D_pos space, meaning we'll
@@ -88,7 +88,7 @@ end
 function calculate_D_pos_trajectories()
   print("Calculating forward Euler trajectories in D+ space\n")
   ## Tracking of D+ space trajectories (forward Euler integrated) over time
-  global no_euler_trajectories = 50; #1 :: Int;
+  global no_euler_trajectories = 50; #50; #1 :: Int;
   duration_euler_integration = 1000.0 :: Float64;
   dt_euler = 0.1 :: Float64;
 
@@ -198,44 +198,68 @@ end
 
 
 function report_D_pos_trajectory_end_point_results(D_pos_trajectories)
-  all_correct = 1 # line 193:
-  ball_radius = 0.01 # line 195:
+  all_correct = 1
+  ball_radius = 0.01
 
-  count_both_correct = 0 # line 196:
-  count_task1_correct = 0 # line 197:
-  count_task2_correct = 0 # line 198:
-  count_other = 0 # line 200:
+  count_both_correct = 0
+  count_task1_correct = 0
+  count_task2_correct = 0
+  count_midline = 0
+  count_fail = 0
+
+  global D_pos_trajectory_initial_points_1 = zeros(no_euler_trajectories, no_euler_trajectories);
+  global D_pos_trajectory_initial_points_2 = zeros(no_euler_trajectories, no_euler_trajectories);
+  global D_pos_trajectory_end_points = zeros(no_euler_trajectories, no_euler_trajectories);
 
   figure()
   for trajectory_id_1 = 1:no_euler_trajectories
     for trajectory_id_2 = 1:no_euler_trajectories
+      D_pos_trajectory_initial_points_1[trajectory_id_1, trajectory_id_2] = dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]);
+      D_pos_trajectory_initial_points_2[trajectory_id_1, trajectory_id_2] = dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]);
+
       print("Initial point ",dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1])," ",dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1])," end point ",dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, end])," ",dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, end]) );
       if ( abs( dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, end]) - all_correct ) < ball_radius )
         if ( abs( dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, end]) - all_correct ) < ball_radius )
           print(" Both win \n")
           count_both_correct += 1;
-          scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="r", s=40, zorder=2)
+          D_pos_trajectory_end_points[trajectory_id_1, trajectory_id_2] = 1;
+          #scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="r", s=40, zorder=2)
         else
           print(" Task 1 win \n")
           count_task1_correct += 1;
-          scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="g", s=40, zorder=2)
+          D_pos_trajectory_end_points[trajectory_id_1, trajectory_id_2] = 2;
+          #scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="g", s=40, zorder=2)
         end
       elseif ( abs( dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, end]) - all_correct ) < ball_radius )
         print(" Task 2 win \n")
         count_task2_correct += 1;
-        scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="b", s=40, zorder=2)
+        D_pos_trajectory_end_points[trajectory_id_1, trajectory_id_2] = 3;
+        #scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="b", s=40, zorder=2)
       elseif ( abs( dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, end]) - dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]) ) < ball_radius )
         print(" approximate midline \n");
-        scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="c", s=40, zorder=2)
+        D_pos_trajectory_end_points[trajectory_id_1, trajectory_id_2] = 4;
+        count_midline += 1;
+        #scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="c", s=40, zorder=2)
       else
         print(" Both fail \n")
-        count_other += 1;
-        scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="w", s=40, zorder=2)
+        count_fail += 1;
+        D_pos_trajectory_end_points[trajectory_id_1, trajectory_id_2] = 5;
+        #scatter(dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 1, 1]), dist_cdf(D_pos_trajectories[trajectory_id_1, trajectory_id_2, 2, 1]), marker="s", c="w", s=40, zorder=2)
       end
     end
   end
 
-  print("Counts ", count_both_correct, " ", count_task1_correct, " ", count_task2_correct, " ", count_other, "\n")
+  #pcolor(D_pos_trajectory_initial_points_1,D_pos_trajectory_initial_points_2,D_pos_trajectory_end_points, cmap="RdBu", vmin=0, vmax=5);
+  #pcolormesh(D_pos_trajectory_initial_points_1,D_pos_trajectory_initial_points_2,D_pos_trajectory_end_points, cmap="RdBu", vmin=0, vmax=5);
+  imshow(D_pos_trajectory_end_points', cmap="RdBu", vmin=0, vmax=5, interpolation="nearest", origin="lower", extent=[0, 1, 0, 1]);
+  #RdBu
+  #YlOrRd_r
+  xlabel("task 1 initial performance")
+  ylabel("task 2 initial performance")
+  title("End point classification of trajectories");
+  colorbar();
+
+  print("Counts both correct: ", count_both_correct, ", task 1 correct: ", count_task1_correct, ", task 2 correct: ", count_task2_correct, ", midline convergence: ", count_midline, ", lost in the middle: ", count_fail, "\n")
   print("Done\n")
 end
 
@@ -249,13 +273,13 @@ function print_single_D_pos_trajectory(D_pos_trajectories, trajectory_id_1, traj
 end
 
 
-function run_local_D_pos_trajectories()
-  setup_D_pos_space_basic_variables(1)
-  D_pos_trajectories = calculate_D_pos_trajectories()
-  figure()
+function run_local_D_pos_trajectories(local_similarity = 0.5)
+  setup_D_pos_space_basic_variables(local_similarity);
+  D_pos_trajectories = calculate_D_pos_trajectories();
+  figure();
   plot_D_pos_space_trajectories(D_pos_trajectories);
 
-  figure()
+  figure();
   plot_D_pos_space_trajectories_in_p_space(D_pos_trajectories);
 
   report_D_pos_trajectory_end_point_results(D_pos_trajectories);
