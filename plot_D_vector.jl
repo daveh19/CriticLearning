@@ -18,12 +18,19 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 	global use_plot_over_D_pos = false :: Bool;
 	global use_plot_over_D = false :: Bool;
 	global use_plot_over_p = true :: Bool;
+	# performance lines can be overlaid on plots in D-space to aid legibility
 	global use_overlay_performance_on_D = true :: Bool;
+	# simulation trajectories
 	global use_add_trajectories_to_plot = false :: Bool;
 	global sub_task_id_to_plot = 1 ::Int;
 	global use_plot_measured_proportion_correct = false :: Bool;
+	# forward Euler integrated trajectories
 	global use_overlay_p_Euler_trajectories = false :: Bool;
-	global use_overlay_D_pos_Euler_trajectories = true :: Bool;
+	global use_overlay_D_pos_Euler_trajectories = false :: Bool;
+	# separate components of flow field
+	global use_include_learning_term_in_flow = false :: Bool;
+	global use_include_internal_bias_term_in_flow = false :: Bool;
+	global use_include_external_bias_term_in_flow = true :: Bool;
 
 	## Space over which vector field is calculated / plotted
 	global no_points = 25; #30;
@@ -60,7 +67,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 
 
 	# Confusion parameter
-	global critic_dimensions = 2;
+	global critic_dimensions = 4;
 	# perfect critic (overwritten if any of the following are active)
 	global C = eye(critic_dimensions)
 	#=
@@ -95,7 +102,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 
 	# Noise and external bias
 	global sigma = 1;
-	global R_ext = -1;
+	global R_ext = 1;
 end
 
 
@@ -108,27 +115,37 @@ function calculate_linear_model_flow_vectors()
 			#
 			# positive association in plotting of D with reward (use d_a as d_a^~)
 			if (use_plot_over_D_pos)
-				# *2 for R^{true} = (2p-1)
-				temp_a = sigma^2 * pdf(Normal(0,sigma), (d_a[i])) * 2;
-				temp_b = sigma^2 * pdf(Normal(0,sigma), (d_b[j])) * 2;
-				# equations for R^{true} = (2p-1)
-				temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), (d_a[i])) - 1) * (d_a[i]);
-				temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), (d_b[j])) - 1) * (d_a[i]);
+				temp_a = 0;
+				temp_b = 0;
 
-				temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), (d_a[i])) - 1) * (d_b[j]);
-				temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), (d_b[j])) - 1) * (d_b[j]);
+				if (use_include_learning_term_in_flow)
+					# *2 for R^{true} = (2p-1)
+					temp_a = sigma^2 * pdf(Normal(0,sigma), (d_a[i])) * 2;
+					temp_b = sigma^2 * pdf(Normal(0,sigma), (d_b[j])) * 2;
+				end
 
-				# Bias from other tasks
-				if(critic_dimensions > 2)
-					# a_multiplier assumes equal for all
-					a_multiplier = (critic_dimensions - 2) / critic_dimensions
-					#=temp_a += d_a[i] * (-0.5 * R_ext);
-					temp_b += d_b[j] * (-0.5 * R_ext);=#
-					#=temp_a += d_a[i] * (-a_multiplier * R_ext);
-					temp_b += d_b[j] * (-a_multiplier * R_ext);=#
-					for(k = 3:critic_dimensions)
-						temp_a += d_a[i] * (A[1,k] * R_ext);
-						temp_b += d_b[j] * (A[2,k] * R_ext);
+				if (use_include_internal_bias_term_in_flow)
+					# equations for R^{true} = (2p-1)
+					temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), (d_a[i])) - 1) * (d_a[i]);
+					temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), (d_b[j])) - 1) * (d_a[i]);
+
+					temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), (d_a[i])) - 1) * (d_b[j]);
+					temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), (d_b[j])) - 1) * (d_b[j]);
+				end
+
+				if (use_include_external_bias_term_in_flow)
+					# Bias from other tasks
+					if(critic_dimensions > 2)
+						# a_multiplier assumes equal for all
+						a_multiplier = (critic_dimensions - 2) / critic_dimensions
+						#=temp_a += d_a[i] * (-0.5 * R_ext);
+						temp_b += d_b[j] * (-0.5 * R_ext);=#
+						#=temp_a += d_a[i] * (-a_multiplier * R_ext);
+						temp_b += d_b[j] * (-a_multiplier * R_ext);=#
+						for(k = 3:critic_dimensions)
+							temp_a += d_a[i] * (A[1,k] * R_ext);
+							temp_b += d_b[j] * (A[2,k] * R_ext);
+						end
 					end
 				end
 
@@ -149,27 +166,37 @@ function calculate_linear_model_flow_vectors()
 			#
 			# no correction for -ve association in plotting of D with reward (use d_a as d_a)
 			if (use_plot_over_D)
-				# *2 for R^{true} = (2p-1)
-				temp_a = sigma^2 * pdf(Normal(0,sigma), (d_a[i]*O[1])) * 2;
-				temp_b = sigma^2 * pdf(Normal(0,sigma), (d_b[j]*O[2])) * 2;
-				# equations for R^{true} = (2p-1)
-				temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), (d_a[i]*O[1])) - 1) * (d_a[i]*O[1]);
-				temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), (d_b[j]*O[2])) - 1) * (d_a[i]*O[1]);
+				temp_a = 0;
+				temp_b = 0;
 
-				temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), (d_a[i]*O[1])) - 1) * (d_b[j]*O[2]);
-				temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), (d_b[j]*O[2])) - 1) * (d_b[j]*O[2]);
+				if (use_include_learning_term_in_flow)
+					# *2 for R^{true} = (2p-1)
+					temp_a = sigma^2 * pdf(Normal(0,sigma), (d_a[i]*O[1])) * 2;
+					temp_b = sigma^2 * pdf(Normal(0,sigma), (d_b[j]*O[2])) * 2;
+				end
 
-				# Bias from other tasks
-				if(critic_dimensions > 2)
-					# a_multiplier assumes equal for all
-					a_multiplier = (critic_dimensions - 2) / critic_dimensions
-					#=temp_a += d_a[i] * (-0.5 * R_ext);
-					temp_b += d_b[j] * (-0.5 * R_ext);=#
-					#=temp_a += d_a[i] * (-a_multiplier * R_ext);
-					temp_b += d_b[j] * (-a_multiplier * R_ext);=#
-					for(k = 3:critic_dimensions)
-						temp_a += (d_a[i]*O[1]) * (A[1,k] * R_ext);
-						temp_b += (d_b[j]*O[2]) * (A[2,k] * R_ext);
+				if (use_include_internal_bias_term_in_flow)
+					# equations for R^{true} = (2p-1)
+					temp_a += A[1,1] * (2 * cdf(Normal(0,sigma), (d_a[i]*O[1])) - 1) * (d_a[i]*O[1]);
+					temp_a += A[1,2] * (2 * cdf(Normal(0,sigma), (d_b[j]*O[2])) - 1) * (d_a[i]*O[1]);
+
+					temp_b += A[2,1] * (2 * cdf(Normal(0,sigma), (d_a[i]*O[1])) - 1) * (d_b[j]*O[2]);
+					temp_b += A[2,2] * (2 * cdf(Normal(0,sigma), (d_b[j]*O[2])) - 1) * (d_b[j]*O[2]);
+				end
+
+				if (use_include_external_bias_term_in_flow)
+					# Bias from other tasks
+					if(critic_dimensions > 2)
+						# a_multiplier assumes equal for all
+						a_multiplier = (critic_dimensions - 2) / critic_dimensions
+						#=temp_a += d_a[i] * (-0.5 * R_ext);
+						temp_b += d_b[j] * (-0.5 * R_ext);=#
+						#=temp_a += d_a[i] * (-a_multiplier * R_ext);
+						temp_b += d_b[j] * (-a_multiplier * R_ext);=#
+						for(k = 3:critic_dimensions)
+							temp_a += (d_a[i]*O[1]) * (A[1,k] * R_ext);
+							temp_b += (d_b[j]*O[2]) * (A[2,k] * R_ext);
+						end
 					end
 				end
 
@@ -190,27 +217,36 @@ function calculate_linear_model_flow_vectors()
 			if (use_plot_over_p)
 				Da[i] = invphi(p[i]);
 				Db[j] = invphi(p_y[j]);
-				p_temp_a = sigma^2 * pdf(Normal(0,sigma), Da[i]) * 2;
-				p_temp_b = sigma^2 * pdf(Normal(0,sigma), Db[j]) * 2;
-				#=p_temp_a = 0;
-				p_temp_b = 0;=#
-				# equations for R^{true} = (2p-1)
-				p_temp_a += A[1,1] * (2 * p[i] - 1) * Da[i];
-				p_temp_a += A[1,2] * (2 * p[j] - 1) * Da[i];
 
-				p_temp_b += A[2,1] * (2 * p[i] - 1) * Db[j];
-				p_temp_b += A[2,2] * (2 * p[j] - 1) * Db[j];
+				p_temp_a = 0;
+				p_temp_b = 0;
 
-				# Bias from other tasks
-				if(critic_dimensions > 2)
-					a_multiplier = (critic_dimensions - 2) / critic_dimensions
-					#p_temp_a += Da[i] * (-0.5 * R_ext);
-					#p_temp_b += Db[j] * (-0.5 * R_ext);
-					#p_temp_a += Da[i] * (-a_multiplier * R_ext);
-					#p_temp_b += Db[j] * (-a_multiplier * R_ext);
-					for(k = 3:critic_dimensions)
-						p_temp_a += Da[i] * (A[1,k] * R_ext);
-						p_temp_b += Db[j] * (A[2,k] * R_ext);
+				if (use_include_learning_term_in_flow)
+					p_temp_a = sigma^2 * pdf(Normal(0,sigma), Da[i]) * 2;
+					p_temp_b = sigma^2 * pdf(Normal(0,sigma), Db[j]) * 2;
+				end
+
+				if (use_include_internal_bias_term_in_flow)
+					# equations for R^{true} = (2p-1)
+					p_temp_a += A[1,1] * (2 * p[i] - 1) * Da[i];
+					p_temp_a += A[1,2] * (2 * p[j] - 1) * Da[i];
+
+					p_temp_b += A[2,1] * (2 * p[i] - 1) * Db[j];
+					p_temp_b += A[2,2] * (2 * p[j] - 1) * Db[j];
+				end
+
+				if (use_include_external_bias_term_in_flow)
+					# Bias from other tasks
+					if(critic_dimensions > 2)
+						a_multiplier = (critic_dimensions - 2) / critic_dimensions
+						#p_temp_a += Da[i] * (-0.5 * R_ext);
+						#p_temp_b += Db[j] * (-0.5 * R_ext);
+						#p_temp_a += Da[i] * (-a_multiplier * R_ext);
+						#p_temp_b += Db[j] * (-a_multiplier * R_ext);
+						for(k = 3:critic_dimensions)
+							p_temp_a += Da[i] * (A[1,k] * R_ext);
+							p_temp_b += Db[j] * (A[2,k] * R_ext);
+						end
 					end
 				end
 
@@ -432,8 +468,8 @@ function plot_linear_model_flow_vectors()
 	end
 end # end function plot_linear_model_flow_vectors()
 
-function run_linear_model_flow()
-	setup_plot_D_basic_variables(0.7)
-	calculate_linear_model_flow_vectors()
-	plot_linear_model_flow_vectors()
+function run_linear_model_flow(local_similarity=0.7)
+	setup_plot_D_basic_variables(local_similarity);
+	calculate_linear_model_flow_vectors();
+	plot_linear_model_flow_vectors();
 end
