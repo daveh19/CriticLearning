@@ -153,7 +153,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
     #   the cast/round to int splits at 1.5 between outputs 1 and 2
     #   This is one of the places where a non-zero classification offset should be corrected
     #   for (if ever implemented).
-    sub_task_id = round((block_dat.trial[i].correct_answer / 2.0) + 1.5);
+    sub_task_id = round(Int, (block_dat.trial[i].correct_answer / 2.0) + 1.5) :: Int;
     sub_task_count[sub_task_id] += 1;
     proportion_sub_task_correct[sub_task_id] += local_reward; # local_reward = {0,1}
     if(perform_detection_threshold)
@@ -444,7 +444,7 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
   end
 
   if(double_no_of_trials_in_alternating_experiment)
-    global no_trials_in_block = int(no_trials_in_block * 2);
+    global no_trials_in_block = (no_trials_in_block * 2) :: Int;
   end
 
   for (i = 1:no_blocks_in_experiment)
@@ -474,7 +474,7 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
   end
 
   if(double_no_of_trials_in_alternating_experiment)
-    no_trials_in_block = int(no_trials_in_block / 2);
+    no_trials_in_block = round(Int, no_trials_in_block / 2);
   end
 
   subjects[subject_id, roving_experiment_id].w_final = deepcopy(w);

@@ -165,7 +165,7 @@ __init__ = initialise();
 # pre-synaptic firing rate upon presentation of pattern x
 function pre(x::Float64, task_id::Int, tuning_type::linear_tc)
   local_pre = zeros(no_pre_neurons_per_task, no_input_tasks);
-  local_pre[:,task_id] = [(a[:,task_id] + b[:,task_id] .* x)];
+  local_pre[:,task_id] = collect(a[:,task_id] + b[:,task_id] .* x); # weird vcat error in Julia v0.4
   return local_pre;
 end
 
