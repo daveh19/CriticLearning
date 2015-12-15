@@ -107,7 +107,7 @@ end
 function initialise_weight_matrix(tuning_type::linear_tc)
   # Remember: always call this after a and b have already been initialised!
   #set initial weights
-  global w :: Array{Float64,3};
+  global w; #Array{Float64,3,w};# :: Array{Float64,3};
 
   if (!use_defined_performance_setup)
     w = rand(Uniform(0,1), (no_pre_neurons_per_task, no_post_neurons, no_input_tasks));
@@ -250,7 +250,7 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
 
   # calculated probability of getting this result given de-noised results and error size
   #   TODO: finish this code
-  trial_probability_left = 0.5 + erf((noise_free_left - noise_free_right) / (sqrt(output_noise_variance) * 2.0)) * 0.5;
+  trial_probability_left = 0.5 + erf( (noise_free_left - noise_free_right) / (sqrt(output_noise_variance) * 2.0) ) * 0.5;
 
   # hack: putting a lower bound on post synaptic firing
   if (left < floor_on_post)
@@ -295,7 +295,7 @@ end
 function probability_correct(x::Float64, task_id::Int, tuning_type::TuningSelector)
   local_noise_free_output_positive_difference = noise_free_output_positive_difference(x, task_id, tuning_type);
 
-  return (0.5 + 0.5 * erf( ( local_noise_free_output_positive_difference ) / sqrt(output_noise_variance) * 2 ) );
+  return (0.5 + 0.5 * erf( ( local_noise_free_output_positive_difference ) / (sqrt(output_noise_variance) * 2) ) );
 end
 
 
