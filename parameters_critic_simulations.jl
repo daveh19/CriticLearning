@@ -38,8 +38,12 @@ running_av_window_length = 50 :: Int; #50::Int;
 learning_rate = (0.00001) #(0.000002) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
 output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 
-initial_weight_bias = (2.0); #(2.0) :: Float64; # 2.0
+initial_weight_bias = (0.0); #(2.0) :: Float64; # 2.0
 gaussian_weight_bias = (0.5) :: Float64;
+
+use_defined_performance_setup = true :: Bool;
+defined_performance_task_1 = 0.6 :: Float64;
+defined_performance_task_2 = 0.3 :: Float64;
 
 # weight constraints
 weights_upper_bound = (1e3) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;

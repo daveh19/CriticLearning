@@ -107,10 +107,26 @@ end
 function initialise_weight_matrix(tuning_type::linear_tc)
   # Remember: always call this after a and b have already been initialised!
   #set initial weights
-  global w = rand(Uniform(0,1), (no_pre_neurons_per_task, no_post_neurons, no_input_tasks));
-  for i = 1:no_input_tasks
-    w[:,1,i] += -initial_weight_bias.*b[:,i];
-    w[:,2,i] += initial_weight_bias.*b[:,i];
+  global w :: Array{Float64,3};
+
+  if (!use_defined_performance_setup)
+    w = rand(Uniform(0,1), (no_pre_neurons_per_task, no_post_neurons, no_input_tasks));
+    for i = 1:no_input_tasks
+      w[:,1,i] += -initial_weight_bias.*b[:,i];
+      w[:,2,i] += initial_weight_bias.*b[:,i];
+    end
+  else
+    w = ones(no_pre_neurons_per_task, no_post_neurons, no_input_tasks);
+    w *= 0.5;
+    invphi(p) = sqrt(2) * erfinv(2 * p - 1.0);
+    for i = 1:no_input_tasks
+      # currently assuming only two input tasks (+/-1)
+      local_pre_1 = pre(-1.0, i, linear_tc());
+      local_pre_2 = pre(1.0, i, linear_tc());
+
+      positive_difference_in_outputs_1 = erfinv(2 * defined_performance_task_1 - 1);
+      positive_difference_in_outputs_2 = erfinv(2 * defined_performance_task_2 - 1);
+    end
   end
 end
 
@@ -234,7 +250,7 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
 
   # calculated probability of getting this result given de-noised results and error size
   #   TODO: finish this code
-  trial_probability_left = 0.5 + erf((noise_free_left - noise_free_right) / (sqrt(output_noise_variance) / 2.0)) * 0.5;
+  trial_probability_left = 0.5 + erf((noise_free_left - noise_free_right) / (sqrt(output_noise_variance) * 2.0)) * 0.5;
 
   # hack: putting a lower bound on post synaptic firing
   if (left < floor_on_post)
@@ -279,7 +295,7 @@ end
 function probability_correct(x::Float64, task_id::Int, tuning_type::TuningSelector)
   local_noise_free_output_positive_difference = noise_free_output_positive_difference(x, task_id, tuning_type);
 
-  return (0.5 + 0.5 * erf( ( local_noise_free_output_positive_difference ) / sqrt(output_noise_variance) / 2 ) );
+  return (0.5 + 0.5 * erf( ( local_noise_free_output_positive_difference ) / sqrt(output_noise_variance) * 2 ) );
 end
 
 
@@ -358,7 +374,7 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
             end
 
             # probability, for a positive input (i) that we choose left
-            p_pos_left = 0.5 + 0.5 * erf( (local_noise_free_post_pos_left - local_noise_free_post_pos_right) / (sqrt(output_noise_variance) / 2.0) );
+            p_pos_left = 0.5 + 0.5 * erf( (local_noise_free_post_pos_left - local_noise_free_post_pos_right) / (sqrt(output_noise_variance) * 2.0) );
             p_pos_right = (1. - p_pos_left);
 
             if(verbosity > 2)
@@ -366,7 +382,7 @@ function post_hoc_calculate_thresholds(tuning_type::TuningSelector, subjects::Ar
             end
 
             # probability, for a negative input (-i) that we choose left
-            p_neg_left = 0.5 + 0.5 * erf( (local_noise_free_post_neg_left - local_noise_free_post_neg_right) / (sqrt(output_noise_variance) / 2.0) );
+            p_neg_left = 0.5 + 0.5 * erf( (local_noise_free_post_neg_left - local_noise_free_post_neg_right) / (sqrt(output_noise_variance) * 2.0) );
             p_neg_right = (1. - p_neg_left);
             if(verbosity > 2)
               print("p_neg_left: $p_neg_left, p_neg_right: $p_neg_right,")
@@ -460,7 +476,7 @@ function detect_threshold(tuning_type::TuningSelector, task_id::Int=1, split_out
     end
 
     # probability, for a positive input (i) that we choose left
-    p_pos_left = 0.5 + 0.5 * erf( (local_noise_free_post_pos_left - local_noise_free_post_pos_right) / (sqrt(output_noise_variance) / 2.0) );
+    p_pos_left = 0.5 + 0.5 * erf( (local_noise_free_post_pos_left - local_noise_free_post_pos_right) / (sqrt(output_noise_variance) * 2.0) );
     p_pos_right = (1. - p_pos_left);
 
     if(verbosity > 2)
@@ -468,7 +484,7 @@ function detect_threshold(tuning_type::TuningSelector, task_id::Int=1, split_out
     end
 
     # probability, for a negative input (-i) that we choose left
-    p_neg_left = 0.5 + 0.5 * erf( (local_noise_free_post_neg_left - local_noise_free_post_neg_right) / (sqrt(output_noise_variance) / 2.0) );
+    p_neg_left = 0.5 + 0.5 * erf( (local_noise_free_post_neg_left - local_noise_free_post_neg_right) / (sqrt(output_noise_variance) * 2.0) );
     p_neg_right = (1. - p_neg_left);
     if(verbosity > 2)
       print("p_neg_left: $p_neg_left, p_neg_right: $p_neg_right,")

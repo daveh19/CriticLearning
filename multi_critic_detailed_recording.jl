@@ -2142,8 +2142,8 @@ function will_subject_learn(subjects::Array{Subject,2}, task_id::Int=1, begin_id
     noise_free_post_neg_left = sum(pre_neg_1[:,task_id].*w[:,1,task_id]);
     noise_free_post_neg_right = sum(pre_neg_1[:,task_id].*w[:,2,task_id]);
 
-    p_pos_left = 0.5 + 0.5 * erf( (noise_free_post_pos_left - noise_free_post_pos_right) / (sqrt(output_noise_variance) / 2.0) );
-    p_neg_left = 0.5 + 0.5 * erf( (noise_free_post_neg_left - noise_free_post_neg_right) / (sqrt(output_noise_variance) / 2.0) );
+    p_pos_left = 0.5 + 0.5 * erf( (noise_free_post_pos_left - noise_free_post_pos_right) / (sqrt(output_noise_variance) * 2.0) );
+    p_neg_left = 0.5 + 0.5 * erf( (noise_free_post_neg_left - noise_free_post_neg_right) / (sqrt(output_noise_variance) * 2.0) );
     p_neg_right = (1. - p_neg_left);
 
     if (verbosity > 1)
