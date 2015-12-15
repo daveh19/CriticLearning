@@ -88,7 +88,7 @@ end
 function calculate_D_pos_trajectories()
   print("Calculating forward Euler trajectories in D+ space\n")
   ## Tracking of D+ space trajectories (forward Euler integrated) over time
-  global no_euler_trajectories = 15; #50; #1 :: Int;
+  global no_euler_trajectories = 50; #50; #1 :: Int;
   duration_euler_integration = 1000.0 :: Float64;
   dt_euler = 0.1 :: Float64;
 

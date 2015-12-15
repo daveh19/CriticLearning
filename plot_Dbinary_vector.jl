@@ -13,8 +13,8 @@ include("plotting_assist_functions.jl");
 
 function setup_plot_D_binary_basic_variables(local_a = 0.5, local_c = -1)
 	## Plotting over D, D~ (+ve), and p optional
-	global use_plot_over_D_pos = true :: Bool;
-	global use_plot_over_D = true :: Bool;
+	global use_plot_over_D_pos = false :: Bool;
+	global use_plot_over_D = false :: Bool;
 	global use_plot_over_p = true :: Bool;
 	# performance lines can be overlaid on plots in D-space to aid legibility
 	global use_overlay_performance_on_D = true :: Bool;

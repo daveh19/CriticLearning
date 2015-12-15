@@ -28,8 +28,8 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 	global use_overlay_p_Euler_trajectories = false :: Bool;
 	global use_overlay_D_pos_Euler_trajectories = false :: Bool;
 	# separate components of flow field
-	global use_include_learning_term_in_flow = false :: Bool;
-	global use_include_internal_bias_term_in_flow = false :: Bool;
+	global use_include_learning_term_in_flow = true :: Bool;
+	global use_include_internal_bias_term_in_flow = true :: Bool;
 	global use_include_external_bias_term_in_flow = true :: Bool;
 
 	## Space over which vector field is calculated / plotted
@@ -102,7 +102,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 
 	# Noise and external bias
 	global sigma = 1;
-	global R_ext = 1;
+	global R_ext = 0.95;
 end
 
 
@@ -295,7 +295,7 @@ function plot_linear_model_flow_vectors()
 		## Difference in positive outputs view
 		figure();
 		#streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
-		quiver(d_a,d_b,deriv_D_a_pos',deriv_D_b_pos', units="width", scale=D_pos_scale);
+		quiver(d_a, d_b, deriv_D_a_pos', deriv_D_b_pos', units="width", scale=D_pos_scale);
 		xtxt = latexstring("D_1^+");
 		ytxt = latexstring("D_2^+");
 		xlabel(xtxt)

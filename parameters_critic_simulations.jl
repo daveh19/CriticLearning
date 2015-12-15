@@ -1,5 +1,5 @@
-########## Parameters  for Binary outputs #############
-random_seed = 4::Int;#3;
+########## Parameters  for WTA-Linear outputs, which learns #############
+random_seed = 3::Int;#3;
 
 # network parameters
 #no_pre_neurons = 100;
@@ -8,7 +8,7 @@ no_post_neurons = 2::Int;
 no_input_tasks = 2::Int;
 
 # trial length parameters
-no_trials_in_block = 80::Int; #80;
+no_trials_in_block = 200::Int; #80;
 no_blocks_in_experiment = 40::Int; #20::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = true ::Bool;
@@ -20,12 +20,12 @@ use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
 reset_average_reward_on_each_block = false :: Bool;
 #use_fixed_external_bias = false :: Bool; # default to off
-fixed_external_bias_value = (0) :: Int;
+fixed_external_bias_value = (0.95) :: Float64;
 
 # changing the post part of the weight update rule
 floor_on_post = (-Inf) :: Float64; # applied in post()
-disable_winner_takes_all = true :: Bool; # applied in post()
-binary_outputs_mode = true :: Bool; # applied to dw
+disable_winner_takes_all = false :: Bool; # applied in post()
+binary_outputs_mode = false :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
 
@@ -35,10 +35,10 @@ problem_right_bound = (1.) :: Float64; #0.5;
 
 running_av_window_length = 50 :: Int; #50::Int;
 
-learning_rate = (0.0001) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
+learning_rate = (0.00001) #(0.000002) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
 output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 
-initial_weight_bias = (2.0); #(2.0); #(2.0) :: Float64; # 2.0
+initial_weight_bias = (2.0); #(2.0) :: Float64; # 2.0
 gaussian_weight_bias = (0.5) :: Float64;
 
 # weight constraints
@@ -61,8 +61,8 @@ print("Task ratio: $(1-(0.5+task_sequence_bias)):$(0.5+task_sequence_bias)\n");
 input_baseline = 2.0 :: Float64; #2.0;
 input_baseline_variance = 0.5^2; #0.25; #0.5 :: Float64; #0.5;
 task_tuning_slope_variance = zeros(no_input_tasks) :: Array{Float64,1};
-task_tuning_slope_variance[1] = 0.5^2; #0.5^2; #0.7^2; #0.5^2; #0.4; #0.375; #0.25; #0.375 :: Float64; # easy task
-task_tuning_slope_variance[2] = 0.2^2; #0.2^2; #0.25^2; #0.25; #0.0625; #0.25 :: Float64; # hard task
+task_tuning_slope_variance[1] = 0.5^2; #0.5^2; #0.5^2; #0.7^2; #0.5^2; #0.4; #0.375; #0.25; #0.375 :: Float64; # easy task
+task_tuning_slope_variance[2] = 0.2^2; #0.2^2; #0.2^2; #0.25^2; #0.25; #0.0625; #0.25 :: Float64; # hard task
 
 
 # input tuning function
