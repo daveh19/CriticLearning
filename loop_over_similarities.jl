@@ -3,9 +3,9 @@ using Distributions;
 using LaTeXStrings;
 using Debug;
 
-use_linear_outputs = true :: Bool;
+use_linear_outputs = false :: Bool;
 no_similarities = 11;
-use_trajectory_tracing_only = true :: Bool;
+use_trajectory_tracing_only = false :: Bool;
 use_show_plots = false :: Bool;
 
 use_integrate_in_p_space = false :: Bool;
@@ -61,14 +61,18 @@ else
         global use_overlay_p_Euler_trajectories = false;
         global use_overlay_D_pos_Euler_trajectories = true;
       end
+      #global use_overlay_p_Euler_trajectories = false;
+      #global use_overlay_D_pos_Euler_trajectories = false;
       use_plot_over_p = true;
       calculate_linear_model_flow_vectors();
       plot_linear_model_flow_vectors();
+      #savefig(string("linear_flow_bias_external_similarity_", similarity, ".pdf"));
     else
       setup_plot_D_binary_basic_variables(similarity);
       use_plot_over_p = true;
       calculate_binary_model_flow_vectors();
       plot_binary_model_flow_vectors();
+      #savefig(string("binary_flow_combined_similarity_", similarity, ".pdf"))
     end
   end
 end
