@@ -118,14 +118,21 @@ function initialise_weight_matrix(tuning_type::linear_tc)
   else
     w = ones(no_pre_neurons_per_task, no_post_neurons, no_input_tasks);
     w *= 0.5;
-    invphi(p) = sqrt(2) * erfinv(2 * p - 1.0);
+    D_rev(p) = 2.0 * sqrt(output_noise_variance) * erfinv(2 * p - 1.0);
+    positive_difference_in_outputs_1 = D_rev(defined_performance_task_1);
+    positive_difference_in_outputs_2 = D_rev(defined_performance_task_2);
+    local_bias = zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks);
     for i = 1:no_input_tasks
       # currently assuming only two input tasks (+/-1)
       local_pre_1 = pre(-1.0, i, linear_tc());
       local_pre_2 = pre(1.0, i, linear_tc());
 
-      positive_difference_in_outputs_1 = erfinv(2 * defined_performance_task_1 - 1);
-      positive_difference_in_outputs_2 = erfinv(2 * defined_performance_task_2 - 1);
+      #TODO: dimension mismatch, need to realign these matrices
+      local_bias[:,1,i] = positive_difference_in_outputs_1 ./ (2 * local_pre_1 .* b[:,i]) ;
+      local_bias[:,2,i] = positive_difference_in_outputs_2 ./ (2 * local_pre_1 .* b[:,i]) ;
+
+      w[:,1,i] += local_bias[:,1,i] .* b[:,i];
+      w[:,2,i] += local_bias[:,2,i] .* b[:,i];
     end
   end
 end
