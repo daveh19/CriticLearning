@@ -275,6 +275,7 @@ function noise_free_output_positive_difference(x::Float64, task_id::Int, tuning_
 end
 
 
+# probability output x is chosen given that input x is given
 function probability_correct(x::Float64, task_id::Int, tuning_type::TuningSelector)
   local_noise_free_output_positive_difference = noise_free_output_positive_difference(x, task_id, tuning_type);
 
@@ -566,9 +567,9 @@ end
 # initialise
 #  n = 0
 #  average_reward = 0
-function multi_critic_running_av_reward(R::Int, task_critic_id::Int, choice_critic_id::Int)
-  global n_critic;
-  global average_reward;
+function multi_critic_running_av_reward(R, task_critic_id::Int, choice_critic_id::Int)
+  global n_critic :: Array{Int, 2};
+  global average_reward :: Array{Float64,2};
 
   tau_r = running_av_window_length;
 
@@ -583,7 +584,7 @@ function multi_critic_running_av_reward(R::Int, task_critic_id::Int, choice_crit
   # update average_reward monitor
   average_reward[task_critic_id, choice_critic_id] = Rn;
 
-  return Rn;
+  return Rn :: Float64;
 end
 
 
