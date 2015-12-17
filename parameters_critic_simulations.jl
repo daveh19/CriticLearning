@@ -41,7 +41,8 @@ output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 initial_weight_bias = (2.0); #(2.0) :: Float64; # 2.0
 gaussian_weight_bias = (0.5) :: Float64;
 
-use_defined_performance_setup = true :: Bool;
+# the following is development code, it does not currently work
+use_defined_performance_setup = false :: Bool;
 defined_performance_task_1 = 0.6 :: Float64;
 defined_performance_task_2 = 0.3 :: Float64;
 

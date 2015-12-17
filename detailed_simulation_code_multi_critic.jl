@@ -83,6 +83,30 @@ function plot_gaussian_tuning_multi_inputs(task_id::Int=1, begin_id::Int=1, end_
 end
 
 
+# pre-synaptic firing rate upon presentation of pattern x
+function pre(x::Float64, task_id::Int, tuning_type::linear_tc)
+  local_pre = zeros(no_pre_neurons_per_task, no_input_tasks);
+  local_pre[:,task_id] = collect(a[:,task_id] + b[:,task_id] .* x); # weird vcat error in Julia v0.4
+  return local_pre;
+end
+
+# pre-synaptic firing rate upon presentation of pattern x
+#   using gaussian based tuning curves
+#   current version still maintains task specific populations
+function pre(x::Float64, task_id::Int, tuning_type::gaussian_tc)
+  local_pre = zeros(no_pre_neurons_per_task, no_input_tasks);
+
+  for neuron_id = 1:no_pre_neurons_per_task
+    for j = 1:a[neuron_id, task_id].no_curves
+      f(x) = a[neuron_id, task_id].height[j] .* exp( -(x - a[neuron_id,task_id].mu[j]).^2 ./ (2 * ( a[neuron_id, task_id].sigma[j] .^2 ) ) );
+      local_pre[neuron_id, task_id] += f(x);
+    end
+  end
+
+  return local_pre;
+end
+
+
 function initialise_weight_matrix(tuning_type::gaussian_tc)
   # Remember: always call this after a and b have already been initialised!
   #set initial weights
@@ -128,8 +152,8 @@ function initialise_weight_matrix(tuning_type::linear_tc)
       local_pre_2 = pre(1.0, i, linear_tc());
 
       #TODO: dimension mismatch, need to realign these matrices
-      local_bias[:,1,i] = positive_difference_in_outputs_1 ./ (2 * local_pre_1 .* b[:,i]) ;
-      local_bias[:,2,i] = positive_difference_in_outputs_2 ./ (2 * local_pre_1 .* b[:,i]) ;
+      local_bias[:,1,i] = positive_difference_in_outputs_1 ./ ( 2 * local_pre_1[:,i] .* b[:,i] );
+      local_bias[:,2,i] = positive_difference_in_outputs_1 ./ ( 2 * local_pre_2[:,i] .* b[:,i] ) ;
 
       w[:,1,i] += local_bias[:,1,i] .* b[:,i];
       w[:,2,i] += local_bias[:,2,i] .* b[:,i];
@@ -183,30 +207,6 @@ end
 
 
 __init__ = initialise();
-
-
-# pre-synaptic firing rate upon presentation of pattern x
-function pre(x::Float64, task_id::Int, tuning_type::linear_tc)
-  local_pre = zeros(no_pre_neurons_per_task, no_input_tasks);
-  local_pre[:,task_id] = collect(a[:,task_id] + b[:,task_id] .* x); # weird vcat error in Julia v0.4
-  return local_pre;
-end
-
-# pre-synaptic firing rate upon presentation of pattern x
-#   using gaussian based tuning curves
-#   current version still maintains task specific populations
-function pre(x::Float64, task_id::Int, tuning_type::gaussian_tc)
-  local_pre = zeros(no_pre_neurons_per_task, no_input_tasks);
-
-  for neuron_id = 1:no_pre_neurons_per_task
-    for j = 1:a[neuron_id, task_id].no_curves
-      f(x) = a[neuron_id, task_id].height[j] .* exp( -(x - a[neuron_id,task_id].mu[j]).^2 ./ (2 * ( a[neuron_id, task_id].sigma[j] .^2 ) ) );
-      local_pre[neuron_id, task_id] += f(x);
-    end
-  end
-
-  return local_pre;
-end
 
 
 # winner takes all
