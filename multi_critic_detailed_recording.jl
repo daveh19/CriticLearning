@@ -848,22 +848,22 @@ function biased_compare_three_trial_types_with_multiple_subjects()
     # can increase dimensionality of the following when I want to expand task space
     #local_prop = zeros(no_subjects);
     local_prop_1 = zeros(no_subjects);
-    #local_prop_2 = zeros(no_subjects);
+    local_prop_2 = zeros(no_subjects);
     for j = 1:no_subjects
       # save the proportions so that mean or median can be called
       #local_prop[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_correct;
       local_prop_1[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_task_correct[1];
-      #local_prop_2[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_task_correct[2];
+      local_prop_2[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_task_correct[2];
     end
     if(use_plot_mean)
       # mean calculation
       #mean_correct[i] = mean(local_prop)
-      mean_task_1_correct[i] = mean(local_prop_1)
+      mean_task_1_correct[i] = mean( (local_prop_2 + local_prop_1) / 2.0 )
       #mean_task_2_correct[i] = mean(local_prop_2)
     else
       # median calculation
       #mean_correct[i] = median(local_prop);
-      mean_task_1_correct[i] = median(local_prop_1);
+      mean_task_1_correct[i] = median( (local_prop_2 + local_prop_1) / 2.0 );
       #mean_task_2_correct[i] = median(local_prop_2);
     end
 
@@ -905,24 +905,24 @@ function biased_compare_three_trial_types_with_multiple_subjects()
   for i = 1:no_blocks_in_experiment
     # can increase dimensionality of the following when I want to expand task space
     #local_prop = zeros(no_subjects);
-    #local_prop_1 = zeros(no_subjects);
+    local_prop_1 = zeros(no_subjects);
     local_prop_2 = zeros(no_subjects);
     for j = 1:no_subjects
       # save the proportions so that mean or median can be called
       #local_prop[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_correct;
-      #local_prop_1[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_task_correct[1];
+      local_prop_1[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_task_correct[1];
       local_prop_2[j] = latest_experiment_results.subjects_roving_task[j, roving_experiment_id].blocks[i].proportion_task_correct[2];
     end
     if(use_plot_mean)
       # mean calculation
       #mean_correct[i] = mean(local_prop)
       #mean_task_1_correct[i] = mean(local_prop_1)
-      mean_task_2_correct[i] = mean(local_prop_2)
+      mean_task_2_correct[i] = mean( (local_prop_2 + local_prop_1) / 2.0 )
     else
       # median calculation
       #mean_correct[i] = median(local_prop);
       #mean_task_1_correct[i] = median(local_prop_1);
-      mean_task_2_correct[i] = median(local_prop_2);
+      mean_task_2_correct[i] = median( (local_prop_2 + local_prop_1) / 2.0 );
     end
 
     # other deviation and range statistics
@@ -1457,7 +1457,6 @@ function plot_biased_multi_subject_experiment_as_subplots(latest_experiment_resu
   plot(block_id-0.1, latest_experiment_results.roving_correct[:,2], "g", linewidth=3, label="Biased task 2")
   ##plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,1], "c", linewidth=3, label="Subtask 1, from biased tasks")
   #plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,2], "m", linewidth=3, label="Subtask 2, from biased tasks")
-
 
   legend(loc=4)
 end
