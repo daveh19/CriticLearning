@@ -23,7 +23,7 @@ if (use_trajectory_tracing_only)
       figure()
       plot_p_space_trajectories(p_trajectories)
     end
-    report_end_point_results(p_trajectories)
+    report_p_trajectory_end_point_results(p_trajectories, similarity)
   end
 else
   ## or loop over plotting of vector fields (which costs almost nothing)
