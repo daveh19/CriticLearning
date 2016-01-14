@@ -8,7 +8,8 @@ dist_pdf(x) = pdf(Normal(0,1), x);
 dist_cdf(x) = cdf(Normal(0,1), x);
 # Note: inv_cdf(x) != 1.0 / cdf(Normal(0,1), x); #Not 1/fn but inverse function!!
 include("inverse_cdf.jl"); #contains invnorm(), consider switching to invphi()
-invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
+invphi(p) = sqrt(2) * erfinv(2 * p - 1.0) # variance 1 inverse phi function
+#invphi(p) = 2.0 * erfinv(2 * p - 1.0) # variance 2 (1+1) inverse phi function
 include("plotting_assist_functions.jl");
 
 function setup_plot_D_binary_basic_variables(local_a = 0.5, local_c = -1)
@@ -26,10 +27,10 @@ function setup_plot_D_binary_basic_variables(local_a = 0.5, local_c = -1)
 	# separate components of flow field
 	global use_include_learning_term_in_flow = true :: Bool;
 	global use_include_internal_bias_term_in_flow = true :: Bool;
-	global use_include_external_bias_term_in_flow = true :: Bool;
+	global use_include_external_bias_term_in_flow = false :: Bool;
 
 	## Space over which vector field is calculated / plotted
-	global no_points = 25;
+	global no_points = 17; #25;
 	#no_points = 10;
 	#no_y_points = no_points - 1;
 	# The no_y_points is to ensure that I plot the vector field in the right direction,
@@ -63,7 +64,7 @@ function setup_plot_D_binary_basic_variables(local_a = 0.5, local_c = -1)
 
 
 	# Confusion parameter
-	global critic_dimensions = 4;
+	global critic_dimensions = 2;
 	# perfect critic (overwritten if any of the following are active)
 	global C = eye(critic_dimensions)
 	#=
