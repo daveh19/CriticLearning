@@ -6,10 +6,11 @@ using Debug;
 ### Useful functions
 ## There are a number of alternative ways to calculate pdf and cdf inverse
 dist_pdf(x) = pdf(Normal(0,1), x);
-dist_cdf(x) = cdf(Normal(0,1), x);
+dist_cdf(x) = cdf(Normal(0,1), x); # \Phi()
 # Note: inv_cdf(x) != 1.0 / cdf(Normal(0,1), x); #Not 1/fn but inverse function!!
 include("inverse_cdf.jl"); #contains invnorm(), consider switching to invphi()
-invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
+invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)# variance 1 inverse phi function
+#invphi(p) = 2.0 * erfinv(2 * p - 1.0) # variance 2 (1+1) inverse phi function
 include("plotting_assist_functions.jl");
 
 include("p_space_outcome_integrator_linear.jl"); # trajectories initialised in p-space in this source file
@@ -55,7 +56,7 @@ end
 
 
 function set_initial_trajectory_points_in_D_pos_space(no_euler_trajectories::Int, duration_euler_integration::Float64, dt_euler::Float64) #via initialisation in p-space
-  global euler_integration_timesteps = int(duration_euler_integration / dt_euler) :: Int;
+  global euler_integration_timesteps = round(Int, duration_euler_integration / dt_euler) :: Int;
   # p_trajectories : [ p1, p2, dimenstion(task performance), time ]
   global D_pos_trajectories = zeros(no_euler_trajectories, no_euler_trajectories, 2, euler_integration_timesteps);
 

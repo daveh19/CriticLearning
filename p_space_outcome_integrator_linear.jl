@@ -9,7 +9,9 @@ dist_pdf(x) = pdf(Normal(0,1), x);
 dist_cdf(x) = cdf(Normal(0,1), x);
 # Note: inv_cdf(x) != 1.0 / cdf(Normal(0,1), x); #Not 1/fn but inverse function!!
 include("inverse_cdf.jl"); #contains invnorm(), consider switching to invphi()
-invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
+invphi(p) = sqrt(2) * erfinv(2 * p - 1.0) # variance 1 inverse phi function
+# invphi(p) = mu + sqrt(2) * sqrt(sigma^2) * erfinv(2 * p - 1.0) # full inverse phi formula (probit function)
+#invphi(p) = 2.0 * erfinv(2 * p - 1.0) # variance 2 (1+1) inverse phi function
 include("plotting_assist_functions.jl");
 
 
@@ -53,7 +55,7 @@ end
 
 
 function set_initial_trajectory_points_in_p_space(no_euler_trajectories::Int, duration_euler_integration::Float64, dt_euler::Float64)
-  global euler_integration_timesteps = int(duration_euler_integration / dt_euler) :: Int;
+  global euler_integration_timesteps = round(Int, duration_euler_integration / dt_euler) :: Int;
   global p_trajectories = zeros(no_euler_trajectories, no_euler_trajectories, 2, euler_integration_timesteps);
   # p_trajectories : [ trajectory_id, p1, p2, time ]
 
