@@ -1,6 +1,7 @@
 using PyPlot;
 using Distributions;
 using LaTeXStrings;
+using Debug;
 
 ### Useful functions
 ## There are a number of alternative ways to calculate pdf and cdf inverse
@@ -8,7 +9,8 @@ dist_pdf(x) = pdf(Normal(0,1), x);
 dist_cdf(x) = cdf(Normal(0,1), x);
 # Note: inv_cdf(x) != 1.0 / cdf(Normal(0,1), x); #Not 1/fn but inverse function!!
 include("inverse_cdf.jl"); #contains invnorm(), consider switching to invphi()
-invphi(p) = sqrt(2) * erfinv(2 * p - 1.0)
+invphi(p) = sqrt(2) * erfinv(2 * p - 1.0) # variance 1 inverse phi function
+#invphi(p) = 2.0 * erfinv(2 * p - 1.0) # variance 2 (1+1) inverse phi function
 include("plotting_assist_functions.jl");
 include("p_space_outcome_integrator_linear.jl");
 include("d_pos_space_outcome_integrator_linear.jl");
@@ -22,7 +24,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 	global use_overlay_performance_on_D = true :: Bool;
 	# simulation trajectories
 	global use_add_trajectories_to_plot = false :: Bool;
-	global sub_task_id_to_plot = 1 ::Int;
+	global sub_task_id_to_plot = 2 ::Int;
 	global use_plot_measured_proportion_correct = false :: Bool;
 	# forward Euler integrated trajectories
 	global use_overlay_p_Euler_trajectories = false :: Bool;
@@ -30,10 +32,10 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 	# separate components of flow field
 	global use_include_learning_term_in_flow = true :: Bool;
 	global use_include_internal_bias_term_in_flow = true :: Bool;
-	global use_include_external_bias_term_in_flow = true :: Bool;
+	global use_include_external_bias_term_in_flow = false :: Bool;
 
 	## Space over which vector field is calculated / plotted
-	global no_points = 25; #30;
+	global no_points = 17; #25; #30;
 	#no_points = 10;
 	#no_y_points = no_points - 1;
 	# The no_y_points is to ensure that I plot the vector field in the right direction,
@@ -67,7 +69,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 
 
 	# Confusion parameter
-	global critic_dimensions = 4;
+	global critic_dimensions = 2;
 	# perfect critic (overwritten if any of the following are active)
 	global C = eye(critic_dimensions)
 	#=
@@ -79,14 +81,17 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 
 	# Probabilistic presentation of individual tasks critic
 	global prob_task = ones(1,critic_dimensions);
+	global internal_task_probability = ones(1,2) / 2;
 	prob_task /= critic_dimensions;
+	prob_task = [0.5 0.5]; #[0.25 0.25 0.5];
 	#prob_task = [1, 0.001, 10, 10]; # manual tweaking
 	#prob_task /= sum(prob_task); # normalise, so I can use arbitrary units
 	# this influences Confustion matrix
 	for k = 1:critic_dimensions
-		C[k,:] = prob_task;
+		C[k,:] = prob_task[1:critic_dimensions];
 	end
 	global A = eye(critic_dimensions) - C;
+	#A = eye(critic_dimensions);
 
 	if(local_c != -1)
 		global A = eye(critic_dimensions) - local_c;
@@ -102,7 +107,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 
 	# Noise and external bias
 	global sigma = 1;
-	global R_ext = 0.95;
+	global R_ext = 0.95; #0.95;
 end
 
 
@@ -150,8 +155,8 @@ function calculate_linear_model_flow_vectors()
 				end
 
 				# Multiply by probability of occurence of each task
-				temp_a *= prob_task[1];
-				temp_b *= prob_task[2];
+				temp_a *= internal_task_probability[1]; #prob_task[1];
+				temp_b *= internal_task_probability[2]; #prob_task[2];
 
 				# putting it all together
 				deriv_D_a_pos[i,j] = ( O[1] * S[1,1] * temp_a + O[2] * S[1,2] * temp_b );
@@ -201,8 +206,8 @@ function calculate_linear_model_flow_vectors()
 				end
 
 				# Multiply by probability of occurence of each task
-				temp_a *= prob_task[1];
-				temp_b *= prob_task[2];
+				temp_a *= internal_task_probability[1]; #prob_task[1];
+				temp_b *= internal_task_probability[2]; #prob_task[2];
 
 				# putting it all together
 				deriv_D_a[i,j] = ( O[1] * S[1,1] * temp_a + O[2] * S[1,2] * temp_b );
@@ -251,17 +256,17 @@ function calculate_linear_model_flow_vectors()
 				end
 
 				# Multiply by probability of occurence of each task
-				p_temp_a *= prob_task[1];
-				p_temp_b *= prob_task[2];
+				p_temp_a *= internal_task_probability[1]; #prob_task[1];
+				p_temp_b *= internal_task_probability[2]; #prob_task[2];
 
 				# putting it all together
 				p_deriv_D_a[i,j] = (O[1] * S[1,1] * p_temp_a + O[2] * S[1,2] * p_temp_b);
 				p_deriv_D_b[i,j] = (O[1] * S[2,1] * p_temp_a + O[2] * S[2,2] * p_temp_b);
-
+#@bp
 				# we need to transform derivatives to D_pos space
 				p_deriv_D_a[i,j] *= O[1];
 				p_deriv_D_b[i,j] *= O[2];
-
+#@bp
 				# and we scale everything by the pdf of the underlying probability
 				deriv_p_a[i,j] = pdf(Normal(0,sigma), Da[i]) * p_deriv_D_a[i,j];
 				deriv_p_b[i,j] = pdf(Normal(0,sigma), Db[j]) * p_deriv_D_b[i,j];
@@ -430,7 +435,7 @@ function plot_linear_model_flow_vectors()
 
 	if (use_plot_over_p)
 		## probabilistic view
-		figure();
+		figure(figsize=(5,5));
 		##streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
 		quiver(p,p_y,deriv_p_a',deriv_p_b', units="width", scale=p_scale);
 		xtxt = latexstring("p_1");
