@@ -6,10 +6,10 @@
 
 task_id = 2;
 exp_id = 1;
-use_linear_out = true :: Bool;
-use_roving_subjects = true :: Bool;
+use_linear_out = false :: Bool;
+use_roving_subjects = false :: Bool;
 
-result_set_id = 2 :: Int;
+result_set_id = 1 :: Int;
 
 # set critic_dimensions and
 # comment out S and
@@ -34,6 +34,9 @@ for i=1:no_subjects
 	if(use_linear_out)
     include("plot_D_vector.jl");
 		setup_plot_D_basic_variables();
+	else
+		include("plot_Dbinary_vector.jl");
+		setup_plot_D_binary_basic_variables();
 	end
 
 #=	if(use_roving_subjects)
@@ -59,11 +62,14 @@ for i=1:no_subjects
   if(use_linear_out)
     #include("plot_D_vector.jl");
 		#setup_plot_D_basic_variables();
+		global use_overlay_D_pos_Euler_trajectories = false;
 		global use_overlay_p_Euler_trajectories = false;
 		calculate_linear_model_flow_vectors()
 		plot_linear_model_flow_vectors()
 	else
-    include("plot_Dbinary_vector.jl")
+    #include("plot_Dbinary_vector.jl")
+		calculate_binary_model_flow_vectors()
+		plot_binary_model_flow_vectors()
   end
 	if (!use_roving_subjects)
   	add_specific_trajectory_to_linear_p_plot(exp_results[result_set_id],task_id, i);
