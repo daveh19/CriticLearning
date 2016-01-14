@@ -3,8 +3,8 @@ using Distributions;
 using LaTeXStrings;
 using Debug;
 
-use_linear_outputs = false :: Bool;
-no_similarities = 11;
+use_linear_outputs = true :: Bool;
+no_similarities = 5; #11;
 use_trajectory_tracing_only = false :: Bool;
 use_show_plots = false :: Bool;
 
@@ -61,8 +61,8 @@ else
         global use_overlay_p_Euler_trajectories = false;
         global use_overlay_D_pos_Euler_trajectories = true;
       end
-      #global use_overlay_p_Euler_trajectories = false;
-      #global use_overlay_D_pos_Euler_trajectories = false;
+      global use_overlay_p_Euler_trajectories = false;
+      global use_overlay_D_pos_Euler_trajectories = false;
       use_plot_over_p = true;
       calculate_linear_model_flow_vectors();
       plot_linear_model_flow_vectors();
