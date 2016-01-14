@@ -1,3 +1,46 @@
+###########
+# handy fig mod code
+
+# modify contents of plt[:rcParams] dictionary
+rc("axes",labelsize="xx-large")
+
+
+title("")
+f = gcf()
+f[:set_dpi](100)
+f[:set_size_inches](4.5,5,forward=true);
+f[:savefig]("sinergia_flow.pdf",  bbox_inches="tight")
+
+
+
+f = gcf()
+f[:set_dpi](100)
+f[:set_size_inches](5,5,forward=true);
+
+
+
+rcdefaults() # restore default settings for matplotlib
+ion() # turn interactive plots back on after reset
+plt[:show]() # manually show a plot if interactive plots is off
+
+
+D = get_fignums()
+for i in D
+  plt[:figure](i)
+  #ylabel("test")
+  f[:savefig](string("figure_title_%i.pdf"),  bbox_inches="tight")
+end
+
+
+f[:savefig]("figure_title.pdf",  bbox_inches="tight")
+
+
+plt[:rcParams]["axes.labelsize"]
+fontsizes = ['xx-small', 'x-small', 'small', 'medium', 'large',
+                 'x-large', 'xx-large', 'smaller', 'larger']
+
+
+###########
 if false
 print_single_block_performance(exp_results[1].subjects_task1[9].blocks[end])
 
