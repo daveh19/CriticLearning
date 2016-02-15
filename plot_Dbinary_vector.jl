@@ -25,12 +25,12 @@ function setup_plot_D_binary_basic_variables(local_a = 0.5, local_c = -1)
 	global use_plot_measured_proportion_correct = false ::Bool;
 	#TODO: forward Euler trajectories not yet implemented for binary outputs
 	# separate components of flow field
-	global use_include_learning_term_in_flow = true :: Bool;
+	global use_include_learning_term_in_flow = false :: Bool;
 	global use_include_internal_bias_term_in_flow = true :: Bool;
 	global use_include_external_bias_term_in_flow = false :: Bool;
 
 	## Space over which vector field is calculated / plotted
-	global no_points = 17; #25;
+	global no_points = 15; #17; #25;
 	#no_points = 10;
 	#no_y_points = no_points - 1;
 	# The no_y_points is to ensure that I plot the vector field in the right direction,
@@ -46,7 +46,7 @@ function setup_plot_D_binary_basic_variables(local_a = 0.5, local_c = -1)
 
 	global D_pos_scale = 20.0 :: Float64;
 	global D_scale = 20.0 :: Float64;
-	global p_scale = 1.0 :: Float64;
+	global p_scale = 0.5 :: Float64;
 
 	#debug vars
 	global Da = zeros(no_points);
@@ -64,7 +64,7 @@ function setup_plot_D_binary_basic_variables(local_a = 0.5, local_c = -1)
 
 
 	# Confusion parameter
-	global critic_dimensions = 2;
+	global critic_dimensions = 4;
 	# perfect critic (overwritten if any of the following are active)
 	global C = eye(critic_dimensions)
 	#=
@@ -432,6 +432,7 @@ function plot_binary_model_flow_vectors()
 			titletxt = latexstring();
 			title("Similarity s=$aa, R_ext = $R_ext, no external processes = $(critic_dimensions-2)");
 		end
+		axis([-0.02,1.02,-0.02,1.02]);
 	end
 
 

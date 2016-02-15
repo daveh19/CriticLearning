@@ -32,10 +32,10 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 	# separate components of flow field
 	global use_include_learning_term_in_flow = true :: Bool;
 	global use_include_internal_bias_term_in_flow = true :: Bool;
-	global use_include_external_bias_term_in_flow = false :: Bool;
+	global use_include_external_bias_term_in_flow = true :: Bool;
 
 	## Space over which vector field is calculated / plotted
-	global no_points = 17; #25; #30;
+	global no_points = 15; #17; #25; #30;
 	#no_points = 10;
 	#no_y_points = no_points - 1;
 	# The no_y_points is to ensure that I plot the vector field in the right direction,
@@ -51,7 +51,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 
 	global D_pos_scale = 20.0:: Float64;
 	global D_scale = 20.0 :: Float64;
-	global p_scale = 1.0:: Float64;
+	global p_scale = 0.5:: Float64;
 
 	#debug vars
 	global Da = zeros(no_points);
@@ -80,10 +80,10 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 	A = eye(critic_dimensions) - C=#
 
 	# Probabilistic presentation of individual tasks critic
-	global prob_task = ones(1,critic_dimensions);
-	global internal_task_probability = ones(1,2) / 2;
+	global internal_task_probability = ones(1,2) / 2; # relative probability of task 1 vs task 2
+	global prob_task = ones(1,critic_dimensions); # only used in critic now!
 	prob_task /= critic_dimensions;
-	prob_task = [0.5 0.5]; #[0.25 0.25 0.5];
+	prob_task = [0.5 0.5 0.5]; #[0.5 0.5]; #[0.25 0.25 0.25 0.25]; #[0.25 0.25 0.5];
 	#prob_task = [1, 0.001, 10, 10]; # manual tweaking
 	#prob_task /= sum(prob_task); # normalise, so I can use arbitrary units
 	# this influences Confustion matrix
@@ -460,6 +460,8 @@ function plot_linear_model_flow_vectors()
 			plot_D_pos_space_trajectories_in_p_space(D_pos_trajectories)
 			#report_end_point_results(p_trajectories)
 		end
+
+		axis([-0.01,1.01,-0.01,1.01])
 	end
 
 

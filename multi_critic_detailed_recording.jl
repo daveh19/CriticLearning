@@ -1110,15 +1110,15 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
 
   ## Task 1 subplot
   subplot(222)
-  xlim((0,no_blocks_in_experiment))
-  ylim((0,1))
+  xlim((0-0.1,no_blocks_in_experiment+0.1))
+  ylim((0-0.02,1+0.02))
   xlabel("Block number")
   ylabel("Proportion correct")
 
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i, latest_experiment_results.subjects_task[j,1].blocks[i].proportion_correct, marker="o", c="r")
+        scatter(i, latest_experiment_results.subjects_task[j,1].blocks[i].proportion_correct, marker="o", edgecolors="face", c="r", alpha=0.5)
         if(plotting_separate_choices_on)
           # adding plotting of sub-task related results
           scatter(i, latest_experiment_results.subjects_task[j,1].blocks[i].proportion_task_correct[1], marker="o", c="c")
@@ -1159,15 +1159,15 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
 
   ## Task 2 subplot
   subplot(223)
-  xlim((0,no_blocks_in_experiment))
-  ylim((0,1))
+  xlim((0-0.1,no_blocks_in_experiment+0.1))
+  ylim((0-0.02,1+0.02))
   xlabel("Block number")
   ylabel("Proportion correct")
 
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i+0.1, latest_experiment_results.subjects_task[j,2].blocks[i].proportion_correct, marker="o", c="g")
+        scatter(i+0.1, latest_experiment_results.subjects_task[j,2].blocks[i].proportion_correct, marker="o", edgecolors="face", c="g", alpha=0.5)
         if(plotting_separate_choices_on)
           # adding plotting of sub-task related results
           scatter(i+0.1, latest_experiment_results.subjects_task[j,2].blocks[i].proportion_task_correct[1], marker="o", c="c")
@@ -1208,18 +1208,18 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
 
   ## Roving subplot
   subplot(224)
-  xlim((0,no_blocks_in_experiment))
-  ylim((0,1))
+  xlim((0-0.1,no_blocks_in_experiment+0.1))
+  ylim((0-0.02,1+0.02))
   xlabel("Block number")
   ylabel("Proportion correct")
 
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct, marker="o", c="b")
+        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct, marker="o", edgecolors="face", c="b", alpha=0.7)
         if(plotting_task_by_task_on)
-          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[1], marker="o", c="r")
-          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[2], marker="o", c="g")
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[1], marker="o", edgecolors="face", c="r", alpha=0.3)
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[2], marker="o", edgecolors="face", c="g", alpha=0.3)
         end
       end
     end
@@ -1249,8 +1249,8 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
   end
 
   plot(block_id-0.1, latest_experiment_results.roving_correct[:,1], "b", linewidth=3, label="Roving tasks")
-  plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,1,1], "k", linewidth=3, label="Task 1, from roving tasks")
-  plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,1], "k", linewidth=3, label="Task 2, from roving tasks")
+  plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,1,1], "r", linewidth=3, label="Task 1, from roving tasks")
+  plot(block_id-0.1, latest_experiment_results.roving_task_correct[:,2,1], "g", linewidth=3, label="Task 2, from roving tasks")
 
 
   legend(loc=4)
@@ -1267,8 +1267,8 @@ function plot_biased_multi_subject_experiment_as_subplots(latest_experiment_resu
     suptitle("For x in ($problem_left_bound, $problem_right_bound), proportion correct. Comparing three task types. No critic")
   end
   subplot(231);
-  xlim((0,no_blocks_in_experiment))
-  ylim((0,1))
+  xlim((0-0.1,no_blocks_in_experiment+0.1))
+  ylim((0-0.02,1+0.02))
   xlabel("Block number")
   ylabel("Proportion correct")
 
@@ -1281,8 +1281,8 @@ function plot_biased_multi_subject_experiment_as_subplots(latest_experiment_resu
 
   ## Task 1 subplot
   subplot(232)
-  xlim((0,no_blocks_in_experiment))
-  ylim((0,1))
+  xlim((0-0.1,no_blocks_in_experiment+0.1))
+  ylim((0-0.02,1+0.02))
   xlabel("Block number")
   ylabel("Proportion correct")
 
@@ -1330,8 +1330,8 @@ function plot_biased_multi_subject_experiment_as_subplots(latest_experiment_resu
 
   ## Task 2 subplot
   subplot(233)
-  xlim((0,no_blocks_in_experiment))
-  ylim((0,1))
+  xlim((0-0.1,no_blocks_in_experiment+0.1))
+  ylim((0-0.02,1+0.02))
   xlabel("Block number")
   ylabel("Proportion correct")
 
@@ -1379,8 +1379,8 @@ function plot_biased_multi_subject_experiment_as_subplots(latest_experiment_resu
 
   ## Biased 1 subplot
   subplot(235)
-  xlim((0,no_blocks_in_experiment))
-  ylim((0,1))
+  xlim((0-0.1,no_blocks_in_experiment+0.1))
+  ylim((0-0.02,1+0.02))
   xlabel("Block number")
   ylabel("Proportion correct")
 
@@ -1429,19 +1429,20 @@ function plot_biased_multi_subject_experiment_as_subplots(latest_experiment_resu
 
   ## Biased 2 subplot
   subplot(236)
-  xlim((0,no_blocks_in_experiment))
-  ylim((0,1))
+  xlim((0-0.1,no_blocks_in_experiment+0.1))
+  ylim((0-0.02,1+0.02))
   xlabel("Block number")
   ylabel("Proportion correct")
 
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_correct, marker="o", c="g")
+        #delete here for simple mean plot
+        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_correct, marker="o", edgecolors="face", c="g", alpha=0.5)
         if(plotting_separate_choices_on)#(plotting_task_by_task_on)
           # plotting fixed bias, from task 1 on exp 1 and task 2 on exp 2
-          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_task_correct[1], marker="o", c="c")
-          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_task_correct[2], marker="o", c="m")
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_task_correct[1], marker="o", c="c", edgecolors="face", alpha=0.3)
+          scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,2].blocks[i].proportion_task_correct[2], marker="o", c="m", edgecolors="face", alpha=0.3)
         end
       end
     end
@@ -1466,6 +1467,7 @@ function plot_biased_multi_subject_experiment_as_subplots(latest_experiment_resu
         plot(block_id-0.1, local_prop_roving_task_1_correct, "c")
         plot(block_id-0.1, local_prop_roving_task_2_correct, "m")
       end
+      #delete here for simple mean plot
       plot(block_id-0.1, local_prop_roving_correct, "g")
     end
   end

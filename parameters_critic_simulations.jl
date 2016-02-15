@@ -20,12 +20,12 @@ use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
 reset_average_reward_on_each_block = false :: Bool;
 #use_fixed_external_bias = false :: Bool; # default to off
-fixed_external_bias_value = (0.95) :: Float64;
+fixed_external_bias_value = (1.2) :: Float64;
 
 # changing the post part of the weight update rule
 floor_on_post = (-Inf) :: Float64; # applied in post()
-disable_winner_takes_all = false :: Bool; # applied in post()
-binary_outputs_mode = false :: Bool; # applied to dw
+disable_winner_takes_all = true :: Bool; # applied in post()
+binary_outputs_mode = true :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
 
@@ -121,4 +121,4 @@ plotting_error_bars_on = false :: Bool; # standard deviation from the mean
 use_plot_mean = false :: Bool; # plot mean rather than median for proportions correct
 # The following two are not equivalent
 plotting_task_by_task_on = true :: Bool; # Separated task plotting in roving experiment
-plotting_separate_choices_on = false :: Bool; # Separated proportion correct plotting in each experiment, eg. for left versus right
+plotting_separate_choices_on = true :: Bool; # Separated proportion correct plotting in each experiment, eg. for left versus right

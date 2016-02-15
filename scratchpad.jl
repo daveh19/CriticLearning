@@ -1,6 +1,8 @@
 ###########
 # handy fig mod code
 
+latest_experiment_results = exp_results[1];
+
 # modify contents of plt[:rcParams] dictionary
 rc("axes",labelsize="xx-large")
 
@@ -16,7 +18,7 @@ f[:savefig]("sinergia_flow.pdf",  bbox_inches="tight")
 f = gcf()
 f[:set_dpi](100)
 f[:set_size_inches](5,5,forward=true);
-
+f[:savefig]("sinergia_flow.pdf",  bbox_inches="tight")
 
 
 rcdefaults() # restore default settings for matplotlib

@@ -5,7 +5,7 @@
 #   accurate flow fields for each simulation in turn
 
 task_id = 2;
-exp_id = 1;
+exp_id = 2;
 use_linear_out = false :: Bool;
 use_roving_subjects = false :: Bool;
 

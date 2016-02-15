@@ -37,7 +37,7 @@ function add_trajectories_to_linear_p_plot(latest_experiment_results, sub_task_i
 		end
 	end
 
-	axis([-0.005,1.005,-0.005,1.005]);
+	axis([-0.02,1.02,-0.02,1.02]);
 end
 
 
@@ -76,7 +76,7 @@ function add_biased_trajectories_to_linear_p_plot(latest_experiment_results, sub
 		end
 	end
 
-	axis([-0.005,1.005,-0.005,1.005]);
+	axis([-0.02,1.02,-0.02,1.02]);
 end
 
 
@@ -115,7 +115,7 @@ function add_specific_trajectory_to_linear_p_plot(latest_experiment_results, sub
         end
     end
 
-    axis([-0.005,1.005,-0.005,1.005]);
+    axis([-0.02,1.02,-0.02,1.02]);
 end
 
 
@@ -154,7 +154,7 @@ function add_specific_roving_trajectory_to_linear_p_plot(latest_experiment_resul
         end
     end
 
-    axis([-0.005,1.005,-0.005,1.005]);
+    axis([-0.02,1.02,-0.02,1.02]);
 end
 
 

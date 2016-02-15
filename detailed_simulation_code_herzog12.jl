@@ -49,7 +49,7 @@ function initialise()
   global instance_incorrect = 0;
 
   global proportion_1_correct = 0.0;
-  global proportion_2_correct = 0.0; 
+  global proportion_2_correct = 0.0;
 
   #global results = Array(Multi_subject_experiment_results,0);
   global exp_results = Array(RovingExperiment, 0);
@@ -143,7 +143,7 @@ function reward(x, is_problem_1::Bool)
 	if ((x > 0) && (local_post[2] != 0))#right
     if(verbosity > 1)
       global instance_correct += 1;
-      print("Greater than zero (x: $x)\n") 
+      print("Greater than zero (x: $x)\n")
     end
 		return 1
 	elseif (x < 0 && local_post[1] != 0)#left
@@ -260,7 +260,7 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
     right_sum_w = sum(w[:,2]);
     print("before weight change, sum w left: $left_sum_w, sum w right: $right_sum_w\n")
   end
-  
+
   # the weight update
   global w += dw;
   if (verbosity > 3)
@@ -268,13 +268,12 @@ function update_weights(x, is_problem_1::Bool, trial_dat::Trial)
     right_sum_w = sum(w[:,2]);
     print("after weight change, sum w left: $left_sum_w, sum w right: $right_sum_w\n")
   end
-  
+
   trial_dat.mag_dw = sum(abs(dw));
-  
+
   # hard bound weights at +/- 10
   w[w .> weights_upper_bound] = weights_upper_bound;
   w[w .< weights_lower_bound] = weights_lower_bound;
 
   return (local_reward+1); # make it 0 or 2, rather than +/-1
 end
-

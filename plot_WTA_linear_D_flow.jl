@@ -35,7 +35,7 @@ function setup_plot_wta_D_basic_variables(local_a = 0.5, local_c = -1)
 	global use_include_external_bias_term_in_flow = true :: Bool;
 
 	## Space over which vector field is calculated / plotted
-	global no_points = 17; #25; #30;
+	global no_points = 15; #17; #25; #30;
 	#no_points = 10;
 	#no_y_points = no_points - 1;
 	# The no_y_points is to ensure that I plot the vector field in the right direction,
@@ -107,12 +107,12 @@ function setup_plot_wta_D_basic_variables(local_a = 0.5, local_c = -1)
 
 	# Noise and external bias
 	global sigma = 1;
-	global R_ext = 0.1; #0.95;
+	global R_ext = -0.95; #0.95;
 
 	#mu2 associated with less favourable output choice (be careful of this!)
 	global mu2 = zeros(2);
-	mu2[1] = 14; # 40Hz mu_2 for input task 1
-	mu2[2] = 14; # 40Hz mu_2 for input task 1
+	mu2[1] = 40; # 40Hz mu_2 for input task 1
+	mu2[2] = 40; # 40Hz mu_2 for input task 1
 end
 
 
