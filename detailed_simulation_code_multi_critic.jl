@@ -193,6 +193,9 @@ function initialise()
   global instance_correct = 0;
   global instance_incorrect = 0;
 
+  # intrinsic plasticity requires running averages of post-synaptic firing rates
+  global average_post = zeros(no_post_neurons);
+
   global proportion_1_correct = 0.0;
   global proportion_2_correct = 0.0;
 
@@ -242,18 +245,41 @@ function wta(left::Float64, right::Float64, debug_on::Bool = false)
 end
 
 
+# intrinsic excitability is modified by a running average of recent post-synaptic activity
+function update_intrinsic_excitability(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::Bool=false)
+#TODO
+end
+
+
+function noise_free_post(x::Float64, task_id::Int, tuning_type::TuningSelector)
+  local_pre = pre(x, task_id, tuning_type)
+
+  noise_free_left = sum(local_pre[:,task_id] .* w[:,1,task_id]);
+  noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
+
+  return (noise_free_left, noise_free_right);
+end
+
 # post-synaptic firing rate upon presentation of pattern x
 #  no longer generating a new noise value (ksi) on each call,
 #  this must be done externally to allow for repeatibility during debug
 # Note: local_post returns a tuple where one value is 0. All comparisons to find the non zero value should use absolute comparison.
 function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::Bool=false)
-	local_pre = pre(x, task_id, tuning_type)
+	#local_pre = pre(x, task_id, tuning_type)
+  #noise_free_left = sum(local_pre[:,task_id] .* w[:,1,task_id]);
+  #noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
 
-  noise_free_left = sum(local_pre[:,task_id] .* w[:,1,task_id]);
-  noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
+  (noise_free_left, noise_free_right) = noise_free_post(x, task_id, tuning_type);
 
   left = noise_free_left + ksi[1]
 	right = noise_free_right+ ksi[2]
+
+  # intrinsic plasticity subtracts a running average of post
+  if( use_intrinsic_plasticity )
+    # we use intrinsic_baseline to offset post synaptic firing from zero
+    left = left - average_post[1] + intrinsic_baseline[1];
+    right = right - average_post[2] + intrinsic_baseline[2];
+  end
 
   # calculated probability of getting this result given de-noised results and error size
   #   TODO: finish this code
@@ -283,10 +309,11 @@ end
 # calculate the noise-free difference in the outputs for a given input
 #   return value is positively associated with correct classification
 function noise_free_output_positive_difference(x::Float64, task_id::Int, tuning_type::TuningSelector)
-  local_pre = pre(x, task_id, tuning_type)
+  #local_pre = pre(x, task_id, tuning_type)
+  #noise_free_left = sum(local_pre[:,task_id] .* w[:,1,task_id]);
+  #noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
 
-  noise_free_left = sum(local_pre[:,task_id] .* w[:,1,task_id]);
-  noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
+  (noise_free_left, noise_free_right) = noise_free_post(x, task_id, tuning_type);
 
   output_sign_selector = 1;
   if (x > 0)

@@ -28,6 +28,7 @@ disable_winner_takes_all = true :: Bool; # applied in post()
 binary_outputs_mode = true :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
+use_intrinsic_plasticity = true :: Bool; #enable updating, and subtraction of an intrinsic plasticity factor from post
 
 # problem difficulty parameters
 problem_left_bound = (-1.) :: Float64; #-0.5;
@@ -50,6 +51,8 @@ defined_performance_task_2 = 0.3 :: Float64;
 weights_upper_bound = (1e3) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
 weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 
+# intrinsic plasticity baseline offset
+intrinsic_baseline = [30.0, 30.0] :: Array{Float64,1};
 
 # choose input sequence
 use_cts_random_inputs = false :: Bool;
