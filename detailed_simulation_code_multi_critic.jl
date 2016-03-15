@@ -195,6 +195,7 @@ function initialise()
 
   # intrinsic plasticity requires running averages of post-synaptic firing rates
   global average_post = zeros(no_post_neurons);
+  global n_post = 0.0;
 
   global proportion_1_correct = 0.0;
   global proportion_2_correct = 0.0;
@@ -245,12 +246,6 @@ function wta(left::Float64, right::Float64, debug_on::Bool = false)
 end
 
 
-# intrinsic excitability is modified by a running average of recent post-synaptic activity
-function update_intrinsic_excitability(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::Bool=false)
-#TODO
-end
-
-
 function noise_free_post(x::Float64, task_id::Int, tuning_type::TuningSelector)
   local_pre = pre(x, task_id, tuning_type)
 
@@ -259,6 +254,46 @@ function noise_free_post(x::Float64, task_id::Int, tuning_type::TuningSelector)
 
   return (noise_free_left, noise_free_right);
 end
+
+
+# update average_post variable
+#   note that intrinsic_baseline is not included in the running average
+function update_intrinsic_excitability(x::Float64, task_id::Int, tuning_type::TuningSelector)
+  global average_post :: Array{Float64,1};
+  global n_post :: Int;
+
+  (noise_free_left, noise_free_right) = noise_free_post(x, task_id, tuning_type);
+
+  if(use_intrinsic_plasticity_with_noise)
+    left = noise_free_left + ksi[1]
+  	right = noise_free_right+ ksi[2]
+  end
+
+  # we use intrinsic_baseline to offset post synaptic firing from zero
+  left = left - average_post[1];
+  right = right - average_post[2];
+
+  # hack: putting a lower bound on post synaptic firing
+  if (left < floor_on_post)
+    left = floor_on_post;
+  end
+  if (right < floor_on_post)
+    right = floor_on_post;
+  end
+
+  # we need to decide whether we really want the average_post to use wta() form of output or not
+  if( (!disable_winner_takes_all) && (use_intrinsic_plasticity_with_wta_form) )
+    (left,right) = wta(left,right, debug_on);
+  end
+
+  # update average_post
+  n_post += 1;
+  tau = min(intrinsic_plasticity_window_length, n_post);
+
+  average_post[1] = ( (tau - 1) * average_post + left ) / tau;
+  average_post[2] = ( (tau - 1) * average_post + right ) / tau;
+end
+
 
 # post-synaptic firing rate upon presentation of pattern x
 #  no longer generating a new noise value (ksi) on each call,
@@ -651,6 +686,8 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   local_pre = pre(x, task_id, tuning_type);
   # Note: local_post returns a tuple where one value is 0 [in wta mode]. All comparisons to find the non zero value should use absolute comparison.
   local_post = post(x, task_id, tuning_type);
+  # update the running average of post-synaptic firing rates (only once per trial)
+  update_intrinsic_excitability(x, task_id, tuning_type);
   local_reward = reward(x, task_id, tuning_type) :: Int; # it is important that noise is not updated between calls to post() and reward()
   if(perform_detection_threshold)
     local_threshold = detect_threshold(tuning_type, task_id);
