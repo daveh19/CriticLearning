@@ -128,6 +128,8 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   global n_critic;
   global average_block_reward = 0.0
   global average_task_reward;
+  global n_post;
+  global average_post;
   average_task_reward = zeros(no_input_tasks);
   if(reset_average_reward_on_each_block)
     for i = 1:no_task_critics
@@ -136,6 +138,10 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
         n_critic[i,j] = 0;
       end
     end
+  end
+  if(reset_average_post_on_each_block)
+    n_post = 0;
+    average_post = 0.;
   end
   global average_delta_reward = 0;
   global average_choice = 0.0;
@@ -258,6 +264,8 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
   monitor_reward = 0;
   global average_reward;
   global n_critic;
+  global n_post;
+  global average_post;
   if(reset_average_reward_on_each_block)
     for i = 1:no_task_critics
       for j = 1:no_choices_per_task_critics
@@ -265,6 +273,10 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
         n_critic[i,j] = 0;
       end
     end
+  end
+  if(reset_average_post_on_each_block)
+    n_post = 0;
+    average_post = 0.;
   end
   global average_delta_reward = 0;
   global average_choice = 0.0;
@@ -338,6 +350,8 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
   global enable_weight_updates :: Bool;
   global average_reward;
   global n_critic;
+  global n_post;
+  global average_post;
 
   if (!use_fixed_external_bias)
     local_save_task_id = task_id;
@@ -372,6 +386,8 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
       n_critic[i,j] = 0;
     end
   end
+  n_post = 0;
+  average_post = 0.;
 
   for (i = 1:no_blocks_in_experiment)
     #=if(i == no_blocks_in_experiment && subject_id == 9)
@@ -417,6 +433,8 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
   global enable_weight_updates::Bool;
   global average_reward;
   global n_critic;
+  global n_post;
+  global average_post;
 
   roving_experiment_id = 1::Int;
 
@@ -442,6 +460,8 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
       n_critic[i,j] = 0;
     end
   end
+  n_post = 0;
+  average_post = 0.;
 
   if(double_no_of_trials_in_alternating_experiment)
     global no_trials_in_block = (no_trials_in_block * 2) :: Int;

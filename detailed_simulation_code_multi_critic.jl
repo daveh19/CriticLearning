@@ -195,7 +195,7 @@ function initialise()
 
   # intrinsic plasticity requires running averages of post-synaptic firing rates
   global average_post = zeros(no_post_neurons);
-  global n_post = 0.0;
+  global n_post = 0 :: Int;
 
   global proportion_1_correct = 0.0;
   global proportion_2_correct = 0.0;
@@ -290,8 +290,10 @@ function update_intrinsic_excitability(x::Float64, task_id::Int, tuning_type::Tu
   n_post += 1;
   tau = min(intrinsic_plasticity_window_length, n_post);
 
-  average_post[1] = ( (tau - 1) * average_post + left ) / tau;
-  average_post[2] = ( (tau - 1) * average_post + right ) / tau;
+  #print("$average_post \n")
+
+  average_post[1] = ( (tau - 1) * average_post[1] + left ) / tau;
+  average_post[2] = ( (tau - 1) * average_post[2] + right ) / tau;
 end
 
 

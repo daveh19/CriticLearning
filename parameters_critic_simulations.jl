@@ -52,10 +52,11 @@ weights_upper_bound = (1e3) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
 weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 
 # intrinsic plasticity
-intrinsic_baseline = [30.0, 30.0] :: Array{Float64,1};
+intrinsic_baseline = [0.0, 0.0] :: Array{Float64,1};
 intrinsic_plasticity_window_length = 50 :: Int;
 use_intrinsic_plasticity_with_noise = true :: Bool;
 use_intrinsic_plasticity_with_wta_form = false :: Bool;
+reset_average_post_on_each_block = false :: Bool;
 
 # choose input sequence
 use_cts_random_inputs = false :: Bool;
