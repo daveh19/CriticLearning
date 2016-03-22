@@ -3,7 +3,7 @@ using Distributions
 using PyPlot
 using Grid
 
-#using Debug
+using Debug
 
 ########## Parameters #############
 
@@ -141,7 +141,9 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   end
   if(reset_average_post_on_each_block)
     n_post = 0;
-    average_post = 0.;
+    for i = 1:no_post_neurons
+      average_post[i] = 0.;
+    end
   end
   global average_delta_reward = 0;
   global average_choice = 0.0;
@@ -276,7 +278,9 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
   end
   if(reset_average_post_on_each_block)
     n_post = 0;
-    average_post = 0.;
+    for i = 1:no_post_neurons
+      average_post[i] = 0.;
+    end
   end
   global average_delta_reward = 0;
   global average_choice = 0.0;
@@ -387,7 +391,9 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
     end
   end
   n_post = 0;
-  average_post = 0.;
+  for i = 1:no_post_neurons
+    average_post[i] = 0.;
+  end
 
   for (i = 1:no_blocks_in_experiment)
     #=if(i == no_blocks_in_experiment && subject_id == 9)
@@ -461,7 +467,9 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
     end
   end
   n_post = 0;
-  average_post = 0.;
+  for i = 1:no_post_neurons
+    average_post[i] = 0.;
+  end
 
   if(double_no_of_trials_in_alternating_experiment)
     global no_trials_in_block = (no_trials_in_block * 2) :: Int;
@@ -1933,9 +1941,10 @@ function plot_single_subject_noise_free_positive_output(subject::Subject, task_i
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
-  plot(x, local_task_output[:,task_id,1], linewidth=2, c="r")
-  plot(x, local_task_output[:,task_id,2], linewidth=2, c="g")
+  plot(x, local_task_output[:,task_id,1], linewidth=2, c="r", label="x=-1")
+  plot(x, local_task_output[:,task_id,2], linewidth=2, c="g", label="x=+1")
   plot(x, local_av_output, linewidth=2, c="k", zorder=3)
+  #legend(loc=4)
 end
 
 function plot_multi_subject_noise_free_positive_output(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)

@@ -269,7 +269,8 @@ function update_intrinsic_excitability(x::Float64, task_id::Int, tuning_type::Tu
   	right = noise_free_right+ ksi[2]
   end
 
-  # we use intrinsic_baseline to offset post synaptic firing from zero
+  # we use intrinsic_baseline to offset post synaptic firing from zero, so don't add it here
+  #   or we will get zero firing rate on average
   left = left - average_post[1];
   right = right - average_post[2];
 
@@ -283,7 +284,7 @@ function update_intrinsic_excitability(x::Float64, task_id::Int, tuning_type::Tu
 
   # we need to decide whether we really want the average_post to use wta() form of output or not
   if( (!disable_winner_takes_all) && (use_intrinsic_plasticity_with_wta_form) )
-    (left,right) = wta(left,right, debug_on);
+    (left,right) = wta(left,right);
   end
 
   # update average_post
@@ -305,7 +306,6 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
 	#local_pre = pre(x, task_id, tuning_type)
   #noise_free_left = sum(local_pre[:,task_id] .* w[:,1,task_id]);
   #noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
-
   (noise_free_left, noise_free_right) = noise_free_post(x, task_id, tuning_type);
 
   left = noise_free_left + ksi[1]
@@ -535,6 +535,7 @@ function detect_threshold(tuning_type::TuningSelector, task_id::Int=1, split_out
     #print("DEBUG: $local_pre_pos, $local_pre_neg ")
 
     # calculate noise free post for xi
+    #TODO: there is now a function for this, switch to using it
     local_noise_free_post_pos_left = sum(local_pre_pos[:,task_id].*w[:,1,task_id]);
     local_noise_free_post_pos_right = sum(local_pre_pos[:,task_id].*w[:,2,task_id]);
 
@@ -688,8 +689,6 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   local_pre = pre(x, task_id, tuning_type);
   # Note: local_post returns a tuple where one value is 0 [in wta mode]. All comparisons to find the non zero value should use absolute comparison.
   local_post = post(x, task_id, tuning_type);
-  # update the running average of post-synaptic firing rates (only once per trial)
-  update_intrinsic_excitability(x, task_id, tuning_type);
   local_reward = reward(x, task_id, tuning_type) :: Int; # it is important that noise is not updated between calls to post() and reward()
   if(perform_detection_threshold)
     local_threshold = detect_threshold(tuning_type, task_id);
@@ -824,6 +823,10 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   # hard bound weights at +/- 10
   w[w .> weights_upper_bound] = weights_upper_bound;
   w[w .< weights_lower_bound] = weights_lower_bound;
+
+
+  # update the running average of post-synaptic firing rates (only once per trial and either before or after all calls to post() )
+  update_intrinsic_excitability(x, task_id, tuning_type);
 
   return (local_reward+1); # make it 0 or 2, rather than +/-1
 end

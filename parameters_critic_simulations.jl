@@ -24,8 +24,8 @@ fixed_external_bias_value = (1.2) :: Float64;
 
 # changing the post part of the weight update rule
 floor_on_post = (-Inf) :: Float64; # applied in post()
-disable_winner_takes_all = true :: Bool; # applied in post()
-binary_outputs_mode = true :: Bool; # applied to dw
+disable_winner_takes_all = false :: Bool; # applied in post()
+binary_outputs_mode = false :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
 use_intrinsic_plasticity = true :: Bool; #enable updating, and subtraction of an intrinsic plasticity factor from post
@@ -36,7 +36,7 @@ problem_right_bound = (1.) :: Float64; #0.5;
 
 running_av_window_length = 50 :: Int; #50::Int;
 
-learning_rate = (0.002) #(0.000002) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
+learning_rate = (0.00002) #(0.000002) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
 output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 
 initial_weight_bias = (2.0); #(2.0) :: Float64; # 2.0
@@ -53,9 +53,9 @@ weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 
 # intrinsic plasticity
 intrinsic_baseline = [0.0, 0.0] :: Array{Float64,1};
-intrinsic_plasticity_window_length = 50 :: Int;
+intrinsic_plasticity_window_length = 10 :: Int;
 use_intrinsic_plasticity_with_noise = true :: Bool;
-use_intrinsic_plasticity_with_wta_form = false :: Bool;
+use_intrinsic_plasticity_with_wta_form = true :: Bool; #if WTA is on you still need to decide to use it in the intrinsic plasticity
 reset_average_post_on_each_block = false :: Bool;
 
 # choose input sequence
