@@ -28,7 +28,15 @@ disable_winner_takes_all = false :: Bool; # applied in post()
 binary_outputs_mode = false :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
-use_intrinsic_plasticity = true :: Bool; #enable updating, and subtraction of an intrinsic plasticity factor from post
+use_intrinsic_plasticity = false :: Bool; #enable updating, and subtraction of an intrinsic plasticity factor from post
+
+# as a simplification of both intrinsic plasticity and weight normalisation
+#   here we use a simple decision bias measure
+#   associate 1 with output 2 and 0 with output 1
+use_decision_bias = false :: Bool;
+decision_bias_timescale = 0.001 :: Float64; # (dt/tau for updating of decision_bias_monitor)
+reset_decision_bias_on_each_block = true :: Bool;
+
 
 # problem difficulty parameters
 problem_left_bound = (-1.) :: Float64; #-0.5;

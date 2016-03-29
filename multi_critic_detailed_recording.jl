@@ -145,6 +145,9 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
       average_post[i] = 0.;
     end
   end
+  if(reset_decision_bias_on_each_block)
+    global decision_bias_monitor = 0.5;
+  end
   global average_delta_reward = 0;
   global average_choice = 0.0;
   global n_within_block = 0;
@@ -282,6 +285,9 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
       average_post[i] = 0.;
     end
   end
+  if(reset_decision_bias_on_each_block)
+    global decision_bias_monitor = 0.5;
+  end
   global average_delta_reward = 0;
   global average_choice = 0.0;
   global n_within_block = 0;
@@ -395,6 +401,8 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
     average_post[i] = 0.;
   end
 
+  global decision_bias_monitor = 0.5;
+
   for (i = 1:no_blocks_in_experiment)
     #=if(i == no_blocks_in_experiment && subject_id == 9)
       local_old_verbosity = verbosity;
@@ -470,6 +478,8 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
   for i = 1:no_post_neurons
     average_post[i] = 0.;
   end
+
+  global decision_bias_monitor = 0.5;
 
   if(double_no_of_trials_in_alternating_experiment)
     global no_trials_in_block = (no_trials_in_block * 2) :: Int;

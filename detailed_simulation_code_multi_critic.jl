@@ -180,6 +180,8 @@ function initialise()
   update_noise();
   initialise_weight_matrix(tuning_type);
 
+  global decision_bias_monitor = 0.5;
+
   global average_delta_reward = 0.0;
   global average_choice = 0.0;
   #global n = 0 :: Int; # use this to monitor trial ID per block (very important: this is a block level counter!)
@@ -298,6 +300,22 @@ function update_intrinsic_excitability(x::Float64, task_id::Int, tuning_type::Tu
 end
 
 
+function update_decision_bias_monitor(local_post)
+  global decision_bias_monitor;
+
+  # associate 1 with output 2 and 0 with output 1
+  update_choice = (local_post[2] > local_post[1] ? 1 : 0);
+
+  decision_bias_monitor = decision_bias_monitor + (decision_bias_timescale * update_choice);
+
+  if (decision_bias_monitor > 1)
+    decision_bias_monitor = 1;
+  elseif (decision_bias_monitor) < 0
+    decision_bias_monitor = 0;
+  end
+end
+
+
 # post-synaptic firing rate upon presentation of pattern x
 #  no longer generating a new noise value (ksi) on each call,
 #  this must be done externally to allow for repeatibility during debug
@@ -316,6 +334,12 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
     # we use intrinsic_baseline to offset post synaptic firing from zero
     left = left - average_post[1] + intrinsic_baseline[1];
     right = right - average_post[2] + intrinsic_baseline[2];
+  end
+
+  # alternative way of biasing decisions 50:50 Left:Right
+  if( use_decision_bias )
+    left = decision_bias_monitor * left;
+    right = (1 - decision_bias_monitor) * right;
   end
 
   # calculated probability of getting this result given de-noised results and error size
@@ -827,6 +851,8 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
 
   # update the running average of post-synaptic firing rates (only once per trial and either before or after all calls to post() )
   update_intrinsic_excitability(x, task_id, tuning_type);
+  # decision_bias_monitor tries to ensure a 50:50 left:right ratio
+  update_decision_bias_monitor(local_post);
 
   return (local_reward+1); # make it 0 or 2, rather than +/-1
 end
