@@ -300,19 +300,25 @@ function update_intrinsic_excitability(x::Float64, task_id::Int, tuning_type::Tu
 end
 
 
-function update_decision_bias_monitor(local_post)
+@debug function update_decision_bias_monitor(local_post)
   global decision_bias_monitor;
-
+#@bp
   # associate 1 with output 2 and 0 with output 1
   update_choice = (local_post[2] > local_post[1] ? 1 : 0);
+  # I previously forgot to include the following term, which maintains the 50:50 ratio
+  update_choice = update_choice - 0.5;
 
   decision_bias_monitor = decision_bias_monitor + (decision_bias_timescale * update_choice);
+
+#@bp decision_bias_monitor > 0.75
+#@bp decision_bias_monitor < 0.25
 
   if (decision_bias_monitor > 1)
     decision_bias_monitor = 1;
   elseif (decision_bias_monitor) < 0
     decision_bias_monitor = 0;
   end
+#@bp
 end
 
 
