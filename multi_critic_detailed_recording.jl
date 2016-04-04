@@ -1981,9 +1981,9 @@ function plot_single_subject_probability_correct(subject::Subject, task_id::Int=
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
-  plot(x, local_task_probability[:,task_id,1], linewidth=2, c="r")
-  plot(x, local_task_probability[:,task_id,2], linewidth=2, c="g")
-  plot(x, local_av_probability, linewidth=2, c="k", zorder=3)
+  plot(x, local_task_probability[:,task_id,1], linewidth=2, c="c")
+  plot(x, local_task_probability[:,task_id,2], linewidth=2, c="m")
+  plot(x, local_av_probability, linewidth=1, c="k", zorder=3)
 end
 
 function plot_multi_subject_probability_correct(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
