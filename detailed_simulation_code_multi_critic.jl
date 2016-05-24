@@ -159,6 +159,8 @@ function initialise_weight_matrix(tuning_type::linear_tc)
       w[:,2,i] += local_bias[:,2,i] .* b[:,i];
     end
   end
+
+  global weight_scaler = mean(w[:,:,:].^2); #sqrt(sum(w.^2))
 end
 
 
@@ -254,6 +256,12 @@ function noise_free_post(x::Float64, task_id::Int, tuning_type::TuningSelector)
   noise_free_left = sum(local_pre[:,task_id] .* w[:,1,task_id]);
   noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
 
+  # alternative way of biasing decisions 50:50 Left:Right
+  if( use_decision_bias )
+    noise_free_left = noise_free_left + decision_bias_monitor;
+    noise_free_right = noise_free_right - decision_bias_monitor;
+  end
+
   return (noise_free_left, noise_free_right);
 end
 
@@ -300,7 +308,7 @@ function update_intrinsic_excitability(x::Float64, task_id::Int, tuning_type::Tu
 end
 
 
-@debug function update_decision_bias_monitor(local_post)
+function update_decision_bias_monitor(local_post)
   global decision_bias_monitor;
 #@bp
   # associate 1 with output 2 and 0 with output 1
@@ -313,11 +321,11 @@ end
 #@bp decision_bias_monitor > 0.75
 #@bp decision_bias_monitor < 0.25
 
-  if (decision_bias_monitor > 1)
+#=  if (decision_bias_monitor > 1)
     decision_bias_monitor = 1;
   elseif (decision_bias_monitor) < 0
     decision_bias_monitor = 0;
-  end
+  end=#
 #@bp
 end
 
@@ -332,21 +340,21 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
   #noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
   (noise_free_left, noise_free_right) = noise_free_post(x, task_id, tuning_type);
 
-  left = noise_free_left + ksi[1]
-	right = noise_free_right+ ksi[2]
+  left = noise_free_left + ksi[1] * sqrt(no_post_pop_size)
+	right = noise_free_right+ ksi[2] * sqrt(no_post_pop_size)
 
   # intrinsic plasticity subtracts a running average of post
-  if( use_intrinsic_plasticity )
+#=  if( use_intrinsic_plasticity )
     # we use intrinsic_baseline to offset post synaptic firing from zero
     left = left - average_post[1] + intrinsic_baseline[1];
     right = right - average_post[2] + intrinsic_baseline[2];
-  end
+  end=#
 
-  # alternative way of biasing decisions 50:50 Left:Right
+#=  # alternative way of biasing decisions 50:50 Left:Right
   if( use_decision_bias )
-    left = decision_bias_monitor * left;
-    right = (1 - decision_bias_monitor) * right;
-  end
+    left = left + decision_bias_monitor;
+    right = right - decision_bias_monitor;
+  end=#
 
   # calculated probability of getting this result given de-noised results and error size
   #   TODO: finish this code
@@ -641,6 +649,13 @@ end
 function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
 	local_post = post(x, task_id, tuning_type, true)
 
+
+  update_noise()
+  (left,right) = noise_free_post(x, task_id, tuning_type);
+  pop_nf_post = transpose([left; right]);
+  #pop_rate = local_post + (no_post_pop_size - 1) .* pop_nf_post + ( sqrt(no_post_pop_size-1) .* transpose(ksi));
+  pop_rate = local_post + (no_post_pop_size - 1) .* pop_nf_post + ( sqrt(no_post_pop_size * (no_post_pop_size - 1)) .* transpose(ksi));
+  local_post = pop_rate;
   if(disable_winner_takes_all)
     # Disabling winner-takes-all requires a change in logic: we just
     #   take the output neuron with the higher firing rate (even if
@@ -720,6 +735,13 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   # Note: local_post returns a tuple where one value is 0 [in wta mode]. All comparisons to find the non zero value should use absolute comparison.
   local_post = post(x, task_id, tuning_type);
   local_reward = reward(x, task_id, tuning_type) :: Int; # it is important that noise is not updated between calls to post() and reward()
+
+  #update_noise()
+  (left,right) = noise_free_post(x, task_id, tuning_type);
+  pop_nf_post = transpose([left; right]);
+  pop_rate = local_post + (no_post_pop_size - 1) .* pop_nf_post + ( sqrt(no_post_pop_size * (no_post_pop_size - 1)) .* transpose(ksi));
+  #local_post = pop_rate;
+
   if(perform_detection_threshold)
     local_threshold = detect_threshold(tuning_type, task_id);
     trial_dat.error_threshold = local_threshold;
@@ -732,15 +754,19 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   trial_dat.task_type = task_id; #(is_problem_1 ? 1 : 2);
   trial_dat.correct_answer = x #(x > 0 ? 1 : -1);
   if(disable_winner_takes_all)
-    trial_dat.chosen_answer = ( (local_post[2] > local_post[1]) ? 1 : -1)
-    local_choice = ( (local_post[2] > local_post[1]) ? 2 : 1);
+    #=trial_dat.chosen_answer = ( (local_post[2] > local_post[1]) ? 1 : -1)
+    local_choice = ( (local_post[2] > local_post[1]) ? 2 : 1);=#
+    trial_dat.chosen_answer = ( (pop_rate[2] > pop_rate[1]) ? 1 : -1)
+    local_choice = ( (pop_rate[2] > pop_rate[1]) ? 2 : 1);
     if(debug_print_now)
       print("chosen_answer: ", trial_dat.chosen_answer, "\n");
     end
   else
     #print("Error\n")
-    trial_dat.chosen_answer = ( (abs(local_post[2]) > abs(local_post[1])) ? 1 : -1)
-    local_choice = ( (abs(local_post[2]) > abs(local_post[1])) ? 2 : 1);
+    #=trial_dat.chosen_answer = ( (abs(local_post[2]) > abs(local_post[1])) ? 1 : -1)
+    local_choice = ( (abs(local_post[2]) > abs(local_post[1])) ? 2 : 1);=#
+    trial_dat.chosen_answer = ( (abs(pop_rate[2]) > abs(pop_rate[1])) ? 1 : -1)
+    local_choice = ( (abs(pop_rate[2]) > abs(pop_rate[1])) ? 2 : 1);
   end
   trial_dat.got_it_right = ((local_reward > 0) ? true : false);
 
@@ -812,6 +838,7 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
       # print("big_post == 0 occurred\n");
     end
   else # original unbounded post-synaptic firing mode
+    #this one stays
     dw[:,1,task_id] = learning_rate * local_pre[:,task_id] * local_post[1] * (local_reward - local_average_reward);
     dw[:,2,task_id] = learning_rate * local_pre[:,task_id] * local_post[2] * (local_reward - local_average_reward);
   end
@@ -855,10 +882,18 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   w[w .< weights_lower_bound] = weights_lower_bound;
 
 
+  if(weight_normalisation)
+    weight_1_norm = sqrt( mean(w[:,1,:].^2) ) #sqrt( sum(w[:,1,1].^2 ) + sum( w[:,1,2].^2) )
+    weight_2_norm = sqrt( mean(w[:,2,:].^2) ) #sqrt( sum(w[:,2,1].^2 ) + sum( w[:,2,2].^2) )
+    w[:, 1, :] = w[:, 1, :] ./ weight_1_norm * weight_scaler
+    w[:, 2, :] = w[:, 2, :] ./ weight_2_norm * weight_scaler
+  end
+
   # update the running average of post-synaptic firing rates (only once per trial and either before or after all calls to post() )
   update_intrinsic_excitability(x, task_id, tuning_type);
   # decision_bias_monitor tries to ensure a 50:50 left:right ratio
-  update_decision_bias_monitor(local_post);
+  #update_decision_bias_monitor(local_post);
+  update_decision_bias_monitor(pop_rate);
 
   return (local_reward+1); # make it 0 or 2, rather than +/-1
 end

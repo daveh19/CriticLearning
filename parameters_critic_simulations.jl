@@ -20,7 +20,9 @@ use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
 reset_average_reward_on_each_block = false :: Bool;
 #use_fixed_external_bias = false :: Bool; # default to off
-fixed_external_bias_value = (1.2) :: Float64;
+fixed_external_bias_value = (-1.0) :: Float64;
+
+no_post_pop_size = 3 :: Int;
 
 # changing the post part of the weight update rule
 floor_on_post = (-Inf) :: Float64; # applied in post()
@@ -33,10 +35,10 @@ use_intrinsic_plasticity = false :: Bool; #enable updating, and subtraction of a
 # as a simplification of both intrinsic plasticity and weight normalisation
 #   here we use a simple decision bias measure
 #   associate 1 with output 2 and 0 with output 1
-use_decision_bias = false :: Bool;
-decision_bias_timescale = 0.001 :: Float64; # (dt/tau for updating of decision_bias_monitor)
-reset_decision_bias_on_each_block = true :: Bool;
-
+use_decision_bias = true :: Bool;
+decision_bias_timescale = 1.0 :: Float64; # (dt/tau for updating of decision_bias_monitor)
+reset_decision_bias_on_each_block = false :: Bool;
+use_reset_decision_bias_each_subject = true;
 
 # problem difficulty parameters
 problem_left_bound = (-1.) :: Float64; #-0.5;
@@ -71,7 +73,9 @@ use_cts_random_inputs = false :: Bool;
 use_binary_alternating_inputs = false :: Bool;
 use_binary_random_inputs = true :: Bool;
 use_biased_cts_random_inputs = false :: Bool;
-input_sequence_bias = (0.0) :: Float64; # should be between -0.5 and +0.5
+input_sequence_bias = (0.) :: Float64; # should be between -0.5 and +0.5
+
+weight_normalisation = true;
 
 # task sequence
 task_sequence_bias = (0.0) :: Float64; # should be between -0.5 and +0.5, gives (1-(0.5+bias)):(0.5+bias) ratio of tasks
