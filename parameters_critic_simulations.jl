@@ -31,14 +31,7 @@ binary_outputs_mode = false :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
 use_intrinsic_plasticity = false :: Bool; #enable updating, and subtraction of an intrinsic plasticity factor from post
-
-# as a simplification of both intrinsic plasticity and weight normalisation
-#   here we use a simple decision bias measure
-#   associate 1 with output 2 and 0 with output 1
-use_decision_bias = true :: Bool;
-decision_bias_timescale = 1.0 :: Float64; # (dt/tau for updating of decision_bias_monitor)
-reset_decision_bias_on_each_block = false :: Bool;
-use_reset_decision_bias_each_subject = true;
+use_weight_normalisation = true :: Bool; # weight normalisation using quadratic norm, multiplicative rule
 
 # problem difficulty parameters
 problem_left_bound = (-1.) :: Float64; #-0.5;
@@ -52,20 +45,26 @@ output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 initial_weight_bias = (2.0); #(2.0) :: Float64; # 2.0
 gaussian_weight_bias = (0.5) :: Float64;
 
-# the following is development code, it does not currently work
-use_defined_performance_setup = false :: Bool;
-defined_performance_task_1 = 0.6 :: Float64;
-defined_performance_task_2 = 0.3 :: Float64;
-
 # weight constraints
 weights_upper_bound = (1e3) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
 weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
+
+
+# criterion learning
+# as a simplification of both intrinsic plasticity and weight normalisation
+#   here we use a simple decision bias measure
+#   associate 1 with output 2 and 0 with output 1
+use_decision_bias = true :: Bool;
+decision_bias_timescale = 1.0 :: Float64; # (dt/tau for updating of decision_bias_monitor)
+reset_decision_bias_on_each_block = false :: Bool;
+use_reset_decision_bias_each_subject = true :: Bool;
+
 
 # intrinsic plasticity
 intrinsic_baseline = [0.0, 0.0] :: Array{Float64,1};
 intrinsic_plasticity_window_length = 10 :: Int;
 use_intrinsic_plasticity_with_noise = true :: Bool;
-use_intrinsic_plasticity_with_wta_form = true :: Bool; #if WTA is on you still need to decide to use it in the intrinsic plasticity
+use_intrinsic_plasticity_with_wta_form = true :: Bool; #if WTA is on you still need to decide whether to use it in the intrinsic plasticity or not
 reset_average_post_on_each_block = false :: Bool;
 
 # choose input sequence
@@ -73,13 +72,12 @@ use_cts_random_inputs = false :: Bool;
 use_binary_alternating_inputs = false :: Bool;
 use_binary_random_inputs = true :: Bool;
 use_biased_cts_random_inputs = false :: Bool;
-input_sequence_bias = (0.) :: Float64; # should be between -0.5 and +0.5
-
-weight_normalisation = true;
+input_sequence_bias = (0.) :: Float64; # should be between -0.5 and +0.5, this is the x value
+print("Stimulus sequence (dx) ratio: $(1-(0.5+input_sequence_bias)):$(0.5+input_sequence_bias)\n");
 
 # task sequence
-task_sequence_bias = (0.0) :: Float64; # should be between -0.5 and +0.5, gives (1-(0.5+bias)):(0.5+bias) ratio of tasks
-print("Task ratio: $(1-(0.5+task_sequence_bias)):$(0.5+task_sequence_bias)\n");
+task_sequence_bias = (0.0) :: Float64; # should be between -0.5 and +0.5, gives (1-(0.5+bias)):(0.5+bias) ratio of tasks, this is the task_id value
+print("Bisection task ratio: $(1-(0.5+task_sequence_bias)):$(0.5+task_sequence_bias)\n");
 
 # selective tuning of input
 input_baseline = 2.0 :: Float64; #2.0;
@@ -123,6 +121,13 @@ const disable_learning_on_first_block = true :: Bool;
 
 # used in high_dim_array2 setup, might be useful to keep generic rather than putting the int into code directly
 const no_classifications_per_task = 2::Int;
+
+
+# the following is development code, it does not currently work
+use_defined_performance_setup = false :: Bool;
+defined_performance_task_1 = 0.6 :: Float64;
+defined_performance_task_2 = 0.3 :: Float64;
+
 
 # Verbosity of console output:
 #   (-1) : You only see the beginning of each experiment headers

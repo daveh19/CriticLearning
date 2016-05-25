@@ -160,7 +160,9 @@ function initialise_weight_matrix(tuning_type::linear_tc)
     end
   end
 
-  global subject_initial_weight_scale = mean(w[:,:,:].^2) :: Float64; #sqrt(sum(w.^2))
+  # calculate square root of average squared weight value, want to keep this constant during weight normalisation process
+  #   Henning and I left out sqrt() when we were writing this together
+  global subject_initial_weight_scale = sqrt( mean(w[:,:,:].^2) ) :: Float64; #sqrt(sum(w.^2))
 end
 
 
@@ -864,30 +866,33 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
     print("before weight change, sum w left: $left_sum_w, sum w right: $right_sum_w\n")
   end
 
+  trial_dat.mag_dw = sum(abs(dw));
+
   # the weight update
   if(enable_weight_updates)
     global w += dw;
-  end
-  if (verbosity > 3)
-    #for now at least these sums are across all tasks, could make them task specific
-    left_sum_w = sum(w[:,1,:]);
-    right_sum_w = sum(w[:,2,:]);
-    print("after weight change, sum w left: $left_sum_w, sum w right: $right_sum_w\n")
-  end
 
-  trial_dat.mag_dw = sum(abs(dw));
+    if (verbosity > 3)
+      #for now at least these sums are across all tasks, could make them task specific
+      left_sum_w = sum(w[:,1,:]);
+      right_sum_w = sum(w[:,2,:]);
+      print("after weight change, sum w left: $left_sum_w, sum w right: $right_sum_w\n")
+    end
 
-  # hard bound weights at +/- 10
-  w[w .> weights_upper_bound] = weights_upper_bound;
-  w[w .< weights_lower_bound] = weights_lower_bound;
+    # hard bound weights at +/- 10
+    w[w .> weights_upper_bound] = weights_upper_bound;
+    w[w .< weights_lower_bound] = weights_lower_bound;
 
 
-  if(weight_normalisation)
-    weight_1_norm = sqrt( mean(w[:,1,:].^2) ) #sqrt( sum(w[:,1,1].^2 ) + sum( w[:,1,2].^2) )
-    weight_2_norm = sqrt( mean(w[:,2,:].^2) ) #sqrt( sum(w[:,2,1].^2 ) + sum( w[:,2,2].^2) )
-    w[:, 1, :] = w[:, 1, :] ./ weight_1_norm * subject_initial_weight_scale;
-    w[:, 2, :] = w[:, 2, :] ./ weight_2_norm * subject_initial_weight_scale;
-  end
+    # weight normalisation according to quadratic norm, multiplicative rule
+    if(use_weight_normalisation)
+      output_1_weights_norm = sqrt( mean(w[:,1,:].^2) ) #sqrt( sum(w[:,1,1].^2 ) + sum( w[:,1,2].^2) )
+      output_2_weights_norm = sqrt( mean(w[:,2,:].^2) ) #sqrt( sum(w[:,2,1].^2 ) + sum( w[:,2,2].^2) )
+      w[:, 1, :] = ( w[:, 1, :] ./ output_1_weights_norm ) * subject_initial_weight_scale;
+      w[:, 2, :] = ( w[:, 2, :] ./ output_2_weights_norm ) * subject_initial_weight_scale;
+    end
+  end # enable_weight_updates
+
 
   # update the running average of post-synaptic firing rates (only once per trial and either before or after all calls to post() )
   update_intrinsic_excitability(x, task_id, tuning_type);
