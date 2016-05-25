@@ -184,7 +184,7 @@ function initialise()
   update_noise();
   initialise_weight_matrix(tuning_type);
 
-  global decision_bias_monitor = 0.5;
+  global decision_criterion_monitor = 0.5;
 
   global average_delta_reward = 0.0;
   global average_choice = 0.0;
@@ -259,9 +259,9 @@ function noise_free_post(x::Float64, task_id::Int, tuning_type::TuningSelector)
   noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
 
   # alternative way of biasing decisions 50:50 Left:Right
-  if( use_decision_bias )
-    noise_free_left = noise_free_left + decision_bias_monitor;
-    noise_free_right = noise_free_right - decision_bias_monitor;
+  if( use_decision_criterion_learner )
+    noise_free_left = noise_free_left + decision_criterion_monitor;
+    noise_free_right = noise_free_right - decision_criterion_monitor;
   end
 
   return (noise_free_left, noise_free_right);
@@ -310,25 +310,23 @@ function update_intrinsic_excitability(x::Float64, task_id::Int, tuning_type::Tu
 end
 
 
-function update_decision_bias_monitor(local_post)
-  global decision_bias_monitor;
-#@bp
+# criterion learner is capable of accounting for biases in presentation frequency between left and right
+function update_decision_criterion_learner(local_post)
+  global decision_criterion_monitor;
+
   # associate 1 with output 2 and 0 with output 1
-  update_choice = (local_post[2] > local_post[1] ? 1 : 0);
+  update_choice = (local_post[2] > local_post[1] ? 1. : 0.) :: Float64;
   # I previously forgot to include the following term, which maintains the 50:50 ratio
   update_choice = update_choice - 0.5;
 
-  decision_bias_monitor = decision_bias_monitor + (decision_bias_timescale * update_choice);
+  decision_criterion_monitor = decision_criterion_monitor + (decision_criterion_timescale * update_choice);
 
-#@bp decision_bias_monitor > 0.75
-#@bp decision_bias_monitor < 0.25
-
-#=  if (decision_bias_monitor > 1)
-    decision_bias_monitor = 1;
-  elseif (decision_bias_monitor) < 0
-    decision_bias_monitor = 0;
+  # the multiplicative decision criterion monitor was clamped between 0 and 1, this is currently not of use
+#=  if (decision_criterion_monitor > 1)
+    decision_criterion_monitor = 1;
+  elseif (decision_criterion_monitor) < 0
+    decision_criterion_monitor = 0;
   end=#
-#@bp
 end
 
 
@@ -352,11 +350,7 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
     right = right - average_post[2] + intrinsic_baseline[2];
   end=#
 
-#=  # alternative way of biasing decisions 50:50 Left:Right
-  if( use_decision_bias )
-    left = left + decision_bias_monitor;
-    right = right - decision_bias_monitor;
-  end=#
+  # moved decision criterion monitor application to noise_free_post()
 
   # calculated probability of getting this result given de-noised results and error size
   #   TODO: finish this code
@@ -896,9 +890,9 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
 
   # update the running average of post-synaptic firing rates (only once per trial and either before or after all calls to post() )
   update_intrinsic_excitability(x, task_id, tuning_type);
-  # decision_bias_monitor tries to ensure a 50:50 left:right ratio
-  #update_decision_bias_monitor(local_post);
-  update_decision_bias_monitor(pop_rate);
+  # decision_criterion_learner tries to ensure a 50:50 left:right ratio
+  #update_decision_criterion_learner(local_post);
+  update_decision_criterion_learner(pop_rate);
 
   return (local_reward+1); # make it 0 or 2, rather than +/-1
 end

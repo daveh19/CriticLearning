@@ -54,10 +54,10 @@ weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 # as a simplification of both intrinsic plasticity and weight normalisation
 #   here we use a simple decision bias measure
 #   associate 1 with output 2 and 0 with output 1
-use_decision_bias = true :: Bool;
-decision_bias_timescale = 1.0 :: Float64; # (dt/tau for updating of decision_bias_monitor)
-reset_decision_bias_on_each_block = false :: Bool;
-use_reset_decision_bias_each_subject = true :: Bool;
+use_decision_criterion_learner = true :: Bool;
+decision_criterion_timescale = 1.0 :: Float64; # (dt/tau for updating of decision_criterion_monitor)
+reset_decision_criterion_monitor_on_each_block = false :: Bool;
+use_reset_decision_criterion_monitor_each_subject = true :: Bool;
 
 
 # intrinsic plasticity

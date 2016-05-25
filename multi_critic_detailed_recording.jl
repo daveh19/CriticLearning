@@ -145,8 +145,8 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
       average_post[i] = 0.;
     end
   end
-  if(reset_decision_bias_on_each_block)
-    global decision_bias_monitor = 0.5;
+  if(reset_decision_criterion_monitor_on_each_block)
+    global decision_criterion_monitor = 0.5;
   end
   global average_delta_reward = 0;
   global average_choice = 0.0;
@@ -237,7 +237,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   block_dat.probability_correct[task_id, 1] = probability_correct(problem_left_bound, task_id, tuning_type);
   block_dat.probability_correct[task_id, 2] = probability_correct(problem_right_bound, task_id, tuning_type);
 
-  #print("Block end: $decision_bias_monitor \n")
+  #print("Block end: $decision_criterion_monitor \n")
   return proportion_correct;
 end
 
@@ -286,8 +286,8 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
       average_post[i] = 0.;
     end
   end
-  if(reset_decision_bias_on_each_block)
-    global decision_bias_monitor = 0.5;
+  if(reset_decision_criterion_monitor_on_each_block)
+    global decision_criterion_monitor = 0.5;
   end
   global average_delta_reward = 0;
   global average_choice = 0.0;
@@ -403,8 +403,8 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
   end
 
 
-  if(subject_id==1 || use_reset_decision_bias_each_subject)
-    global decision_bias_monitor = 0.5;
+  if(subject_id==1 || use_reset_decision_criterion_monitor_each_subject)
+    global decision_criterion_monitor = 0.5;
   end
 
   for (i = 1:no_blocks_in_experiment)
@@ -483,8 +483,8 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
     average_post[i] = 0.;
   end
 
-  if(subject_id==1 || use_reset_decision_bias_each_subject)
-    global decision_bias_monitor = 0.5;
+  if(subject_id==1 || use_reset_decision_criterion_monitor_each_subject)
+    global decision_criterion_monitor = 0.5;
   end
 
   if(double_no_of_trials_in_alternating_experiment)
