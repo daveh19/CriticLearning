@@ -237,7 +237,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   block_dat.probability_correct[task_id, 1] = probability_correct(problem_left_bound, task_id, tuning_type);
   block_dat.probability_correct[task_id, 2] = probability_correct(problem_right_bound, task_id, tuning_type);
 
-  #print("Block end: $decision_criterion_monitor \n")
+  #print("Block end decision_criterion_monitor: $decision_criterion_monitor \n")
   return proportion_correct;
 end
 
@@ -443,6 +443,7 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
     subjects_dat[subject_id, local_save_task_id].w_final[:,:,task_id] = deepcopy(w[:,:,task_id]);
   end
 
+  #print("  End of Subject $subject_id \n") #useful for debug of decision_criterion_monitor
   return 0;
 end
 

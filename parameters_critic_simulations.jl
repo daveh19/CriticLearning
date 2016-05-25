@@ -59,6 +59,7 @@ decision_criterion_timescale = 1.0 :: Float64; # (dt/tau for updating of decisio
 reset_decision_criterion_monitor_on_each_block = false :: Bool;
 use_reset_decision_criterion_monitor_each_subject = true :: Bool;
 
+
 # intrinsic plasticity
 intrinsic_baseline = [0.0, 0.0] :: Array{Float64,1};
 intrinsic_plasticity_window_length = 10 :: Int;

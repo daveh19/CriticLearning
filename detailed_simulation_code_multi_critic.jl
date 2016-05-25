@@ -352,13 +352,7 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
   left = noise_free_left + ksi[1] * sqrt(no_post_pop_size)
 	right = noise_free_right+ ksi[2] * sqrt(no_post_pop_size)
 
-  # intrinsic plasticity subtracts a running average of post
-#=  if( use_intrinsic_plasticity )
-    # we use intrinsic_baseline to offset post synaptic firing from zero
-    left = left - average_post[1] + intrinsic_baseline[1];
-    right = right - average_post[2] + intrinsic_baseline[2];
-  end=#
-
+  # moved intrinsic plasticity application to noise_free_post()
   # moved decision criterion monitor application to noise_free_post()
 
   # calculated probability of getting this result given de-noised results and error size
