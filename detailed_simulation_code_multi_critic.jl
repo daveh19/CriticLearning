@@ -160,7 +160,7 @@ function initialise_weight_matrix(tuning_type::linear_tc)
     end
   end
 
-  global subject_inital_weight_scale = mean(w[:,:,:].^2) :: Float64; #sqrt(sum(w.^2))
+  global subject_initial_weight_scale = mean(w[:,:,:].^2) :: Float64; #sqrt(sum(w.^2))
 end
 
 
