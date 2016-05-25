@@ -139,7 +139,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
       end
     end
   end
-  if(reset_average_post_on_each_block)
+  if(use_reset_average_post_on_each_block)
     n_post = 0;
     for i = 1:no_post_neurons
       average_post[i] = 0.;
@@ -280,7 +280,7 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
       end
     end
   end
-  if(reset_average_post_on_each_block)
+  if(use_reset_average_post_on_each_block)
     n_post = 0;
     for i = 1:no_post_neurons
       average_post[i] = 0.;

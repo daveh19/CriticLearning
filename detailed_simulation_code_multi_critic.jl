@@ -258,6 +258,15 @@ function noise_free_post(x::Float64, task_id::Int, tuning_type::TuningSelector)
   noise_free_left = sum(local_pre[:,task_id] .* w[:,1,task_id]);
   noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
 
+  # intrinsic plasticity subtracts a running average of post
+  #   we're probably ignoring this for now, but I'll leave the code hear and add a note
+  #   to be careful enabling the parameter
+  if( use_intrinsic_plasticity )
+    # we use intrinsic_baseline to offset post synaptic firing from zero
+    left = left - average_post[1] + intrinsic_baseline[1];
+    right = right - average_post[2] + intrinsic_baseline[2];
+  end
+
   # alternative way of biasing decisions 50:50 Left:Right
   if( use_decision_criterion_learner )
     noise_free_left = noise_free_left + decision_criterion_monitor;

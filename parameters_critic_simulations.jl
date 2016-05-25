@@ -30,8 +30,9 @@ disable_winner_takes_all = false :: Bool; # applied in post()
 binary_outputs_mode = false :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
-use_intrinsic_plasticity = false :: Bool; #enable updating, and subtraction of an intrinsic plasticity factor from post
+use_intrinsic_plasticity = false :: Bool; #leave OFF for now! #enable updating, and subtraction of an intrinsic plasticity factor from post
 use_weight_normalisation = true :: Bool; # weight normalisation using quadratic norm, multiplicative rule
+use_decision_criterion_learner = true :: Bool;
 
 # problem difficulty parameters
 problem_left_bound = (-1.) :: Float64; #-0.5;
@@ -54,18 +55,17 @@ weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 # as a simplification of both intrinsic plasticity and weight normalisation
 #   here we use a simple decision bias measure
 #   associate 1 with output 2 and 0 with output 1
-use_decision_criterion_learner = true :: Bool;
 decision_criterion_timescale = 1.0 :: Float64; # (dt/tau for updating of decision_criterion_monitor)
 reset_decision_criterion_monitor_on_each_block = false :: Bool;
 use_reset_decision_criterion_monitor_each_subject = true :: Bool;
-
 
 # intrinsic plasticity
 intrinsic_baseline = [0.0, 0.0] :: Array{Float64,1};
 intrinsic_plasticity_window_length = 10 :: Int;
 use_intrinsic_plasticity_with_noise = true :: Bool;
 use_intrinsic_plasticity_with_wta_form = true :: Bool; #if WTA is on you still need to decide whether to use it in the intrinsic plasticity or not
-reset_average_post_on_each_block = false :: Bool;
+use_reset_average_post_on_each_block = false :: Bool;
+
 
 # choose input sequence
 use_cts_random_inputs = false :: Bool;
