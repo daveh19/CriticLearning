@@ -160,7 +160,7 @@ function initialise_weight_matrix(tuning_type::linear_tc)
     end
   end
 
-  global weight_scaler = mean(w[:,:,:].^2); #sqrt(sum(w.^2))
+  global subject_inital_weight_scale = mean(w[:,:,:].^2) :: Float64; #sqrt(sum(w.^2))
 end
 
 
@@ -885,8 +885,8 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   if(weight_normalisation)
     weight_1_norm = sqrt( mean(w[:,1,:].^2) ) #sqrt( sum(w[:,1,1].^2 ) + sum( w[:,1,2].^2) )
     weight_2_norm = sqrt( mean(w[:,2,:].^2) ) #sqrt( sum(w[:,2,1].^2 ) + sum( w[:,2,2].^2) )
-    w[:, 1, :] = w[:, 1, :] ./ weight_1_norm * weight_scaler
-    w[:, 2, :] = w[:, 2, :] ./ weight_2_norm * weight_scaler
+    w[:, 1, :] = w[:, 1, :] ./ weight_1_norm * subject_initial_weight_scale;
+    w[:, 2, :] = w[:, 2, :] ./ weight_2_norm * subject_initial_weight_scale;
   end
 
   # update the running average of post-synaptic firing rates (only once per trial and either before or after all calls to post() )
