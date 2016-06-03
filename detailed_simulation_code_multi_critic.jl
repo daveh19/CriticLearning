@@ -651,8 +651,8 @@ function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
   if(use_pooled_scaling_of_post_population_for_decisions)
     update_noise()
     (left,right) = noise_free_post(x, task_id, tuning_type);
-    pop_nf_post = transpose([left; right]);
-    pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_nf_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(ksi));
+    pop_noise_free_post = transpose([left; right]);
+    pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_noise_free_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(ksi));
     local_post = pop_rate;
   end
 
@@ -738,11 +738,13 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   #TODO: fix reward to make it invariant again
   local_reward = reward(x, task_id, tuning_type) :: Int; # it is important that noise is not updated between calls to post() and reward()
 
-  #update_noise()
-  (left,right) = noise_free_post(x, task_id, tuning_type);
-  pop_nf_post = transpose([left; right]);
-  pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_nf_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(ksi));
-  #local_post = pop_rate;
+  if(use_pooled_scaling_of_post_population_for_decisions)
+    #update_noise() #don't do here, we've already done in reward()
+    (left,right) = noise_free_post(x, task_id, tuning_type);
+    pop_noise_free_post = transpose([left; right]);
+    pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_noise_free_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(ksi));
+    #local_post = pop_rate; # no, we'll use pop_rate for decisions below; it's cleaner!
+  end
 
   if(perform_detection_threshold)
     local_threshold = detect_threshold(tuning_type, task_id);
