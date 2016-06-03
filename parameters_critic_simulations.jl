@@ -4,8 +4,11 @@ random_seed = 3::Int;#3;
 # network parameters
 #no_pre_neurons = 100;
 no_pre_neurons_per_task = 50::Int;
-no_post_neurons = 2::Int;
+no_post_neurons = 2::Int; # corresponds to number of output decision categories
 no_input_tasks = 2::Int;
+no_pop_scaling_post_neurons = 3 :: Int; # per output decision category
+#no_post_pop_size = 3 :: Int;
+
 
 # trial length parameters
 no_trials_in_block = 200::Int; #80;
@@ -22,7 +25,6 @@ reset_average_reward_on_each_block = false :: Bool;
 #use_fixed_external_bias = false :: Bool; # default to off
 fixed_external_bias_value = (-1.0) :: Float64;
 
-no_post_pop_size = 3 :: Int;
 
 # changing the post part of the weight update rule
 floor_on_post = (-Inf) :: Float64; # applied in post()

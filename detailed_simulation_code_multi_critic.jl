@@ -349,8 +349,8 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
   #noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
   (noise_free_left, noise_free_right) = noise_free_post(x, task_id, tuning_type);
 
-  left = noise_free_left + ksi[1] * sqrt(no_post_pop_size)
-	right = noise_free_right+ ksi[2] * sqrt(no_post_pop_size)
+  left = noise_free_left + ksi[1] * sqrt(no_pop_scaling_post_neurons)
+	right = noise_free_right+ ksi[2] * sqrt(no_pop_scaling_post_neurons)
 
   # moved intrinsic plasticity application to noise_free_post()
   # moved decision criterion monitor application to noise_free_post()
@@ -652,8 +652,8 @@ function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
   update_noise()
   (left,right) = noise_free_post(x, task_id, tuning_type);
   pop_nf_post = transpose([left; right]);
-  #pop_rate = local_post + (no_post_pop_size - 1) .* pop_nf_post + ( sqrt(no_post_pop_size-1) .* transpose(ksi));
-  pop_rate = local_post + (no_post_pop_size - 1) .* pop_nf_post + ( sqrt(no_post_pop_size * (no_post_pop_size - 1)) .* transpose(ksi));
+  #pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_nf_post + ( sqrt(no_pop_scaling_post_neurons-1) .* transpose(ksi));
+  pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_nf_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(ksi));
   local_post = pop_rate;
   if(disable_winner_takes_all)
     # Disabling winner-takes-all requires a change in logic: we just
@@ -738,7 +738,7 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   #update_noise()
   (left,right) = noise_free_post(x, task_id, tuning_type);
   pop_nf_post = transpose([left; right]);
-  pop_rate = local_post + (no_post_pop_size - 1) .* pop_nf_post + ( sqrt(no_post_pop_size * (no_post_pop_size - 1)) .* transpose(ksi));
+  pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_nf_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(ksi));
   #local_post = pop_rate;
 
   if(perform_detection_threshold)
