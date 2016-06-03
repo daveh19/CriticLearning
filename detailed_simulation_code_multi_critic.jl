@@ -349,6 +349,7 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
   #noise_free_right = sum(local_pre[:,task_id] .* w[:,2,task_id]);
   (noise_free_left, noise_free_right) = noise_free_post(x, task_id, tuning_type);
 
+  # noise is scaled via the size of an imaginary pool of post neurons, per output decision category
   left = noise_free_left + ksi[1] * sqrt(no_pop_scaling_post_neurons)
 	right = noise_free_right+ ksi[2] * sqrt(no_pop_scaling_post_neurons)
 
@@ -648,10 +649,11 @@ end
 function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
 	local_post = post(x, task_id, tuning_type, true)
 
+  # pooling of decision across a population of, per decision class, post-synaptic neurons
   if(use_pooled_scaling_of_post_population_for_decisions)
     update_noise()
     (left,right) = noise_free_post(x, task_id, tuning_type);
-    pop_noise_free_post = transpose([left; right]);
+    pop_noise_free_post = [left right];
     pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_noise_free_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(ksi));
     local_post = pop_rate;
   end
@@ -741,7 +743,7 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   if(use_pooled_scaling_of_post_population_for_decisions)
     #update_noise() #don't do here, we've already done in reward()
     (left,right) = noise_free_post(x, task_id, tuning_type);
-    pop_noise_free_post = transpose([left; right]);
+    pop_noise_free_post = [left right];
     pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_noise_free_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(ksi));
     #local_post = pop_rate; # no, we'll use pop_rate for decisions below; it's cleaner!
   end
