@@ -7,7 +7,6 @@ no_pre_neurons_per_task = 50::Int;
 no_post_neurons = 2::Int; # corresponds to number of output decision categories
 no_input_tasks = 2::Int;
 no_pop_scaling_post_neurons = 3 :: Int; # per output decision category
-#no_post_pop_size = 3 :: Int;
 
 
 # trial length parameters
@@ -35,6 +34,7 @@ if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs a
 use_intrinsic_plasticity = false :: Bool; #leave OFF for now! #enable updating, and subtraction of an intrinsic plasticity factor from post
 use_weight_normalisation = true :: Bool; # weight normalisation using quadratic norm, multiplicative rule
 use_decision_criterion_learner = true :: Bool;
+use_pooled_scaling_of_post_population_for_decisions = true :: Bool;
 
 # problem difficulty parameters
 problem_left_bound = (-1.) :: Float64; #-0.5;

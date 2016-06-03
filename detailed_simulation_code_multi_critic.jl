@@ -648,13 +648,14 @@ end
 function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
 	local_post = post(x, task_id, tuning_type, true)
 
+  if(use_pooled_scaling_of_post_population_for_decisions)
+    update_noise()
+    (left,right) = noise_free_post(x, task_id, tuning_type);
+    pop_nf_post = transpose([left; right]);
+    pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_nf_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(ksi));
+    local_post = pop_rate;
+  end
 
-  update_noise()
-  (left,right) = noise_free_post(x, task_id, tuning_type);
-  pop_nf_post = transpose([left; right]);
-  #pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_nf_post + ( sqrt(no_pop_scaling_post_neurons-1) .* transpose(ksi));
-  pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_nf_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(ksi));
-  local_post = pop_rate;
   if(disable_winner_takes_all)
     # Disabling winner-takes-all requires a change in logic: we just
     #   take the output neuron with the higher firing rate (even if
@@ -733,6 +734,8 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   local_pre = pre(x, task_id, tuning_type);
   # Note: local_post returns a tuple where one value is 0 [in wta mode]. All comparisons to find the non zero value should use absolute comparison.
   local_post = post(x, task_id, tuning_type);
+  # since introduction of scaled post-synaptic populations noise is no longer invariant in calls to reward()
+  #TODO: fix reward to make it invariant again
   local_reward = reward(x, task_id, tuning_type) :: Int; # it is important that noise is not updated between calls to post() and reward()
 
   #update_noise()
