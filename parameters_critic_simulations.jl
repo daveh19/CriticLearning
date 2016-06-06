@@ -35,6 +35,7 @@ use_intrinsic_plasticity = false :: Bool; #leave OFF for now! #enable updating, 
 use_weight_normalisation = true :: Bool; # weight normalisation using quadratic norm, multiplicative rule
 use_decision_criterion_learner = true :: Bool;
 use_pooled_scaling_of_post_population_for_decisions = true :: Bool;
+if (!use_pooled_scaling_of_post_population_for_decisions) no_pop_scaling_post_neurons = 1; end # faster way to make sure that post applies noise correctly
 
 # problem difficulty parameters
 problem_left_bound = (-1.) :: Float64; #-0.5;
