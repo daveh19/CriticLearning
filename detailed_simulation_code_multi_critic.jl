@@ -5,6 +5,7 @@
 function update_noise()
   #global ksi = rand(Normal(0,output_noise), no_post_neurons);
   global ksi = rand(Normal(0,1), no_post_neurons) .* sqrt(output_noise_variance);
+  global population_ksi = rand(Normal(0,1), no_post_neurons) .* sqrt(output_noise_variance);
 end
 
 
@@ -644,28 +645,30 @@ function detect_threshold(tuning_type::TuningSelector, task_id::Int=1, split_out
 end
 
 
+# a single post-synaptic neuron only contributes (1/N) to the decision process
+#   the purpose is to decouple the decision making somewhat from an individual
+#   cell firing rate
 function pooled_post_rate(x::Float64, task_id::Int, tuning_type::TuningSelector, local_post)
-  # due to issues of invariance, we assume that local_post contains a different noise
-  #   instance compared to that currently in ksi
-  #   this will shortly be changed to a separate ksi variable... (TODO)
   (left,right) = noise_free_post(x, task_id, tuning_type);
   pop_noise_free_post = [left right];
   #TODO: fix scaling of noise here
-  pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_noise_free_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(ksi) );
+  pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_noise_free_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(population_ksi) );
 
   return pop_rate;
 end
+
 
 # this is the only function which actually knows if things went right or wrong
 # instance_correct = 0;
 # instance_incorrect = 0;
 function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
-	local_post = post(x, task_id, tuning_type, true)
+	local_post = post(x, task_id, tuning_type, true);
 
   # pooling of decision across a population of, per decision class, post-synaptic neurons
   if(use_pooled_scaling_of_post_population_for_decisions)
-    update_noise()
     local_post = pooled_post_rate(x, task_id, tuning_type, local_post);
+    # local_post is getting overwritten her by pooled post rate variable for decision making
+    #   this will not influence the post-synaptic firing rate in the weight update equation
   end
 
   if(disable_winner_takes_all)
@@ -746,14 +749,12 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   local_pre = pre(x, task_id, tuning_type);
   # Note: local_post returns a tuple where one value is 0 [in wta mode]. All comparisons to find the non zero value should use absolute comparison.
   local_post = post(x, task_id, tuning_type);
-  # since introduction of scaled post-synaptic populations noise is no longer invariant in calls to reward()
-  #TODO: fix reward to make it invariant again
+  # reward() is now invariant again
   local_reward = reward(x, task_id, tuning_type) :: Int; # it is important that noise is not updated between calls to post() and reward()
 
   if(use_pooled_scaling_of_post_population_for_decisions)
-    #update_noise() #don't do here, we've already done in reward()
     pop_rate = pooled_post_rate(x, task_id, tuning_type, local_post);
-    # we're keeping local_post and pop_rate separate for different decision processes for now
+    # we're keeping local_post and pop_rate separate to allow for different decision processes below
   end
 
   if(perform_detection_threshold)
