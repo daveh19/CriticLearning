@@ -252,6 +252,17 @@ function wta(left::Float64, right::Float64, debug_on::Bool = false)
 	return [left right]
 end
 
+# population pooling of post-synaptic decision neurons leads to a feedback of WTA from decision layer
+#   to weight learning neurons
+function wta(local_post::Array{Float64,2}, pop_rate::Array{Float64,2})
+  local_pop_rate = wta(pop_rate[1], pop_rate[2]);
+  if (local_pop_rate[1] > local_pop_rate[2])
+    return [local_post[1] 0.0];
+  else
+    return [0.0 local_post[2]];
+  end
+end
+
 
 function noise_free_post(x::Float64, task_id::Int, tuning_type::TuningSelector)
   local_pre = pre(x, task_id, tuning_type)
@@ -377,9 +388,22 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
     end
   end
   if(disable_winner_takes_all)
-    return [left,right];
+    return [left right];
   else
-    return wta(left,right, debug_on);
+    if ( no_pop_scaling_post_neurons > 1)
+      # population pooling of post-synaptic decision neurons leads to a feedback of WTA from decision layer
+      #   to weight learning neurons
+      # there is a clear performance punishment by re-calculating the pooled_population_post_rate here
+      #     (post() gets called multiple times!)
+      #   but it seems cleaner than most alternative implementations without re-writing substantial
+      #   pieces of code. It also maintains invariance of most functions and a logical implementation
+      #   of the WTA function.
+      local_post = [left right];
+      pop_rate = pooled_population_post_rate(x, task_id, tuning_type, local_post);
+      return wta(local_post, pop_rate);
+    else
+      return wta(left,right, debug_on);
+    end
   end
 end
 
@@ -649,7 +673,7 @@ end
 # a single post-synaptic neuron only contributes (1/N) to the decision process
 #   the purpose is to decouple the decision making somewhat from an individual
 #   cell firing rate
-function pooled_post_rate(x::Float64, task_id::Int, tuning_type::TuningSelector, local_post::Array{Float64,2})
+function pooled_population_post_rate(x::Float64, task_id::Int, tuning_type::TuningSelector, local_post::Array{Float64,2})
   (left,right) = noise_free_post(x, task_id, tuning_type);
   pop_noise_free_post = [left right];
   # pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_noise_free_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(population_ksi) );
@@ -668,7 +692,7 @@ function reward(x::Float64, task_id::Int, tuning_type::TuningSelector)
 
   # pooling of decision across a population of, per decision class, post-synaptic neurons
   if(use_pooled_scaling_of_post_population_for_decisions)
-    local_post = pooled_post_rate(x, task_id, tuning_type, local_post);
+    local_post = pooled_population_post_rate(x, task_id, tuning_type, local_post);
     # local_post is getting overwritten her by pooled post rate variable for decision making
     #   this will not influence the post-synaptic firing rate in the weight update equation
   end
@@ -755,7 +779,7 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   local_reward = reward(x, task_id, tuning_type) :: Int; # it is important that noise is not updated between calls to post() and reward()
 
   if(use_pooled_scaling_of_post_population_for_decisions)
-    pop_rate = pooled_post_rate(x, task_id, tuning_type, local_post);
+    pop_rate = pooled_population_post_rate(x, task_id, tuning_type, local_post);
     # we're keeping local_post and pop_rate separate to allow for different decision processes below
   end
 
