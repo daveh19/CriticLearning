@@ -240,14 +240,14 @@ function wta(left::Float64, right::Float64, debug_on::Bool = false)
         print("Left!\n")
       end
     end
-    right = 0
+    right = 0.
 	else
     if(verbosity > 0)
       if(debug_on)
         print("Right!\n")
       end
     end
-    left = 0
+    left = 0.
 	end
 	return [left right]
 end
@@ -648,7 +648,7 @@ end
 # a single post-synaptic neuron only contributes (1/N) to the decision process
 #   the purpose is to decouple the decision making somewhat from an individual
 #   cell firing rate
-function pooled_post_rate(x::Float64, task_id::Int, tuning_type::TuningSelector, local_post)
+function pooled_post_rate(x::Float64, task_id::Int, tuning_type::TuningSelector, local_post::Array{Float64,2})
   (left,right) = noise_free_post(x, task_id, tuning_type);
   pop_noise_free_post = [left right];
   #TODO: fix scaling of noise here
@@ -748,7 +748,7 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   # don't forget to update noise externally to this function on separate iterations
   local_pre = pre(x, task_id, tuning_type);
   # Note: local_post returns a tuple where one value is 0 [in wta mode]. All comparisons to find the non zero value should use absolute comparison.
-  local_post = post(x, task_id, tuning_type);
+  local_post = post(x, task_id, tuning_type) :: Array{Float64,2};
   # reward() is now invariant again
   local_reward = reward(x, task_id, tuning_type) :: Int; # it is important that noise is not updated between calls to post() and reward()
 
