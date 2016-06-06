@@ -403,8 +403,8 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
   end
 
 
-  if(subject_id==1 || use_reset_decision_criterion_monitor_each_subject)
-    global decision_criterion_monitor = 0.5;
+  if(use_reset_decision_criterion_monitor_each_subject || subject_id==1)
+    global decision_criterion_monitor = 0.5 :: Float64;
   end
 
   for (i = 1:no_blocks_in_experiment)
@@ -484,8 +484,8 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
     average_post[i] = 0.;
   end
 
-  if(subject_id==1 || use_reset_decision_criterion_monitor_each_subject)
-    global decision_criterion_monitor = 0.5;
+  if(use_reset_decision_criterion_monitor_each_subject || subject_id==1)
+    global decision_criterion_monitor = 0.5 :: Float64;
   end
 
   if(double_no_of_trials_in_alternating_experiment)
