@@ -77,13 +77,13 @@ use_binary_alternating_inputs = false :: Bool;
 use_binary_random_inputs = true :: Bool;
 use_biased_cts_random_inputs = false :: Bool;
 # (criterion learning bias)
-input_sequence_bias = (0.1) :: Float64; # should be between -0.5 and +0.5, this is the x value
-criterion_learner_expectation = (0.5) :: Float64; # between 0 and 1, 0.5 is an expectation of equal left and right presentation
-print("Stimulus sequence (dx) ratio: $(1-(0.5+input_sequence_bias)):$(0.5+input_sequence_bias)\n");
+input_sequence_bias = (0.) :: Float64; # should be between -0.5 and +0.5, this is the x value
+criterion_learner_expectation = (0.5) :: Float64; # between 0 (L) and 1 (R), expectation of right with respect to left presentations
+print("Stimulus sequence (dx) ratio (L:R): $(1-(0.5+input_sequence_bias)):$(0.5+input_sequence_bias)\n");
 
 # task sequence
 task_sequence_bias = (0.0) :: Float64; # should be between -0.5 and +0.5, gives (1-(0.5+bias)):(0.5+bias) ratio of tasks, this is the task_id value
-print("Bisection task ratio: $(1-(0.5+task_sequence_bias)):$(0.5+task_sequence_bias)\n");
+print("Bisection task ratio (1:2): $(1-(0.5+task_sequence_bias)):$(0.5+task_sequence_bias)\n");
 
 # selective tuning of input
 input_baseline = 2.0 :: Float64; #2.0;
