@@ -6,7 +6,7 @@ random_seed = 3::Int;#3;
 no_pre_neurons_per_task = 50::Int;
 no_post_neurons = 2::Int; # corresponds to number of output decision categories
 no_input_tasks = 2::Int;
-no_pop_scaling_post_neurons = 3 :: Int; # per output decision category
+no_pop_scaling_post_neurons = 1 :: Int; # per output decision category
 
 
 # trial length parameters
@@ -22,7 +22,7 @@ use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
 reset_average_reward_on_each_block = false :: Bool;
 #use_fixed_external_bias = false :: Bool; # default to off
-fixed_external_bias_value = (-1.0) :: Float64;
+fixed_external_bias_value = (0.9) :: Float64;
 
 
 # changing the post part of the weight update rule
@@ -76,7 +76,9 @@ use_cts_random_inputs = false :: Bool;
 use_binary_alternating_inputs = false :: Bool;
 use_binary_random_inputs = true :: Bool;
 use_biased_cts_random_inputs = false :: Bool;
-input_sequence_bias = (0.) :: Float64; # should be between -0.5 and +0.5, this is the x value
+# (criterion learning bias)
+input_sequence_bias = (0.1) :: Float64; # should be between -0.5 and +0.5, this is the x value
+criterion_learner_expectation = (0.5) :: Float64; # between 0 and 1, 0.5 is an expectation of equal left and right presentation
 print("Stimulus sequence (dx) ratio: $(1-(0.5+input_sequence_bias)):$(0.5+input_sequence_bias)\n");
 
 # task sequence

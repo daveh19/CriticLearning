@@ -338,7 +338,7 @@ function update_decision_criterion_learner(local_post)
   # associate 1 with output 2 and 0 with output 1
   update_choice = (local_post[2] > local_post[1] ? 1. : 0.) :: Float64;
   # I previously forgot to include the following term, which maintains the 50:50 ratio
-  update_choice = update_choice - 0.5;
+  update_choice = update_choice - criterion_learner_expectation;
 
   decision_criterion_monitor = decision_criterion_monitor + (decision_criterion_timescale * update_choice);
 
