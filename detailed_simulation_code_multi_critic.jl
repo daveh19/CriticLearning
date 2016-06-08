@@ -364,8 +364,8 @@ function post(x::Float64, task_id::Int, tuning_type::TuningSelector, debug_on::B
   # noise is scaled via the size of an imaginary pool of post neurons, per output decision category
   #   this is single neuron code, so I think the noise should only be scaled by output_noise_variance (in ksi)
   #   and not by the number of scaling neurons in the post population
-  left = noise_free_left + ksi[1]; # * sqrt(no_pop_scaling_post_neurons)
-	right = noise_free_right+ ksi[2]; # * sqrt(no_pop_scaling_post_neurons)
+  left = noise_free_left + ksi[1] * sqrt(no_pop_scaling_post_neurons)
+	right = noise_free_right+ ksi[2] * sqrt(no_pop_scaling_post_neurons)
 
   # moved intrinsic plasticity application to noise_free_post()
   # moved decision criterion monitor application to noise_free_post()
@@ -678,7 +678,7 @@ function pooled_population_post_rate(x::Float64, task_id::Int, tuning_type::Tuni
   pop_noise_free_post = [left right];
   # pop_rate = local_post + (no_pop_scaling_post_neurons - 1) .* pop_noise_free_post + ( sqrt(no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1)) .* transpose(population_ksi) );
   # I think the following is the correct scaling of population noise
-  pop_rate = local_post + ( (no_pop_scaling_post_neurons - 1) .* pop_noise_free_post ) + ( sqrt( no_pop_scaling_post_neurons - 1 ) .* transpose(population_ksi) );
+  pop_rate = local_post + ( (no_pop_scaling_post_neurons - 1) .* pop_noise_free_post ) + ( sqrt( no_pop_scaling_post_neurons * (no_pop_scaling_post_neurons - 1) ) .* transpose(population_ksi) );
 
   return pop_rate;
 end
