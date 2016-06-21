@@ -938,6 +938,7 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   # decision_criterion_learner tries to ensure a 50:50 left:right ratio
   #update_decision_criterion_learner(local_post);
   update_decision_criterion_learner(pop_rate);
+  trial_dat.decision_criterion_monitor = decision_criterion_monitor;
 
   return (local_reward+1); # make it 0 or 2, rather than +/-1
 end

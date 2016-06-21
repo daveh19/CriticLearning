@@ -154,11 +154,13 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   global n_task_within_block = zeros(Int, no_input_tasks);
   local_average_threshold = 0.0;
   local_average_task_threshold = zeros(no_input_tasks);
+  local_average_decision_criterion_monitor = 0.0;
   #for(xi in x)
   for(i = 1:no_trials_in_block)
     update_noise()
     local_reward = (update_weights(x[i], task_id, tuning_type, block_dat.trial[i]) / 2);
     monitor_reward += local_reward;
+    local_average_decision_criterion_monitor += decision_criterion_monitor;
     # adding a monitor of sub-task performance (eg. L, R distinction)
     #   correct_answer contains +/- 1, need to correct for array indexing
     #   the cast/round to int splits at 1.5 between outputs 1 and 2
@@ -200,6 +202,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   end
   proportion_correct = monitor_reward / no_trials_in_block;
   proportion_sub_task_correct = proportion_sub_task_correct ./ sub_task_count;
+  local_average_decision_criterion_monitor /= no_trials_in_block;
   if(perform_detection_threshold)
     local_average_threshold /= no_trials_in_block;
     local_average_task_threshold[task_id] = local_average_task_threshold[task_id] ./ no_trials_in_block;
@@ -219,6 +222,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   #   this is a hack but one which obviates the need for more storage variables
   block_dat.proportion_task_correct = proportion_sub_task_correct;
   block_dat.average_choice = average_choice;
+  block_dat.average_decision_criterion_monitor = local_average_decision_criterion_monitor;
 
   block_dat.average_reward = average_block_reward;
   block_dat.average_task_reward = average_task_reward;
@@ -299,10 +303,12 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
   local_average_task_choice = zeros(no_input_tasks);
   local_average_threshold = 0.0;
   local_average_task_threshold = zeros(no_input_tasks);
+  local_average_decision_criterion_monitor = 0.0;
   for(i = 1:no_trials_in_block)
     update_noise()
     local_reward = (update_weights(x[i], task[i], tuning_type, block_dat.trial[i]) / 2);
     monitor_reward += local_reward;
+    local_average_decision_criterion_monitor += decision_criterion_monitor;
     task_count[task[i]] += 1;
     proportion_task_correct[task[i]] += local_reward; # local_reward = {0,1}
     local_average_task_choice[task[i]] += block_dat.trial[i].chosen_answer;
@@ -317,6 +323,7 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
   proportion_correct = monitor_reward / no_trials_in_block;
   proportion_task_correct = proportion_task_correct ./ task_count;
   local_average_task_choice = local_average_task_choice ./ task_count;
+  local_average_decision_criterion_monitor /= no_trials_in_block;
   if(perform_detection_threshold)
     local_average_threshold /= no_trials_in_block;
     local_average_task_threshold = local_average_task_threshold ./ task_count;
@@ -336,6 +343,7 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
   block_dat.proportion_task_correct = proportion_task_correct;
   block_dat.average_choice = average_choice;
   block_dat.average_task_choice = local_average_task_choice;
+  block_dat.average_decision_criterion_monitor = local_average_decision_criterion_monitor;
 
   block_dat.average_reward = average_block_reward;
   block_dat.average_task_reward = average_task_reward;
@@ -1875,7 +1883,7 @@ function plot_single_block_reward_received(block::Block)
   return no_trials_in_block;
 end
 
-function plot_multi_block_reward_recived(subject::Subject, begin_id::Int=1, end_id::Int=no_blocks_in_experiment)
+function plot_multi_block_reward_received(subject::Subject, begin_id::Int=1, end_id::Int=no_blocks_in_experiment)
   figure()
   max_no_trials_in_block = 0::Int;
   for i = begin_id:end_id
@@ -1887,6 +1895,35 @@ function plot_multi_block_reward_recived(subject::Subject, begin_id::Int=1, end_
   xlabel("Trial number")
   ylabel("Reward received")
   axis([0,max_no_trials_in_block,-2,2])
+end
+
+
+function plot_single_block_decision_criterion_monitor(block::Block)
+  #figure()
+  no_trials_in_block = length(block.trial); # may not be global value due to double length roving sims
+  local_decision_criterion_monitor = zeros(no_trials_in_block);
+  x = linspace(1, no_trials_in_block, no_trials_in_block);
+  for i = 1:no_trials_in_block
+    local_decision_criterion_monitor[i] = block.trial[i].decision_criterion_monitor;
+    #print("", x[i], " ", local_reward_received[i], "\n")
+  end
+  #print("", size(local_reward_received), " ", size(x),"\n")
+  plot(x, local_decision_criterion_monitor, linewidth=2)
+  return no_trials_in_block;
+end
+
+function plot_multi_block_decision_criterion_monitor(subject::Subject, begin_id::Int=1, end_id::Int=no_blocks_in_experiment)
+  figure()
+  max_no_trials_in_block = 0::Int;
+  for i = begin_id:end_id
+    no_trials = plot_single_block_decision_criterion_monitor(subject.blocks[i])
+    if (no_trials > max_no_trials_in_block)
+      max_no_trials_in_block = no_trials;
+    end
+  end
+  xlabel("Trial number")
+  ylabel("Decision criterion monitor")
+  #axis([0,max_no_trials_in_block,-2,2])
 end
 
 
@@ -2004,6 +2041,34 @@ function plot_multi_subject_probability_correct(subjects::Array{Subject,2}, task
 end
 
 
+function plot_single_subject_block_average_decision_monitor(subject::Subject, task_id::Int=1)
+  #figure()
+  local_av_decision_monitor = zeros(no_blocks_in_experiment);
+  x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
+  task_ratio = [1 - (0.5 + input_sequence_bias), (0.5 + input_sequence_bias)];
+  for i = 1:no_blocks_in_experiment
+    #local_output[i] = subject.blocks[i].proportion_correct; #average_reward;
+    local_av_decision_monitor[i] = subject.blocks[i].average_decision_criterion_monitor;
+    #print("", x[i], " ", local_reward_received[i], "\n")
+  end
+  #print("", size(local_reward_received), " ", size(x),"\n")
+  #plot(x, local_task_probability[:,task_id,1], linewidth=2, c="c")
+  #plot(x, local_task_probability[:,task_id,2], linewidth=2, c="m")
+  plot(x, local_av_decision_monitor, linewidth=1, c="k", zorder=3)
+end
+
+
+function plot_multi_subject_block_averaged_decision_monitor(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
+  figure()
+  for i = begin_id:end_id
+    plot_single_subject_block_average_decision_monitor(subjects[i,task_id],task_id)
+  end
+  xlabel("Block number")
+  ylabel("Block average decision monitor")
+  axis([0,no_blocks_in_experiment,-100,100])
+end
+
+
 function plot_single_subject_average_threshold(subject::Subject)
   #figure()
   local_av_threshold = zeros(no_blocks_in_experiment);
@@ -2085,6 +2150,27 @@ function plot_multi_subject_average_choice(subjects::Array{Subject,2}, task_id::
 end
 
 
+function plot_single_subject_nth_weight_vs_bias(subject::Array{Subject,2}, task_ids::Array{Int,1}=[1], block_no::Int=1, trial_no::Int=1)
+  # subject array should contain subject i with each of his task instances
+  #figure()
+  for task_id in task_ids
+    if (task_id == 1)
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].blocks[block_no].trial[trial_no].w[:,1,task_id], marker="o", c="g", label="left, easy")
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].blocks[block_no].trial[trial_no].w[:,2,task_id], marker="o", c="y", label="right, easy")
+    elseif (task_id == 2)
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].blocks[block_no].trial[trial_no].w[:,1,task_id], marker="o", c="r", label="left, hard")
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].blocks[block_no].trial[trial_no].w[:,2,task_id], marker="o", c="k", label="right, hard")
+    else
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].blocks[block_no].trial[trial_no].w[:,1,task_id], marker="o", c="c", label="left, other")
+      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].blocks[block_no].trial[trial_no].w[:,2,task_id], marker="o", c="m", label="right, other")
+    end
+  end
+  xlim([-1.2,1.2])
+  ylim([-12,12])
+  #legend()
+end
+
+
 function plot_single_subject_final_weight_vs_bias(subject::Array{Subject,2}, task_ids::Array{Int,1}=[1])
   # subject array should contain subject i with each of his task instances
   #figure()
@@ -2157,8 +2243,8 @@ function plot_subjects_initial_weight_distributions(subjects::Array{Subject,2}, 
     restore_subject(subjects[i,task_id]);
     #=scatter(x1+( (i-1) * inter_subject_gap), w[:,1,1], c="b")
     scatter(x2+( (i-1) * inter_subject_gap), w[:,2,1], c="g")=#
-    scatter( (i * x1) , w[:,1,1], c="b")
-    scatter( (i * x1) + 0.5, w[:,2,1], c="g")
+    scatter( (i * x1) , w[:,1,task_id], c="b")
+    scatter( (i * x1) + 0.5, w[:,2,task_id], c="g")
   end
 end
 
