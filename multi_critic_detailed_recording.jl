@@ -1,9 +1,13 @@
 ######## External requirements ###########
 using Distributions
-using PyPlot
+using PyPlot,PyCall
 using Grid
 
 using Debug
+
+@pyimport seaborn as sns
+#sns.set(font_scale=1.5)
+#sns.set_context("poster")
 
 ########## Parameters #############
 
