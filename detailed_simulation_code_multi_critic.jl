@@ -185,7 +185,7 @@ function initialise()
   update_noise();
   initialise_weight_matrix(tuning_type);
 
-  global decision_criterion_monitor = 0.5;
+  global decision_criterion_monitor = 0.0; #0.5;
 
   global average_delta_reward = 0.0;
   global average_choice = 0.0;
