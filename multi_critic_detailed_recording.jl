@@ -2034,10 +2034,10 @@ function plot_single_subject_probability_correct(subject::Subject, task_id::Int=
   plot(x, local_av_probability, linewidth=1, c="k", zorder=3)
 end
 
-function plot_multi_subject_probability_correct(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
+function plot_multi_subject_probability_correct(subjects::Array{Subject,2}, exp_id::Int=1, task_id::Int=exp_id, begin_id::Int=1, end_id::Int=no_subjects)
   figure()
   for i = begin_id:end_id
-    plot_single_subject_probability_correct(subjects[i,task_id],task_id)
+    plot_single_subject_probability_correct(subjects[i,exp_id],task_id)
   end
   xlabel("Block number")
   ylabel("Probability correct")
@@ -2062,10 +2062,10 @@ function plot_single_subject_block_average_decision_monitor(subject::Subject, ta
 end
 
 
-function plot_multi_subject_block_averaged_decision_monitor(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
+function plot_multi_subject_block_averaged_decision_monitor(subjects::Array{Subject,2}, exp_id::Int=1, task_id::Int=exp_id, begin_id::Int=1, end_id::Int=no_subjects)
   figure()
   for i = begin_id:end_id
-    plot_single_subject_block_average_decision_monitor(subjects[i,task_id],task_id)
+    plot_single_subject_block_average_decision_monitor(subjects[i,exp_id],task_id)
   end
   xlabel("Block number")
   ylabel("Block average decision monitor")
@@ -2143,10 +2143,10 @@ function plot_single_subject_average_choice(subject::Subject)
   plot(x, local_av_choice, linewidth=2, c="k")
 end
 
-function plot_multi_subject_average_choice(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
+function plot_multi_subject_average_choice(subjects::Array{Subject,2}, exp_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
   figure()
   for i = begin_id:end_id
-    plot_single_subject_average_choice(subjects[i,task_id])
+    plot_single_subject_average_choice(subjects[i,exp_id])
   end
   xlabel("Block number")
   ylabel("Average choice")
