@@ -781,6 +781,8 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   if(use_pooled_scaling_of_post_population_for_decisions)
     pop_rate = pooled_population_post_rate(x, task_id, tuning_type, local_post);
     # we're keeping local_post and pop_rate separate to allow for different decision processes below
+  else
+    pop_rate = local_post;
   end
 
   if(perform_detection_threshold)
