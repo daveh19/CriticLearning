@@ -2005,10 +2005,10 @@ function plot_single_subject_noise_free_positive_output(subject::Subject, task_i
   #legend(loc=4)
 end
 
-function plot_multi_subject_noise_free_positive_output(subjects::Array{Subject,2}, task_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
+function plot_multi_subject_noise_free_positive_output(subjects::Array{Subject,2}, exp_id::Int=1, task_id::Int=exp_id, begin_id::Int=1, end_id::Int=no_subjects)
   figure()
   for i = begin_id:end_id
-    plot_single_subject_noise_free_positive_output(subjects[i,task_id],task_id)
+    plot_single_subject_noise_free_positive_output(subjects[i,exp_id],task_id)
   end
   xlabel("Block number")
   ylabel("Noise-free positive difference in outputs")
