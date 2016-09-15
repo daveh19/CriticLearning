@@ -2175,19 +2175,19 @@ function plot_single_subject_nth_weight_vs_bias(subject::Array{Subject,2}, task_
 end
 
 
-function plot_single_subject_final_weight_vs_bias(subject::Array{Subject,2}, task_ids::Array{Int,1}=[1])
+function plot_single_subject_final_weight_vs_bias(subject::Array{Subject,2}, exp_id::Int=1, task_ids::Array{Int,1}=[1])
   # subject array should contain subject i with each of his task instances
   #figure()
   for task_id in task_ids
     if (task_id == 1)
-      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_final[:,1,task_id], marker="o", c="g", label="left, easy")
-      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_final[:,2,task_id], marker="o", c="y", label="right, easy")
+      scatter(subject[1,exp_id].b[:,task_id], subject[1,exp_id].w_final[:,1,task_id], marker="o", c="g", label="left, easy")
+      scatter(subject[1,exp_id].b[:,task_id], subject[1,exp_id].w_final[:,2,task_id], marker="o", c="y", label="right, easy")
     elseif (task_id == 2)
-      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_final[:,1,task_id], marker="o", c="r", label="left, hard")
-      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_final[:,2,task_id], marker="o", c="k", label="right, hard")
+      scatter(subject[1,exp_id].b[:,task_id], subject[1,exp_id].w_final[:,1,task_id], marker="o", c="r", label="left, hard")
+      scatter(subject[1,exp_id].b[:,task_id], subject[1,exp_id].w_final[:,2,task_id], marker="o", c="k", label="right, hard")
     else
-      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_final[:,1,task_id], marker="o", c="c", label="left, other")
-      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_final[:,2,task_id], marker="o", c="m", label="right, other")
+      scatter(subject[1,exp_id].b[:,task_id], subject[1,exp_id].w_final[:,1,task_id], marker="o", c="c", label="left, other")
+      scatter(subject[1,exp_id].b[:,task_id], subject[1,exp_id].w_final[:,2,task_id], marker="o", c="m", label="right, other")
     end
   end
   xlim([-1.2,1.2])
@@ -2195,28 +2195,28 @@ function plot_single_subject_final_weight_vs_bias(subject::Array{Subject,2}, tas
   #legend()
 end
 
-function plot_multi_subject_final_weight_vs_bias(subjects::Array{Subject,2}, task_ids::Array{Int,1}=[1], begin_id::Int=1, end_id::Int=no_subjects)
+function plot_multi_subject_final_weight_vs_bias(subjects::Array{Subject,2}, exp_id::Int=1, task_ids::Array{Int,1}=[1], begin_id::Int=1, end_id::Int=no_subjects)
   figure(figsize=(6,20))
   for i = begin_id:end_id
     subplot(10,1,i)
-    plot_single_subject_final_weight_vs_bias(subjects[i,:],task_ids);
+    plot_single_subject_final_weight_vs_bias(subjects[i,:], exp_id, task_ids);
   end
   legend()
 end
 
 
-function plot_single_subject_initial_weight_vs_bias(subject::Array{Subject,2}, task_ids::Array{Int,1}=[1])
+function plot_single_subject_initial_weight_vs_bias(subject::Array{Subject,2}, exp_id::Int=1, task_ids::Array{Int,1}=[1])
   #figure()
   for task_id in task_ids
     if (task_id == 1)
-      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_initial[:,1,task_id], marker="o", c="g", label="left, easy")
-      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_initial[:,2,task_id], marker="o", c="y", label="right, easy")
+      scatter(subject[1,exp_id].b[:,task_id], subject[1,exp_id].w_initial[:,1,task_id], marker="o", c="g", label="left, easy")
+      scatter(subject[1,exp_id].b[:,task_id], subject[1,exp_id].w_initial[:,2,task_id], marker="o", c="y", label="right, easy")
     elseif (task_id == 2)
-      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_initial[:,1,task_id], marker="o", c="r", label="left, hard")
-      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_initial[:,2,task_id], marker="o", c="k", label="right, hard")
+      scatter(subject[1,exp_id].b[:,task_id], subject[1,exp_id].w_initial[:,1,task_id], marker="o", c="r", label="left, hard")
+      scatter(subject[1,exp_id].b[:,task_id], subject[1,exp_id].w_initial[:,2,task_id], marker="o", c="k", label="right, hard")
     else
-      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_initial[:,1,task_id], marker="o", c="c", label="left, other")
-      scatter(subject[1,task_id].b[:,task_id], subject[1,task_id].w_initial[:,2,task_id], marker="o", c="m", label="right, other")
+      scatter(subject[1,exp_id].b[:,task_id], subject[1,exp_id].w_initial[:,1,task_id], marker="o", c="c", label="left, other")
+      scatter(subject[1,exp_id].b[:,task_id], subject[1,exp_id].w_initial[:,2,task_id], marker="o", c="m", label="right, other")
     end
   end
   xlim([-1.2,1.2])
@@ -2224,11 +2224,11 @@ function plot_single_subject_initial_weight_vs_bias(subject::Array{Subject,2}, t
   #legend()
 end
 
-function plot_multi_subject_initial_weight_vs_bias(subjects::Array{Subject,2}, task_ids::Array{Int,1}=[1], begin_id::Int=1, end_id::Int=no_subjects)
+function plot_multi_subject_initial_weight_vs_bias(subjects::Array{Subject,2}, exp_id::Int=1, task_ids::Array{Int,1}=[1], begin_id::Int=1, end_id::Int=no_subjects)
   figure(figsize=(6,20))
   for i = begin_id:end_id
     subplot(10,1,i)
-    plot_single_subject_initial_weight_vs_bias(subjects[i,:], task_ids);
+    plot_single_subject_initial_weight_vs_bias(subjects[i,:], exp_id, task_ids);
   end
   legend()
 end
