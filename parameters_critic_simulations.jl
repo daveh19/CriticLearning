@@ -6,7 +6,7 @@ random_seed = 3::Int;#3;
 no_pre_neurons_per_task = 50::Int;
 no_post_neurons = 2::Int; # corresponds to number of output decision categories
 no_input_tasks = 2::Int;
-no_pop_scaling_post_neurons = 100 :: Int; # per output decision category
+no_pop_scaling_post_neurons = 1 :: Int; # per output decision category
 
 
 # trial length parameters
@@ -59,7 +59,7 @@ weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 # as a simplification of both intrinsic plasticity and weight normalisation
 #   here we use a simple decision bias measure
 #   associate 1 with output 2 and 0 with output 1
-decision_criterion_timescale = 1.0 :: Float64; # (dt/tau for updating of decision_criterion_monitor)
+decision_criterion_timescale = 10.0 :: Float64; # (dt/tau for updating of decision_criterion_monitor)
 reset_decision_criterion_monitor_on_each_block = true :: Bool;
 use_reset_decision_criterion_monitor_each_subject = true :: Bool;
 
