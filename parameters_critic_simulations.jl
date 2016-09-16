@@ -22,7 +22,7 @@ use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
 reset_average_reward_on_each_block = false :: Bool;
 #use_fixed_external_bias = false :: Bool; # default to off
-fixed_external_bias_value = (0.9) :: Float64;
+fixed_external_bias_value = (1.2) :: Float64;
 
 
 # changing the post part of the weight update rule
