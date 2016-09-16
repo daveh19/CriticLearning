@@ -78,7 +78,7 @@ use_binary_alternating_inputs = false :: Bool;
 use_binary_random_inputs = true :: Bool;
 use_biased_cts_random_inputs = false :: Bool;
 # (criterion learning bias)
-input_sequence_bias = (0.0) :: Float64; # should be between -0.5 (L) and +0.5 (R), this is the x value bias
+input_sequence_bias = (-0.250) :: Float64; # should be between -0.5 (L) and +0.5 (R), this is the x value bias
 criterion_learner_expectation = (0.5) :: Float64; # between 0 (L) and 1 (R), expectation of right with respect to left presentations
 print("Stimulus sequence (dx) ratio (L:R): $(1-(0.5+input_sequence_bias)):$(0.5+input_sequence_bias)\n");
 
