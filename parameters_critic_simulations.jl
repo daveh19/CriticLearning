@@ -59,7 +59,7 @@ weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 # as a simplification of both intrinsic plasticity and weight normalisation
 #   here we use a simple decision bias measure
 #   associate 1 with output 2 and 0 with output 1
-decision_criterion_timescale = 10.0 :: Float64; # (dt/tau for updating of decision_criterion_monitor)
+decision_criterion_timescale = 1.0 :: Float64; # (dt/tau for updating of decision_criterion_monitor)
 reset_decision_criterion_monitor_on_each_block = false :: Bool;
 use_reset_decision_criterion_monitor_each_subject = true :: Bool;
 
@@ -79,7 +79,7 @@ use_binary_random_inputs = true :: Bool;
 use_biased_cts_random_inputs = false :: Bool;
 # (criterion learning bias)
 input_sequence_bias = (-0.250) :: Float64; # should be between -0.5 (L) and +0.5 (R), this is the x value bias
-criterion_learner_expectation = (0.5) :: Float64; # between 0 (L) and 1 (R), expectation of right with respect to left presentations
+criterion_learner_expectation = (0.25) :: Float64; # between 0 (L) and 1 (R), expectation of right with respect to left presentations
 print("Stimulus sequence (dx) ratio (L:R): $(1-(0.5+input_sequence_bias)):$(0.5+input_sequence_bias)\n");
 
 # task sequence
