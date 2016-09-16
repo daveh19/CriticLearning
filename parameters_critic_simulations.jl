@@ -10,8 +10,8 @@ no_pop_scaling_post_neurons = 100 :: Int; # per output decision category
 
 
 # trial length parameters
-no_trials_in_block = 200::Int; #80;
-no_blocks_in_experiment = 40::Int; #20::Int; #14;
+no_trials_in_block = 80::Int; #80;
+no_blocks_in_experiment = 14::Int; #20::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = true ::Bool;
 
@@ -22,7 +22,7 @@ use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
 reset_average_reward_on_each_block = false :: Bool;
 #use_fixed_external_bias = false :: Bool; # default to off
-fixed_external_bias_value = (0.8) :: Float64;
+fixed_external_bias_value = (0.9) :: Float64;
 
 
 # changing the post part of the weight update rule
@@ -32,7 +32,7 @@ binary_outputs_mode = false :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
 use_intrinsic_plasticity = false :: Bool; #leave OFF for now! #enable updating, and subtraction of an intrinsic plasticity factor from post
-use_weight_normalisation = true :: Bool; # weight normalisation using quadratic norm, multiplicative rule
+use_weight_normalisation = false :: Bool; # weight normalisation using quadratic norm, multiplicative rule
 use_decision_criterion_learner = true :: Bool;
 use_pooled_scaling_of_post_population_for_decisions = true :: Bool;
 if (!use_pooled_scaling_of_post_population_for_decisions) no_pop_scaling_post_neurons = 1; end # faster way to make sure that post applies noise correctly
@@ -60,7 +60,7 @@ weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 #   here we use a simple decision bias measure
 #   associate 1 with output 2 and 0 with output 1
 decision_criterion_timescale = 1.0 :: Float64; # (dt/tau for updating of decision_criterion_monitor)
-reset_decision_criterion_monitor_on_each_block = false :: Bool;
+reset_decision_criterion_monitor_on_each_block = true :: Bool;
 use_reset_decision_criterion_monitor_each_subject = true :: Bool;
 
 
@@ -78,7 +78,7 @@ use_binary_alternating_inputs = false :: Bool;
 use_binary_random_inputs = true :: Bool;
 use_biased_cts_random_inputs = false :: Bool;
 # (criterion learning bias)
-input_sequence_bias = (0.) :: Float64; # should be between -0.5 and +0.5, this is the x value bias
+input_sequence_bias = (0.0) :: Float64; # should be between -0.5 (L) and +0.5 (R), this is the x value bias
 criterion_learner_expectation = (0.5) :: Float64; # between 0 (L) and 1 (R), expectation of right with respect to left presentations
 print("Stimulus sequence (dx) ratio (L:R): $(1-(0.5+input_sequence_bias)):$(0.5+input_sequence_bias)\n");
 
