@@ -1,6 +1,7 @@
 print("Zeroing results!!\n");
 include("multi_critic_detailed_recording.jl");
 using PyPlot
+using PyCall
 using LaTeXStrings;
 
 @pyimport seaborn as sns
