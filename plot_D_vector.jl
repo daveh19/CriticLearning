@@ -3,6 +3,11 @@ using Distributions;
 using LaTeXStrings;
 using Debug;
 
+using PyCall
+@pyimport seaborn as sns
+#sns.set(font_scale=1.5)
+sns.set_context("poster")
+
 ### Useful functions
 ## There are a number of alternative ways to calculate pdf and cdf inverse
 dist_pdf(x) = pdf(Normal(0,1), x);
