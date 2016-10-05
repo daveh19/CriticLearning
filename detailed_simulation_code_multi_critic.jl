@@ -925,18 +925,14 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
       print("after weight change, sum w left: $left_sum_w, sum w right: $right_sum_w\n")
     end
 
-    # hard bound weights at +/- 10
-    w[w .> weights_upper_bound] = weights_upper_bound;
-    w[w .< weights_lower_bound] = weights_lower_bound;
-
 
     # weight normalisation according to quadratic norm, multiplicative rule
-    if(use_weight_normalisation)
+    if(use_multiplicative_weight_normalisation)
       output_1_weights_norm = sqrt( mean(w[:,1,:].^2) ) #sqrt( sum(w[:,1,1].^2 ) + sum( w[:,1,2].^2) )
       output_2_weights_norm = sqrt( mean(w[:,2,:].^2) ) #sqrt( sum(w[:,2,1].^2 ) + sum( w[:,2,2].^2) )
       w[:, 1, :] = ( w[:, 1, :] ./ output_1_weights_norm ) * subject_initial_weight_scale;
       w[:, 2, :] = ( w[:, 2, :] ./ output_2_weights_norm ) * subject_initial_weight_scale;
-    elseif(use_per_task_weight_normalisation)
+    elseif(use_per_task_multiplicative_weight_normalisation)
       output_1_task_1_weights_norm = sqrt( mean(w[:,1,1].^2) ) #sqrt( sum(w[:,1,1].^2 ) + sum( w[:,1,2].^2) )
       output_2_task_1_weights_norm = sqrt( mean(w[:,2,1].^2) ) #sqrt( sum(w[:,2,1].^2 ) + sum( w[:,2,2].^2) )
       output_1_task_2_weights_norm = sqrt( mean(w[:,1,2].^2) ) #sqrt( sum(w[:,1,1].^2 ) + sum( w[:,1,2].^2) )
@@ -945,7 +941,18 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
       w[:, 2, 1] = ( w[:, 2, 1] ./ output_2_task_1_weights_norm ) * subject_task_1_initial_weight_scale;#  subject_initial_weight_scale;
       w[:, 1, 2] = ( w[:, 1, 2] ./ output_1_task_2_weights_norm ) * subject_task_1_initial_weight_scale;#  subject_initial_weight_scale;
       w[:, 2, 2] = ( w[:, 2, 2] ./ output_2_task_2_weights_norm ) * subject_task_1_initial_weight_scale;#  subject_initial_weight_scale;
+    elseif(use_subtractive_weight_normalisation)
+      # normalise via sigma w
+      output_1_weights_norm = mean(dw[:,1,:]);
+      output_2_weights_norm = mean(dw[:,2,:]);
+      w[:,1,:] = w[:,1,:] - output_1_weights_norm;
+      w[:,2,:] = w[:,2,:] - output_2_weights_norm;
     end
+
+
+    # hard bound weights at +/- 10
+    w[w .> weights_upper_bound] = weights_upper_bound;
+    w[w .< weights_lower_bound] = weights_lower_bound;
   end # enable_weight_updates
 
 
