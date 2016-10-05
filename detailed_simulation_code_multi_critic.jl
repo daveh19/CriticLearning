@@ -767,7 +767,7 @@ function multi_critic_running_av_reward(R, task_critic_id::Int, choice_critic_id
 end
 
 
-function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, trial_dat::Trial)
+@debug function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, trial_dat::Trial)
   if(verbosity > 3)
     global instance_reward;
     global instance_average_reward;
@@ -916,7 +916,17 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
 
   # the weight update
   if(enable_weight_updates)
-    global w += dw;
+    if (!use_soft_bounded_weight_rule)
+      global w += dw;
+    else
+      update_array = deepcopy(dw);
+      update_array /= learning_rate;
+      # be careful modifying the following logic
+      update_array[update_array.>0.0] .*= (weights_upper_bound - w[update_array.>0.0]);
+      update_array[update_array.<0.0] .*= (weights_lower_bound - w[update_array.<0.0]);
+      global w += (update_array * learning_rate) / weights_upper_bound;
+      #@bp
+    end
 
     if (verbosity > 3)
       #for now at least these sums are across all tasks, could make them task specific
@@ -951,8 +961,8 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
 
 
     # hard bound weights at +/- 10
-    w[w .> weights_upper_bound] = weights_upper_bound;
-    w[w .< weights_lower_bound] = weights_lower_bound;
+    #w[w .> weights_upper_bound] = weights_upper_bound;
+    #w[w .< weights_lower_bound] = weights_lower_bound;
   end # enable_weight_updates
 
 

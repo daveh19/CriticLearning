@@ -34,7 +34,8 @@ if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs a
 use_intrinsic_plasticity = false :: Bool; #leave OFF for now! #enable updating, and subtraction of an intrinsic plasticity factor from post
 use_multiplicative_weight_normalisation = false :: Bool; # weight normalisation using quadratic norm, multiplicative rule
 use_per_task_multiplicative_weight_normalisation = false :: Bool;
-use_subtractive_weight_normalisation = true :: Bool;
+use_subtractive_weight_normalisation = false :: Bool;
+use_soft_bounded_weight_rule = true :: Bool;
 use_decision_criterion_learner = true :: Bool;
 use_pooled_scaling_of_post_population_for_decisions = true :: Bool;
 if (!use_pooled_scaling_of_post_population_for_decisions) no_pop_scaling_post_neurons = 1; end # faster way to make sure that post applies noise correctly
@@ -53,8 +54,8 @@ initial_weight_bias = (2.0); #(2.0) :: Float64; # 2.0
 gaussian_weight_bias = (0.5) :: Float64;
 
 # weight constraints
-weights_upper_bound = (1e1) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
-weights_lower_bound = (-1e1) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
+weights_upper_bound = (1e2) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
+weights_lower_bound = (-1e2) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 
 
 # criterion learning
