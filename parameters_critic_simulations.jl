@@ -10,7 +10,7 @@ no_pop_scaling_post_neurons = 1 :: Int; # per output decision category
 
 
 # trial length parameters
-no_trials_in_block = 200::Int; #80;
+no_trials_in_block = 80::Int; #80;
 no_blocks_in_experiment = 14::Int; #20::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = true ::Bool;
@@ -45,7 +45,7 @@ problem_right_bound = (1.) :: Float64; #0.5;
 
 running_av_window_length = 50 :: Int; #50::Int;
 
-learning_rate = (0.002) :: Float64; #(0.000002) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
+learning_rate = (0.0002) :: Float64; #(0.000002) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
 learning_rate /= sqrt(no_pop_scaling_post_neurons) :: Float64; # rescale for population noise, try to keep signal-to-noise ratio constant while maintaining same rate of learning
 output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 
