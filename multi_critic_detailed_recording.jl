@@ -3,7 +3,7 @@ using Distributions
 using PyPlot,PyCall
 using Grid
 
-using Debug
+#using Debug
 
 @pyimport seaborn as sns
 #sns.set(font_scale=1.5)
@@ -60,8 +60,8 @@ function generate_test_sequence(seq_length::Int64)
   if(use_binary_random_inputs)
     x = zeros(seq_length,1);
     choice = rand(Uniform(0,1), seq_length);
-    for (i = 1:seq_length)
-      x[i] = (choice[i] > (0.5 + input_sequence_bias) ? -1.0 : 1.0)
+    for i = 1:seq_length
+      x[i] = (choice[i] > (0.5 + input_sequence_bias) ? -2.0 : 1.0)
     end
   end
 
@@ -74,7 +74,7 @@ function generate_test_sequence(seq_length::Int64)
     half_interval_membership = rand(Uniform(0,1), seq_length);
     within_interval_x_value = rand(Uniform(0,1),seq_length);
 
-    for (i = 1:seq_length)
+    for i = 1:seq_length
         x[i] = (half_interval_membership[i] > (0.5 + input_sequence_bias) ? (-within_interval_x_value[i]) : (within_interval_x_value[i]) );
     end
   end
@@ -94,7 +94,7 @@ function generate_task_sequence(seq_length::Int64)
   # random arrangement of 1/2
   x = Array(Int, seq_length);
   choice = rand(Uniform(0,1), seq_length);
-  for (i = 1:seq_length)
+  for i = 1:seq_length
     x[i] = (choice[i] < (0.5 + task_sequence_bias) ? 1 : 2)
   end
 
@@ -419,7 +419,7 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
     global decision_criterion_monitor = 0.5 :: Float64;
   end
 
-  for (i = 1:no_blocks_in_experiment)
+  for i = 1:no_blocks_in_experiment
     #=if(i == no_blocks_in_experiment && subject_id == 9)
       local_old_verbosity = verbosity;
       global verbosity = 10;
@@ -504,7 +504,7 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
     global no_trials_in_block = (no_trials_in_block * 2) :: Int;
   end
 
-  for (i = 1:no_blocks_in_experiment)
+  for i = 1:no_blocks_in_experiment
     if(verbosity > -1)
       print("-------------------------------------------\n")
     end
