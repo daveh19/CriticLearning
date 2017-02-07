@@ -742,6 +742,9 @@ end
 #  n = 0
 #  average_reward = 0
 function multi_critic_running_av_reward(R, task_critic_id::Int, choice_critic_id::Int)
+  # note regarding julia deprecation of :: Notation
+  # my use of the notation should come back into use in
+  # future versions of the language, so don't bother to remove
   global n_critic :: Array{Int, 2};
   global average_reward :: Array{Float64,2};
 
