@@ -3,7 +3,8 @@ using Distributions
 using PyPlot,PyCall
 using Grid
 
-using Debug
+
+#using Debug # not compatible with julia 0.5
 
 @pyimport seaborn as sns
 #sns.set(font_scale=1.5)
@@ -51,7 +52,7 @@ function generate_test_sequence(seq_length::Int64)
   # alternating +/-1 sequence
   if(use_binary_alternating_inputs)
     x = zeros(seq_length,1);
-    for(i=1:seq_length)
+    for i=1:seq_length
       x[i] = -(-1)^i;
     end
   end
@@ -60,7 +61,7 @@ function generate_test_sequence(seq_length::Int64)
   if(use_binary_random_inputs)
     x = zeros(seq_length,1);
     choice = rand(Uniform(0,1), seq_length);
-    for (i = 1:seq_length)
+    for i = 1:seq_length
       x[i] = (choice[i] > (0.5 + input_sequence_bias) ? -1.0 : 1.0)
     end
   end
@@ -74,7 +75,7 @@ function generate_test_sequence(seq_length::Int64)
     half_interval_membership = rand(Uniform(0,1), seq_length);
     within_interval_x_value = rand(Uniform(0,1),seq_length);
 
-    for (i = 1:seq_length)
+    for i = 1:seq_length
         x[i] = (half_interval_membership[i] > (0.5 + input_sequence_bias) ? (-within_interval_x_value[i]) : (within_interval_x_value[i]) );
     end
   end
@@ -94,7 +95,7 @@ function generate_task_sequence(seq_length::Int64)
   # random arrangement of 1/2
   x = Array(Int, seq_length);
   choice = rand(Uniform(0,1), seq_length);
-  for (i = 1:seq_length)
+  for i = 1:seq_length
     x[i] = (choice[i] < (0.5 + task_sequence_bias) ? 1 : 2)
   end
 
@@ -160,7 +161,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   local_average_task_threshold = zeros(no_input_tasks);
   local_average_decision_criterion_monitor = 0.0;
   #for(xi in x)
-  for(i = 1:no_trials_in_block)
+  for i = 1:no_trials_in_block
     update_noise()
     local_reward = (update_weights(x[i], task_id, tuning_type, block_dat.trial[i]) / 2);
     monitor_reward += local_reward;
@@ -308,7 +309,7 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
   local_average_threshold = 0.0;
   local_average_task_threshold = zeros(no_input_tasks);
   local_average_decision_criterion_monitor = 0.0;
-  for(i = 1:no_trials_in_block)
+  for i = 1:no_trials_in_block
     update_noise()
     local_reward = (update_weights(x[i], task[i], tuning_type, block_dat.trial[i]) / 2);
     monitor_reward += local_reward;
@@ -419,7 +420,7 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
     global decision_criterion_monitor = 0.5 :: Float64;
   end
 
-  for (i = 1:no_blocks_in_experiment)
+  for i = 1:no_blocks_in_experiment
     #=if(i == no_blocks_in_experiment && subject_id == 9)
       local_old_verbosity = verbosity;
       global verbosity = 10;
@@ -504,7 +505,7 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
     global no_trials_in_block = (no_trials_in_block * 2) :: Int;
   end
 
-  for (i = 1:no_blocks_in_experiment)
+  for i = 1:no_blocks_in_experiment
     if(verbosity > -1)
       print("-------------------------------------------\n")
     end
@@ -546,7 +547,7 @@ function perform_multi_subject_experiment(task_id::Int, tuning_type::TuningSelec
   global debug_print_now = false;
   global verbosity;
 
-  for(i = 1:no_subjects)
+  for i = 1:no_subjects
     if(verbosity > -1)
       print("-----------Subject number $i------------\n")
     end
@@ -570,7 +571,7 @@ end
 function perform_multi_subject_experiment_trial_switching(tuning_type::TuningSelector, subjects::Array{Subject,2}, no_subjects::Int64=no_subjects)
   #global subject = Array(Subject, no_subjects);
 
-  for(i = 1:no_subjects)
+  for i = 1:no_subjects
     if(verbosity > -1)
       print("-----------Subject number $i------------\n")
     end
