@@ -13,7 +13,7 @@ function initialise_pre_population(tuning_type::linear_tc)
   # a and b only get set once for this paper
   #   they are receptive fields rather than 'noise'
   #global a = rand(Normal(input_baseline, input_baseline_variance), (no_pre_neurons_per_task, no_input_tasks));
-  global a = rand(Normal(0,1), (no_pre_neurons_per_task,no_input_tasks)) .* sqrt(input_baseline_variance) + input_baseline;
+  global a = rand(Normal(0,1), no_pre_neurons_per_task, no_input_tasks) .* sqrt(input_baseline_variance) + input_baseline;
   global b = zeros(no_pre_neurons_per_task, no_input_tasks);
 
   for i = 1:no_input_tasks
@@ -135,7 +135,7 @@ function initialise_weight_matrix(tuning_type::linear_tc)
   global w; #Array{Float64,3,w};# :: Array{Float64,3};
 
   if (!use_defined_performance_setup)
-    w = rand(Uniform(0,1), (no_pre_neurons_per_task, no_post_neurons, no_input_tasks));
+    w = rand(Uniform(0,1), no_pre_neurons_per_task, no_post_neurons, no_input_tasks);
     for i = 1:no_input_tasks
       w[:,1,i] += -initial_weight_bias.*b[:,i];
       w[:,2,i] += initial_weight_bias.*b[:,i];
