@@ -153,3 +153,4 @@ use_plot_mean = false :: Bool; # plot mean rather than median for proportions co
 # The following two are not equivalent
 plotting_task_by_task_on = true :: Bool; # Separated task plotting in roving experiment
 plotting_separate_choices_on = true :: Bool; # Separated proportion correct plotting in each experiment, eg. for left versus right
+plotting_hack_to_have_separate_choices_in_roving_example = false :: Bool;

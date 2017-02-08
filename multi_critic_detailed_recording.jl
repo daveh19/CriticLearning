@@ -315,7 +315,14 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
     monitor_reward += local_reward;
     local_average_decision_criterion_monitor += decision_criterion_monitor;
     task_count[task[i]] += 1;
-    proportion_task_correct[task[i]] += local_reward; # local_reward = {0,1}
+    if plotting_hack_to_have_separate_choices_in_roving_example
+      if task[i] == 2
+        local_actual_sub_task = round(Int, (x[i] / 2) + 1.5)
+        proportion_task_correct[local_actual_sub_task] += local_reward; # local_reward = {0,1}
+      end
+    else
+      proportion_task_correct[task[i]] += local_reward; # local_reward = {0,1}
+    end
     local_average_task_choice[task[i]] += block_dat.trial[i].chosen_answer;
     if(perform_detection_threshold)
       local_average_threshold += block_dat.trial[i].error_threshold;
@@ -326,7 +333,11 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
     end
   end
   proportion_correct = monitor_reward / no_trials_in_block;
-  proportion_task_correct = proportion_task_correct ./ task_count;
+  if plotting_hack_to_have_separate_choices_in_roving_example
+    proportion_task_correct = proportion_task_correct ./ 40; # 40 is completely a hack!
+  else
+    proportion_task_correct = proportion_task_correct ./ task_count;
+  end
   local_average_task_choice = local_average_task_choice ./ task_count;
   local_average_decision_criterion_monitor /= no_trials_in_block;
   if(perform_detection_threshold)
