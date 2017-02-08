@@ -1285,7 +1285,7 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct, marker="o", edgecolors="face", c="b", alpha=0.7)
+        # scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct, marker="o", edgecolors="face", c="b", alpha=0.7)
         if(plotting_task_by_task_on)
           scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[1], marker="o", edgecolors="face", c="r", alpha=0.3)
           scatter(i-0.1, latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[2], marker="o", edgecolors="face", c="g", alpha=0.3)
@@ -1313,7 +1313,7 @@ function plot_multi_subject_experiment_as_subplots(latest_experiment_results::Ro
         plot(block_id-0.1, local_prop_roving_task_1_correct, "r")
         plot(block_id-0.1, local_prop_roving_task_2_correct, "g")
       end
-      plot(block_id-0.1, local_prop_roving_correct, "b")
+      # plot(block_id-0.1, local_prop_roving_correct, "b")
     end
   end
 
