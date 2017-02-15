@@ -30,13 +30,14 @@ function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1)
 end
 
 function kalman_initialise(c = 0.99)
-  reward_estimate = [0; 0];
+  reward_estimate = [1.50; 1.50];
   error_covariance = [1 c; c 1];
   k_dict = Dict("corrected_reward_estimate" => reward_estimate, "corrected_error_covariance" => error_covariance);
   return k_dict;
 end
 
 function kalman_host()
+  srand(1);
   no_data_points = 100;
   tracking_updated_reward_estimates = zeros(2,no_data_points); # for plotting!
   tracking_corrected_reward_estimates = zeros(2,no_data_points);
@@ -51,16 +52,17 @@ function kalman_host()
   data_matrix = generate_two_reward_sequences(no_data_points);
 
   for i = 1:no_data_points
+    print("\ntrial: ", i)
     kalman_update_prediction(k_dict, process_noise_model)
 
     kalman_update_correction(k_dict, data_matrix[i,:], observation_noise_model)
 
     tracking_updated_reward_estimates[:,i] = k_dict["updated_reward_estimate"];
     tracking_corrected_reward_estimates[:,i] = k_dict["corrected_reward_estimate"];
-    print("END\n", k_dict["updated_reward_estimate"])
-    print("\n", k_dict["corrected_reward_estimate"])
-    print("\n", k_dict["updated_error_covariance"])
-    print("\n", k_dict["corrected_error_covariance"])
+    print("\n Predicted reward: \t", k_dict["updated_reward_estimate"])
+    print("\n Corrected reward: \t", k_dict["corrected_reward_estimate"])
+    print("\n Predicted covariance: \t", k_dict["updated_error_covariance"])
+    print("\n Corrected covariance: \t", k_dict["corrected_error_covariance"])
   end
 
   figure() # plot reward estimates (predictions)
@@ -80,11 +82,11 @@ end
 
 
 function kalman_update_correction(k_dict, data_row, observation_noise_model)
-  # local_observation_noise_model = deepcopy(observation_noise_model);
-  task_id = data_row[1];
+  task_id = round(Int, data_row[1]);
   reward_value = data_row[2];
   observed_reward = zeros(2,1);
-  observed_reward[round(Int,task_id)] = reward_value;
+  observed_reward[task_id] = reward_value;
+  local_observation_noise_model = deepcopy(observation_noise_model);
 
   # Debugging: try combining monitors to make a single (dual) prediction for testing
   # observed_reward[1] = reward_value;
@@ -100,20 +102,23 @@ function kalman_update_correction(k_dict, data_row, observation_noise_model)
     print("\nERROR: this shouldn't happen\n");
   end
 
-  print("\n", observed_reward);
+  print("\n Actual observed reward: \t", observed_reward);
 
   ## First approach: modify observation_noise_model directly
   # local_observation_noise_model[non_task_id,non_task_id] = Inf
   # K = k_dict["updated_error_covariance"] * inv(k_dict["updated_error_covariance"] + local_observation_noise_model);
   ## Second approach: modify K instead
   K = k_dict["updated_error_covariance"] * inv(k_dict["updated_error_covariance"] + observation_noise_model);
-  print("\nK1 ", K);
+  print("\n K1 ", K);
   # Now manually set non task_id row of K to zeros
-  K[task_id,:] = 0.0;
-  print("\nK2 ", K);
+  K[non_task_id,:] = 0.0;
+  print("\n K2 ", K);
 
   k_dict["corrected_reward_estimate"] = k_dict["updated_reward_estimate"] + K * (observed_reward - k_dict["updated_reward_estimate"]);
 
   # Updating rule for Optimal Kalman gain function (not what we have with modified K)
-  k_dict["corrected_error_covariance"] = (1 - K) * k_dict["updated_error_covariance"];
+  # k_dict["corrected_error_covariance"] = (1 - K) * k_dict["updated_error_covariance"];
+  # Full updating of covariance rule
+  local_observation_noise_model[non_task_id,non_task_id] = 0.0;
+  k_dict["corrected_error_covariance"] = (1 - K) * k_dict["updated_error_covariance"] * transpose(1 - K) + K * local_observation_noise_model * transpose(K);
 end
