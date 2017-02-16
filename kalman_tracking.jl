@@ -37,6 +37,7 @@ function kalman_initialise(c = 0.99)
 end
 
 function kalman_host()
+  # Basic simulation tracking stuff
   srand(1);
   no_data_points = 100;
   tracking_updated_reward_estimates = zeros(2,no_data_points); # for plotting!
@@ -44,12 +45,18 @@ function kalman_host()
   #tracking_updated_error_covariance = zeros(2,no_data_points);
   # tracking_corrected_error_covariance = zeros(2,no_data_points);
 
-  k_dict = kalman_initialise(0.8);
-  process_noise_model = 0.0;
-  sigma_1_sq = sigma_2_sq = 0.1;
+  # Kalman filter parameters
+  process_noise_model = 0.00;
+  sigma_1_sq = sigma_2_sq = 0.01;
   observation_noise_model = [sigma_1_sq 0 ; 0 sigma_2_sq];
 
-  data_matrix = generate_two_reward_sequences(no_data_points);
+  initial_covariance = 0.99;
+
+  # Data generation
+  data_gen_noise = 0.1;
+
+  k_dict = kalman_initialise(initial_covariance);
+  data_matrix = generate_two_reward_sequences(no_data_points, data_gen_noise);
 
   for i = 1:no_data_points
     print("\ntrial: ", i)
@@ -68,10 +75,13 @@ function kalman_host()
   figure() # plot reward estimates (predictions)
   plot(linspace(1,100,no_data_points), tracking_updated_reward_estimates[1,:], "r", linewidth=3, label="Kalman reward 1 estimates")
   plot(linspace(1,100,no_data_points), tracking_updated_reward_estimates[2,:], "g", linewidth=2, label="Kalman reward 2 estimates")
+  scatter(linspace(1,100,no_data_points), data_matrix[:,2], color="b", label="Data points")
   # figure() # plot covariance estimates (predictions) [ugh matrices!]
   # plot(linspace(1,100,no_data_points), tracking_updated_error_covariance[1,:], "r", linewidth=3, label="Kalman covariance 1 estimates")
   # plot(linspace(1,100,no_data_points), tracking_updated_error_covariance[2,:], "g", linewidth=2, label="Kalman covariance 2 estimates")
 
+  # print("", k_dict);
+  # return data_matrix;
   return k_dict;
 end
 
