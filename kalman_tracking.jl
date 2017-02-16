@@ -1,14 +1,20 @@
 using PyPlot
 using Distributions
 
-function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1)
+function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1, switch_point = 0)
   sequence_id = zeros(sequence_length,1);
   sequence_value = zeros(sequence_length,1);
   element_count = zeros(2,1);
 
   for i = 1:sequence_length
     sequence_id[i] = round(Int,(rand(Uniform(0,1)) < 0.5 ? 1 : 2));
-    sequence_value[i] = (sequence_id[i]*2) - 1.5 + rand(Normal(0,1)) .* noise_sigma;
+    if i < switch_point
+      sequence_value[i] = (sequence_id[i]*4) - 1.5;
+    else
+      sequence_value[i] = (sequence_id[i]*2) - 2;
+    end
+
+    sequence_value[i] += rand(Normal(0,1)) .* noise_sigma;
     # sequence_value[i] = 3.0 + rand(Normal(0,1)) .* noise_sigma;
     element_count[round(Int,sequence_id[i])] += 1;
   end
@@ -49,8 +55,8 @@ function kalman_host()
   # tracking_corrected_error_covariance = zeros(2,no_data_points);
 
   # Kalman filter parameters
-  process_noise_model = 0.0; #[0.01 0.0; 0.0 0.01];
-  sigma_1_sq = sigma_2_sq = 150.0;
+  process_noise_model = [10.01 0.10; 0.10 10.01]; # process noise
+  sigma_1_sq = sigma_2_sq = 100000.0; #150.0; # observation noise
   observation_noise_model = [sigma_1_sq 0 ; 0 sigma_2_sq];
 
   initial_covariance = 0.99;
@@ -59,7 +65,7 @@ function kalman_host()
   data_gen_noise = 0.3;
 
   k_dict = kalman_initialise(initial_covariance);
-  data_matrix = generate_two_reward_sequences(no_data_points, data_gen_noise);
+  data_matrix = generate_two_reward_sequences(no_data_points, data_gen_noise, 3001);
 
   for i = 1:no_data_points
     print("\ntrial: ", i)
