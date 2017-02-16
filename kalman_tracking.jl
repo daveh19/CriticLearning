@@ -44,9 +44,9 @@ function kalman_host()
   #tracking_updated_error_covariance = zeros(2,no_data_points);
   # tracking_corrected_error_covariance = zeros(2,no_data_points);
 
-  k_dict = kalman_initialise(0.99);
-  process_noise_model = 0.01;
-  sigma_1_sq = sigma_2_sq = 0.3;
+  k_dict = kalman_initialise(0.8);
+  process_noise_model = 0.0;
+  sigma_1_sq = sigma_2_sq = 0.1;
   observation_noise_model = [sigma_1_sq 0 ; 0 sigma_2_sq];
 
   data_matrix = generate_two_reward_sequences(no_data_points);
@@ -120,5 +120,6 @@ function kalman_update_correction(k_dict, data_row, observation_noise_model)
   # k_dict["corrected_error_covariance"] = (1 - K) * k_dict["updated_error_covariance"];
   # Full updating of covariance rule
   local_observation_noise_model[non_task_id,non_task_id] = 0.0;
-  k_dict["corrected_error_covariance"] = (1 - K) * k_dict["updated_error_covariance"] * transpose(1 - K) + K * local_observation_noise_model * transpose(K);
+  print("\n local_observation_noise_model: \t", local_observation_noise_model);
+  k_dict["corrected_error_covariance"] = ( (eye(2) - K) * k_dict["updated_error_covariance"] * transpose(eye(2) - K) ) + ( K * local_observation_noise_model * transpose(K) );
 end
