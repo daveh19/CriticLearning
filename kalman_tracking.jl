@@ -30,7 +30,7 @@ function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1)
 end
 
 function kalman_initialise(c = 0.99)
-  reward_estimate = [1.50; 1.50];
+  reward_estimate = [-1.50; -1.50];
   error_covariance = [1 c; c 1];
   k_dict = Dict("corrected_reward_estimate" => reward_estimate, "corrected_error_covariance" => error_covariance);
   return k_dict;
@@ -39,21 +39,21 @@ end
 function kalman_host()
   # Basic simulation tracking stuff
   srand(1);
-  no_data_points = 100;
+  no_data_points = 4800;
   tracking_updated_reward_estimates = zeros(2,no_data_points); # for plotting!
   tracking_corrected_reward_estimates = zeros(2,no_data_points);
   #tracking_updated_error_covariance = zeros(2,no_data_points);
   # tracking_corrected_error_covariance = zeros(2,no_data_points);
 
   # Kalman filter parameters
-  process_noise_model = 0.00;
-  sigma_1_sq = sigma_2_sq = 0.01;
+  process_noise_model = 0.0;
+  sigma_1_sq = sigma_2_sq = 150.0;
   observation_noise_model = [sigma_1_sq 0 ; 0 sigma_2_sq];
 
   initial_covariance = 0.99;
 
   # Data generation
-  data_gen_noise = 0.1;
+  data_gen_noise = 0.3;
 
   k_dict = kalman_initialise(initial_covariance);
   data_matrix = generate_two_reward_sequences(no_data_points, data_gen_noise);
@@ -129,7 +129,7 @@ function kalman_update_correction(k_dict, data_row, observation_noise_model)
   # Updating rule for Optimal Kalman gain function (not what we have with modified K)
   # k_dict["corrected_error_covariance"] = (1 - K) * k_dict["updated_error_covariance"];
   # Full updating of covariance rule
-  local_observation_noise_model[non_task_id,non_task_id] = 0.0;
+  # local_observation_noise_model[non_task_id,non_task_id] = 0.0;
   print("\n local_observation_noise_model: \t", local_observation_noise_model);
   k_dict["corrected_error_covariance"] = ( (eye(2) - K) * k_dict["updated_error_covariance"] * transpose(eye(2) - K) ) + ( K * local_observation_noise_model * transpose(K) );
 end
