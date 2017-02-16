@@ -15,16 +15,19 @@ function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1)
 
 
   print("els: ", element_count, "\n", sequence_id)
+  # figure()
+  # plot(sequence_value, "g", linewidth=2, label="Combined R signals")
   figure()
-  plot(sequence_value, "g", linewidth=2, label="Combined R signals")
-  figure()
-  x1 = linspace(1,100, element_count[1]);
-  x2 = linspace(1,100, element_count[2]);
+  # x1 = linspace(1,100, element_count[1]);
+  # x2 = linspace(1,100, element_count[2]);
+  time = linspace(1,sequence_length, sequence_length);
+  time1 = time[sequence_id .== 1];
+  time2 = time[sequence_id .== 2];
   y1 = sequence_value[sequence_id .== 1];
   y2 = sequence_value[sequence_id .== 2];
-  plot(x1, y1, "r", linewidth=2, label="Task 1 R signal")
-  plot(x2, y2, "b", linewidth=2, label="Task 2 R signal")
-  scatter(linspace(1,100,sequence_length), sequence_value);
+  plot(time1, y1, "r", linewidth=2, label="Task 1 R signal")
+  plot(time2, y2, "b", linewidth=2, label="Task 2 R signal")
+  scatter(linspace(1,sequence_length,sequence_length), sequence_value);
 
   return [sequence_id sequence_value];
 end
@@ -46,7 +49,7 @@ function kalman_host()
   # tracking_corrected_error_covariance = zeros(2,no_data_points);
 
   # Kalman filter parameters
-  process_noise_model = 0.0;
+  process_noise_model = 0.0; #[0.01 0.0; 0.0 0.01];
   sigma_1_sq = sigma_2_sq = 150.0;
   observation_noise_model = [sigma_1_sq 0 ; 0 sigma_2_sq];
 
@@ -73,9 +76,9 @@ function kalman_host()
   end
 
   figure() # plot reward estimates (predictions)
-  plot(linspace(1,100,no_data_points), tracking_updated_reward_estimates[1,:], "r", linewidth=3, label="Kalman reward 1 estimates")
-  plot(linspace(1,100,no_data_points), tracking_updated_reward_estimates[2,:], "g", linewidth=2, label="Kalman reward 2 estimates")
-  scatter(linspace(1,100,no_data_points), data_matrix[:,2], color="b", label="Data points")
+  plot(linspace(1,no_data_points,no_data_points), tracking_updated_reward_estimates[1,:], "r", linewidth=3, label="Kalman reward 1 estimates")
+  plot(linspace(1,no_data_points,no_data_points), tracking_updated_reward_estimates[2,:], "g", linewidth=2, label="Kalman reward 2 estimates")
+  scatter(linspace(1,no_data_points,no_data_points), data_matrix[:,2], color="b", label="Data points")
   # figure() # plot covariance estimates (predictions) [ugh matrices!]
   # plot(linspace(1,100,no_data_points), tracking_updated_error_covariance[1,:], "r", linewidth=3, label="Kalman covariance 1 estimates")
   # plot(linspace(1,100,no_data_points), tracking_updated_error_covariance[2,:], "g", linewidth=2, label="Kalman covariance 2 estimates")
