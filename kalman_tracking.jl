@@ -6,12 +6,13 @@ function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1,
   sequence_value = zeros(sequence_length,1);
   element_count = zeros(2,1);
 
+  mean_values = [0.9 -0.9; 0.7 -0.3]'
   for i = 1:sequence_length
     sequence_id[i] = round(Int,(rand(Uniform(0,1)) < 0.5 ? 1 : 2));
     if i < switch_point
-      sequence_value[i] = (sequence_id[i]*4) - 1.5;
+      sequence_value[i] = mean_values[round(Int,sequence_id[i]),1]; #(sequence_id[i]*4) - 1.5;
     else
-      sequence_value[i] = (sequence_id[i]*2) - 2;
+      sequence_value[i] = mean_values[round(Int,sequence_id[i]),2]; #(sequence_id[i]*2) - 2;
     end
 
     sequence_value[i] += rand(Normal(0,1)) .* noise_sigma;
@@ -48,24 +49,24 @@ end
 function kalman_host()
   # Basic simulation tracking stuff
   srand(1);
-  no_data_points = 4800;
+  no_data_points = 600; #4800;
   tracking_updated_reward_estimates = zeros(2,no_data_points); # for plotting!
   tracking_corrected_reward_estimates = zeros(2,no_data_points);
   #tracking_updated_error_covariance = zeros(2,no_data_points);
   # tracking_corrected_error_covariance = zeros(2,no_data_points);
 
   # Kalman filter parameters
-  process_noise_model = [10.01 0.10; 0.10 10.01]; # process noise
-  sigma_1_sq = sigma_2_sq = 100000.0; #150.0; # observation noise
+  process_noise_model = [1. 1.; 1. 1.]; #[10.01 1.10; 1.10 10.01]; # process noise
+  sigma_1_sq = sigma_2_sq = 10.0; #150.0; # observation noise
   observation_noise_model = [sigma_1_sq 0 ; 0 sigma_2_sq];
 
   initial_covariance = 0.99;
 
   # Data generation
-  data_gen_noise = 0.3;
+  data_gen_noise = 0.2;
 
   k_dict = kalman_initialise(initial_covariance);
-  data_matrix = generate_two_reward_sequences(no_data_points, data_gen_noise, 3001);
+  data_matrix = generate_two_reward_sequences(no_data_points, data_gen_noise, 301);
 
   for i = 1:no_data_points
     print("\ntrial: ", i)
@@ -130,7 +131,7 @@ function kalman_update_correction(k_dict, data_row, observation_noise_model)
   K = k_dict["updated_error_covariance"] * inv(k_dict["updated_error_covariance"] + observation_noise_model);
   print("\n K1 ", K);
   # Now manually set non task_id row of K to zeros
-  K[non_task_id,:] = 0.0;
+  K[:,non_task_id] = 0.0;
   print("\n K2 ", K);
 
   k_dict["corrected_reward_estimate"] = k_dict["updated_reward_estimate"] + K * (observed_reward - k_dict["updated_reward_estimate"]);
