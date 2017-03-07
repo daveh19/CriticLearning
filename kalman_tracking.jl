@@ -6,7 +6,7 @@ function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1,
   sequence_value = zeros(sequence_length,1);
   element_count = zeros(2,1);
 
-  mean_values = [0.9 -0.9; 0.7 -0.3]'
+  mean_values = [0.9 0.9; -0.7 0.3]'
   for i = 1:sequence_length
     sequence_id[i] = round(Int,(rand(Uniform(0,1)) < 0.5 ? 1 : 2));
     if i < switch_point
@@ -40,7 +40,7 @@ function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1,
 end
 
 function kalman_initialise(c = 0.99)
-  reward_estimate = [-1.50; -1.50];
+  reward_estimate = [0.0; 0.0];
   error_covariance = [1 c; c 1];
   k_dict = Dict("corrected_reward_estimate" => reward_estimate, "corrected_error_covariance" => error_covariance);
   return k_dict;
@@ -49,24 +49,24 @@ end
 function kalman_host()
   # Basic simulation tracking stuff
   srand(1);
-  no_data_points = 600; #4800;
+  no_data_points = 3000;
   tracking_updated_reward_estimates = zeros(2,no_data_points); # for plotting!
   tracking_corrected_reward_estimates = zeros(2,no_data_points);
   #tracking_updated_error_covariance = zeros(2,no_data_points);
   # tracking_corrected_error_covariance = zeros(2,no_data_points);
 
   # Kalman filter parameters
-  process_noise_model = [1. 1.; 1. 1.]; #[10.01 1.10; 1.10 10.01]; # process noise
-  sigma_1_sq = sigma_2_sq = 10.0; #150.0; # observation noise
+  process_noise_model = [1. 0.9; 0.9 1.]; #[10.01 1.10; 1.10 10.01]; # process noise
+  sigma_1_sq = sigma_2_sq = 1000.0; #150.0; # observation noise
   observation_noise_model = [sigma_1_sq 0 ; 0 sigma_2_sq];
 
-  initial_covariance = 0.99;
+  initial_covariance = 0.999;
 
   # Data generation
   data_gen_noise = 0.2;
 
   k_dict = kalman_initialise(initial_covariance);
-  data_matrix = generate_two_reward_sequences(no_data_points, data_gen_noise, 301);
+  data_matrix = generate_two_reward_sequences(no_data_points, data_gen_noise, 3001);
 
   for i = 1:no_data_points
     print("\ntrial: ", i)
@@ -96,8 +96,14 @@ function kalman_host()
 end
 
 function kalman_update_prediction(k_dict, process_noise_model)
+  # modified to use (1-1/tau) in the matrix A
+  tau = 30.;
+  A = (1.-(1./tau)) * eye(2);
+
+  # reward estimate stays the same as the noise term corresponds to an extra (1/tau) entry in the matrix
   k_dict["updated_reward_estimate"] = k_dict["corrected_reward_estimate"];
-  k_dict["updated_error_covariance"] = k_dict["corrected_error_covariance"] + process_noise_model;
+
+  k_dict["updated_error_covariance"] = (A * k_dict["corrected_error_covariance"] * transpose(A)) + process_noise_model;
 end
 
 
@@ -106,11 +112,12 @@ function kalman_update_correction(k_dict, data_row, observation_noise_model)
   reward_value = data_row[2];
   observed_reward = zeros(2,1);
   observed_reward[task_id] = reward_value;
+  # using a local copy of the observation noise allows us to play with zeroing and infinite entries
   local_observation_noise_model = deepcopy(observation_noise_model);
 
   # Debugging: try combining monitors to make a single (dual) prediction for testing
-  # observed_reward[1] = reward_value;
-  # observed_reward[2] = reward_value;
+  observed_reward[1] = reward_value;
+  observed_reward[2] = reward_value;
 
   # Code for identifying row of observation_noise_model or K to modify to account
   #   for effectively infinite variance in the non-presented dimension.
@@ -131,11 +138,13 @@ function kalman_update_correction(k_dict, data_row, observation_noise_model)
   K = k_dict["updated_error_covariance"] * inv(k_dict["updated_error_covariance"] + observation_noise_model);
   print("\n K1 ", K);
   # Now manually set non task_id row of K to zeros
-  K[:,non_task_id] = 0.0;
+  #K[:,non_task_id] = 0.0;
   print("\n K2 ", K);
 
+  # update reward estimate according to observation
   k_dict["corrected_reward_estimate"] = k_dict["updated_reward_estimate"] + K * (observed_reward - k_dict["updated_reward_estimate"]);
 
+  # update covariance matrix according to observation
   # Updating rule for Optimal Kalman gain function (not what we have with modified K)
   # k_dict["corrected_error_covariance"] = (1 - K) * k_dict["updated_error_covariance"];
   # Full updating of covariance rule
