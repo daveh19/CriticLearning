@@ -7,6 +7,7 @@ function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1,
   element_count = zeros(Int,2,1);
 
   mean_values = [0.9 0.9; -0.7 0.3]'
+  reward_probabilities = [0.9 0.9; 0.3 0.6]'
   for i = 1:sequence_length
     # this is the task association, which is a random sequence
     sequence_id[i] = (rand(Uniform(0,1)) < 0.5 ? 1 : 2);
@@ -18,11 +19,11 @@ function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1,
     end
 
     # sequence value is a mean + gaussian noise
-    sequence_value[i] = mean_values[sequence_id[i],position_in_contingencies_sequence];
-    sequence_value[i] += rand(Normal(0,1)) .* noise_sigma;
+    # sequence_value[i] = mean_values[sequence_id[i],position_in_contingencies_sequence];
+    # sequence_value[i] += rand(Normal(0,1)) .* noise_sigma;
 
-    # sequence value is +/-1 (reward) based on probability correct (mean_value)
-
+    # sequence value is +/-1 (reward) based on probability correct (reward_probabilities)
+    sequence_value[i] = (rand(Uniform(0,1)) < reward_probabilities[sequence_id[i],position_in_contingencies_sequence] ? +1 : -1);
 
 
     element_count[sequence_id[i]] += 1;
