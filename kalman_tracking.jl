@@ -2,22 +2,30 @@ using PyPlot
 using Distributions
 
 function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1, switch_point = 0)
-  sequence_id = zeros(sequence_length,1);
+  sequence_id = zeros(Int,sequence_length,1);
   sequence_value = zeros(sequence_length,1);
-  element_count = zeros(2,1);
+  element_count = zeros(Int,2,1);
 
   mean_values = [0.9 0.9; -0.7 0.3]'
   for i = 1:sequence_length
-    sequence_id[i] = round(Int,(rand(Uniform(0,1)) < 0.5 ? 1 : 2));
+    # this is the task association, which is a random sequence
+    sequence_id[i] = (rand(Uniform(0,1)) < 0.5 ? 1 : 2);
+
     if i < switch_point
-      sequence_value[i] = mean_values[round(Int,sequence_id[i]),1]; #(sequence_id[i]*4) - 1.5;
+      position_in_contingencies_sequence = 1;
     else
-      sequence_value[i] = mean_values[round(Int,sequence_id[i]),2]; #(sequence_id[i]*2) - 2;
+      position_in_contingencies_sequence = 2;
     end
 
+    # sequence value is a mean + gaussian noise
+    sequence_value[i] = mean_values[sequence_id[i],position_in_contingencies_sequence];
     sequence_value[i] += rand(Normal(0,1)) .* noise_sigma;
-    # sequence_value[i] = 3.0 + rand(Normal(0,1)) .* noise_sigma;
-    element_count[round(Int,sequence_id[i])] += 1;
+
+    # sequence value is +/-1 (reward) based on probability correct (mean_value)
+
+
+
+    element_count[sequence_id[i]] += 1;
   end
 
 
@@ -50,13 +58,14 @@ function kalman_host()
   # Basic simulation tracking stuff
   srand(1);
   no_data_points = 3000;
+  switch_contingencies_point = 3001;
   tracking_updated_reward_estimates = zeros(2,no_data_points); # for plotting!
   tracking_corrected_reward_estimates = zeros(2,no_data_points);
   #tracking_updated_error_covariance = zeros(2,no_data_points);
   # tracking_corrected_error_covariance = zeros(2,no_data_points);
 
   # Kalman filter parameters
-  process_noise_model = [1. 0.1; 0.1 1.]; #[10.01 1.10; 1.10 10.01]; # process noise
+  process_noise_model = [1. 0.01; 0.01 1.]; #[10.01 1.10; 1.10 10.01]; # process noise
   sigma_1_sq = sigma_2_sq = 100.0; #150.0; # observation noise
   observation_noise_model = [sigma_1_sq 0 ; 0 sigma_2_sq];
 
@@ -67,7 +76,7 @@ function kalman_host()
   data_gen_noise = 0.2;
 
   k_dict = kalman_initialise(initial_covariance);
-  data_matrix = generate_two_reward_sequences(no_data_points, data_gen_noise, 3001);
+  data_matrix = generate_two_reward_sequences(no_data_points, data_gen_noise, switch_contingencies_point);
 
   for i = 1:no_data_points
     print("\ntrial: ", i)
@@ -111,9 +120,9 @@ end
 
 
 function kalman_update_correction(k_dict, data_row, observation_noise_model)
-  task_id = round(Int, data_row[1]);
+  task_id = round(Int,data_row[1]);
   reward_value = data_row[2];
-  observed_reward = zeros(2,1);
+  observed_reward = zeros(2,1); # default value is zero
   observed_reward[task_id] = reward_value;
   # using a local copy of the observation noise allows us to play with zeroing and infinite entries
   local_observation_noise_model = deepcopy(observation_noise_model);
