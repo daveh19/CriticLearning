@@ -73,7 +73,7 @@ function kalman_host()
   observation_noise_model = [sigma_1_sq 0 ; 0 sigma_2_sq];
 
   initial_covariance = 0.999;
-  tau = 3.;
+  tau = 5.;
 
   # Data generation
   data_gen_noise = 0.2;
@@ -106,11 +106,11 @@ function kalman_host()
   plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[2,2]*2 - 1, "m")
 
   # play: for split processes 0 gets presented 50% of the time, subtract this from the running average
-  plot(linspace(1,switch_contingencies_point,switch_contingencies_point), (ones(switch_contingencies_point,1)*reward_contingencies[1,1]*2 - 1) /2.0, "c")
-  plot(linspace(1,switch_contingencies_point,switch_contingencies_point), (ones(switch_contingencies_point,1)*reward_contingencies[2,1]*2 - 1) /2.0, "m")
-  # plot contingencies following switch point
-  plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), (ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[1,2]*2 - 1) /2.0, "c")
-  plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), (ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[2,2]*2 - 1) /2.0, "m")
+  # plot(linspace(1,switch_contingencies_point,switch_contingencies_point), (ones(switch_contingencies_point,1)*reward_contingencies[1,1]*2 - 1) /2.0, "c")
+  # plot(linspace(1,switch_contingencies_point,switch_contingencies_point), (ones(switch_contingencies_point,1)*reward_contingencies[2,1]*2 - 1) /2.0, "m")
+  # # plot contingencies following switch point
+  # plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), (ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[1,2]*2 - 1) /2.0, "c")
+  # plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), (ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[2,2]*2 - 1) /2.0, "m")
 
 
   # plot data points and two kalman following processes
@@ -165,10 +165,10 @@ function kalman_update_correction(k_dict, data_row, observation_noise_model)
   print("\n Actual observed reward: \t", observed_reward);
 
   ## First approach: modify observation_noise_model directly
-  # local_observation_noise_model[non_task_id,non_task_id] = Inf
-  # K = k_dict["updated_error_covariance"] * inv(k_dict["updated_error_covariance"] + local_observation_noise_model);
+  local_observation_noise_model[non_task_id,non_task_id] *= 1e6; #Inf
+  K = k_dict["updated_error_covariance"] * inv(k_dict["updated_error_covariance"] + local_observation_noise_model);
   ## Second approach: modify K instead
-  K = k_dict["updated_error_covariance"] * inv(k_dict["updated_error_covariance"] + observation_noise_model);
+  # K = k_dict["updated_error_covariance"] * inv(k_dict["updated_error_covariance"] + local_observation_noise_model);
   print("\n K1 ", K);
   # Now manually set non task_id row of K to zeros
   #K[:,non_task_id] = 0.0;
