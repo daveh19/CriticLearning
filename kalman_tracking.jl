@@ -56,11 +56,12 @@ function kalman_host()
   # tracking_corrected_error_covariance = zeros(2,no_data_points);
 
   # Kalman filter parameters
-  process_noise_model = [1. 0.9; 0.9 1.]; #[10.01 1.10; 1.10 10.01]; # process noise
-  sigma_1_sq = sigma_2_sq = 1000.0; #150.0; # observation noise
+  process_noise_model = [1. 0.1; 0.1 1.]; #[10.01 1.10; 1.10 10.01]; # process noise
+  sigma_1_sq = sigma_2_sq = 100.0; #150.0; # observation noise
   observation_noise_model = [sigma_1_sq 0 ; 0 sigma_2_sq];
 
   initial_covariance = 0.999;
+  tau = 5.;
 
   # Data generation
   data_gen_noise = 0.2;
@@ -70,7 +71,7 @@ function kalman_host()
 
   for i = 1:no_data_points
     print("\ntrial: ", i)
-    kalman_update_prediction(k_dict, process_noise_model)
+    kalman_update_prediction(k_dict, process_noise_model, tau)
 
     kalman_update_correction(k_dict, data_matrix[i,:], observation_noise_model)
 
@@ -95,12 +96,14 @@ function kalman_host()
   return k_dict;
 end
 
-function kalman_update_prediction(k_dict, process_noise_model)
+function kalman_update_prediction(k_dict, process_noise_model, tau)
   # modified to use (1-1/tau) in the matrix A
-  tau = 30.;
+  #tau = 5.;
   A = (1.-(1./tau)) * eye(2);
 
-  # reward estimate stays the same as the noise term corresponds to an extra (1/tau) entry in the matrix
+  # play with actually having a lossy update (this is mathematically incorrect, and pointless in actual use)
+  #k_dict["updated_reward_estimate"] = A * k_dict["corrected_reward_estimate"];
+  # reward estimate stays the same as the expectation of the noise term corresponds to an extra (1/tau) entry in the matrix
   k_dict["updated_reward_estimate"] = k_dict["corrected_reward_estimate"];
 
   k_dict["updated_error_covariance"] = (A * k_dict["corrected_error_covariance"] * transpose(A)) + process_noise_model;
