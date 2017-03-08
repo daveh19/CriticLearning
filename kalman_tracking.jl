@@ -69,11 +69,11 @@ function kalman_host()
 
   # Kalman filter parameters
   process_noise_model = [1. 0.01; 0.01 1.]; #[10.01 1.10; 1.10 10.01]; # process noise
-  sigma_1_sq = sigma_2_sq = 100.0; #150.0; # observation noise
+  sigma_1_sq = sigma_2_sq = 1000.0; #150.0; # observation noise
   observation_noise_model = [sigma_1_sq 0 ; 0 sigma_2_sq];
 
   initial_covariance = 0.999;
-  tau = 5.;
+  tau = 3.;
 
   # Data generation
   data_gen_noise = 0.2;
@@ -98,12 +98,22 @@ function kalman_host()
 
   figure() # plot reward estimates (predictions)
 
+  # plot contingencies up until switch point
   plot(linspace(1,switch_contingencies_point,switch_contingencies_point), ones(switch_contingencies_point,1)*reward_contingencies[1,1]*2 - 1, "c")
   plot(linspace(1,switch_contingencies_point,switch_contingencies_point), ones(switch_contingencies_point,1)*reward_contingencies[2,1]*2 - 1, "m")
-
+  # plot contingencies following switch point
   plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[1,2]*2 - 1, "c")
   plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[2,2]*2 - 1, "m")
 
+  # play: for split processes 0 gets presented 50% of the time, subtract this from the running average
+  plot(linspace(1,switch_contingencies_point,switch_contingencies_point), (ones(switch_contingencies_point,1)*reward_contingencies[1,1]*2 - 1) /2.0, "c")
+  plot(linspace(1,switch_contingencies_point,switch_contingencies_point), (ones(switch_contingencies_point,1)*reward_contingencies[2,1]*2 - 1) /2.0, "m")
+  # plot contingencies following switch point
+  plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), (ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[1,2]*2 - 1) /2.0, "c")
+  plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), (ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[2,2]*2 - 1) /2.0, "m")
+
+
+  # plot data points and two kalman following processes
   plot(linspace(1,no_data_points,no_data_points), tracking_updated_reward_estimates[1,:], "r", linewidth=3, label="Kalman reward 1 estimates")
   plot(linspace(1,no_data_points,no_data_points), tracking_updated_reward_estimates[2,:], "g", linewidth=2, label="Kalman reward 2 estimates")
   scatter(linspace(1,no_data_points,no_data_points), data_matrix[:,2], color="b", label="Data points")
@@ -139,8 +149,8 @@ function kalman_update_correction(k_dict, data_row, observation_noise_model)
   local_observation_noise_model = deepcopy(observation_noise_model);
 
   # Debugging: try combining monitors to make a single (dual) prediction for testing
-  observed_reward[1] = reward_value;
-  observed_reward[2] = reward_value;
+  # observed_reward[1] = reward_value;
+  # observed_reward[2] = reward_value;
 
   # Code for identifying row of observation_noise_model or K to modify to account
   #   for effectively infinite variance in the non-presented dimension.
