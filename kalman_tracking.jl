@@ -1,13 +1,13 @@
 using PyPlot
 using Distributions
 
-function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1, switch_point = 0)
+function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1, switch_point = 0, reward_contingencies = [0.8; 0.8])
   sequence_id = zeros(Int,sequence_length,1);
   sequence_value = zeros(sequence_length,1);
   element_count = zeros(Int,2,1);
 
   mean_values = [0.9 0.9; -0.7 0.3]'
-  reward_probabilities = [0.9 0.9; 0.3 0.6]'
+  reward_probabilities = reward_contingencies;
   for i = 1:sequence_length
     # this is the task association, which is a random sequence
     sequence_id[i] = (rand(Uniform(0,1)) < 0.5 ? 1 : 2);
@@ -41,9 +41,11 @@ function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1,
   time2 = time[sequence_id .== 2];
   y1 = sequence_value[sequence_id .== 1];
   y2 = sequence_value[sequence_id .== 2];
-  plot(time1, y1, "r", linewidth=2, label="Task 1 R signal")
-  plot(time2, y2, "b", linewidth=2, label="Task 2 R signal")
-  scatter(linspace(1,sequence_length,sequence_length), sequence_value);
+  # plot(time1, y1, "r", linewidth=2, label="Task 1 R signal")
+  # plot(time2, y2, "b", linewidth=2, label="Task 2 R signal")
+  # scatter(linspace(1,sequence_length,sequence_length), sequence_value);
+  scatter(time1, y1, color="r", label="Task 1 R signal")
+  scatter(time2, y2, color="g", label="Task 1 R signal")
 
   return [sequence_id sequence_value];
 end
@@ -58,7 +60,7 @@ end
 function kalman_host()
   # Basic simulation tracking stuff
   srand(1);
-  no_data_points = 3000;
+  no_data_points = 6000;
   switch_contingencies_point = 3001;
   tracking_updated_reward_estimates = zeros(2,no_data_points); # for plotting!
   tracking_corrected_reward_estimates = zeros(2,no_data_points);
@@ -75,9 +77,10 @@ function kalman_host()
 
   # Data generation
   data_gen_noise = 0.2;
+  reward_contingencies = [0.9 0.9; 0.3 0.6]';
 
   k_dict = kalman_initialise(initial_covariance);
-  data_matrix = generate_two_reward_sequences(no_data_points, data_gen_noise, switch_contingencies_point);
+  data_matrix = generate_two_reward_sequences(no_data_points, data_gen_noise, switch_contingencies_point, reward_contingencies);
 
   for i = 1:no_data_points
     print("\ntrial: ", i)
@@ -94,6 +97,13 @@ function kalman_host()
   end
 
   figure() # plot reward estimates (predictions)
+
+  plot(linspace(1,switch_contingencies_point,switch_contingencies_point), ones(switch_contingencies_point,1)*reward_contingencies[1,1]*2 - 1, "c")
+  plot(linspace(1,switch_contingencies_point,switch_contingencies_point), ones(switch_contingencies_point,1)*reward_contingencies[2,1]*2 - 1, "m")
+
+  plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[1,2]*2 - 1, "c")
+  plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[2,2]*2 - 1, "m")
+
   plot(linspace(1,no_data_points,no_data_points), tracking_updated_reward_estimates[1,:], "r", linewidth=3, label="Kalman reward 1 estimates")
   plot(linspace(1,no_data_points,no_data_points), tracking_updated_reward_estimates[2,:], "g", linewidth=2, label="Kalman reward 2 estimates")
   scatter(linspace(1,no_data_points,no_data_points), data_matrix[:,2], color="b", label="Data points")
