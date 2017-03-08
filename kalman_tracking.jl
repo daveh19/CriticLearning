@@ -31,21 +31,21 @@ function generate_two_reward_sequences(sequence_length = 100, noise_sigma = 0.1,
 
 
   print("els: ", element_count, "\n", sequence_id)
+  # # figure()
+  # # plot(sequence_value, "g", linewidth=2, label="Combined R signals")
   # figure()
-  # plot(sequence_value, "g", linewidth=2, label="Combined R signals")
-  figure()
-  # x1 = linspace(1,100, element_count[1]);
-  # x2 = linspace(1,100, element_count[2]);
-  time = linspace(1,sequence_length, sequence_length);
-  time1 = time[sequence_id .== 1];
-  time2 = time[sequence_id .== 2];
-  y1 = sequence_value[sequence_id .== 1];
-  y2 = sequence_value[sequence_id .== 2];
-  # plot(time1, y1, "r", linewidth=2, label="Task 1 R signal")
-  # plot(time2, y2, "b", linewidth=2, label="Task 2 R signal")
-  # scatter(linspace(1,sequence_length,sequence_length), sequence_value);
-  scatter(time1, y1, color="r", label="Task 1 R signal")
-  scatter(time2, y2, color="g", label="Task 1 R signal")
+  # # x1 = linspace(1,100, element_count[1]);
+  # # x2 = linspace(1,100, element_count[2]);
+  # time = linspace(1,sequence_length, sequence_length);
+  # time1 = time[sequence_id .== 1];
+  # time2 = time[sequence_id .== 2];
+  # y1 = sequence_value[sequence_id .== 1];
+  # y2 = sequence_value[sequence_id .== 2];
+  # # plot(time1, y1, "r", linewidth=2, label="Task 1 R signal")
+  # # plot(time2, y2, "b", linewidth=2, label="Task 2 R signal")
+  # # scatter(linspace(1,sequence_length,sequence_length), sequence_value);
+  # scatter(time1, y1, color="r", label="Task 1 R signal")
+  # scatter(time2, y2, color="g", label="Task 1 R signal")
 
   return [sequence_id sequence_value];
 end
@@ -60,8 +60,8 @@ end
 function kalman_host()
   # Basic simulation tracking stuff
   srand(1);
-  no_data_points = 6000;
-  switch_contingencies_point = 3001;
+  no_data_points = 10000;
+  switch_contingencies_point = 0;
   tracking_updated_reward_estimates = zeros(2,no_data_points); # for plotting!
   tracking_corrected_reward_estimates = zeros(2,no_data_points);
   #tracking_updated_error_covariance = zeros(2,no_data_points);
@@ -73,7 +73,7 @@ function kalman_host()
   observation_noise_model = [sigma_1_sq 0 ; 0 sigma_2_sq];
 
   initial_covariance = 0.999;
-  tau = 5.;
+  tau = 50.;
 
   # Data generation
   data_gen_noise = 0.2;
@@ -102,8 +102,10 @@ function kalman_host()
   plot(linspace(1,switch_contingencies_point,switch_contingencies_point), ones(switch_contingencies_point,1)*reward_contingencies[1,1]*2 - 1, "c")
   plot(linspace(1,switch_contingencies_point,switch_contingencies_point), ones(switch_contingencies_point,1)*reward_contingencies[2,1]*2 - 1, "m")
   # plot contingencies following switch point
-  plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[1,2]*2 - 1, "c")
-  plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[2,2]*2 - 1, "m")
+  if switch_contingencies_point < no_data_points
+    plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[1,2]*2 - 1, "c")
+    plot(linspace(switch_contingencies_point,no_data_points, no_data_points-switch_contingencies_point), ones(no_data_points-switch_contingencies_point,1)*reward_contingencies[2,2]*2 - 1, "m")
+  end
 
   # play: for split processes 0 gets presented 50% of the time, subtract this from the running average
   # plot(linspace(1,switch_contingencies_point,switch_contingencies_point), (ones(switch_contingencies_point,1)*reward_contingencies[1,1]*2 - 1) /2.0, "c")
