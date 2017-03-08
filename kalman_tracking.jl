@@ -165,13 +165,25 @@ function kalman_update_correction(k_dict, data_row, observation_noise_model)
   print("\n Actual observed reward: \t", observed_reward);
 
   ## First approach: modify observation_noise_model directly
-  local_observation_noise_model[non_task_id,non_task_id] *= 1e6; #Inf
-  K = k_dict["updated_error_covariance"] * inv(k_dict["updated_error_covariance"] + local_observation_noise_model);
+  # local_observation_noise_model[non_task_id,non_task_id] *= 1e6; #Inf
+  # K = k_dict["updated_error_covariance"] * inv(k_dict["updated_error_covariance"] + local_observation_noise_model);
   ## Second approach: modify K instead
   # K = k_dict["updated_error_covariance"] * inv(k_dict["updated_error_covariance"] + local_observation_noise_model);
-  print("\n K1 ", K);
+  # print("\n K1 ", K);
   # Now manually set non task_id row of K to zeros
   #K[:,non_task_id] = 0.0;
+
+
+  # New approach, uses approximations in K update
+  K = zeros(2,2);
+  if task_id == 1
+    K[1,1] = k_dict["updated_error_covariance"][1,1] / (k_dict["updated_error_covariance"][1,1] + local_observation_noise_model[1,1]);
+    K[2,2] = k_dict["updated_error_covariance"][2,1] / (k_dict["updated_error_covariance"][1,1] + local_observation_noise_model[1,1]);
+  else
+    K[2,1] = k_dict["updated_error_covariance"][1,2] / (k_dict["updated_error_covariance"][2,2] + local_observation_noise_model[2,2]);
+    K[2,2] = k_dict["updated_error_covariance"][2,2] / (k_dict["updated_error_covariance"][2,2] + local_observation_noise_model[2,2]);
+  end
+
   print("\n K2 ", K);
 
   # update reward estimate according to observation
