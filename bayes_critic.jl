@@ -1,5 +1,6 @@
 using PyPlot
 using Distributions
+using StatsBase
 
 function bayes_initialise(sequence_length=100)
   # personalise parameters
@@ -8,8 +9,8 @@ function bayes_initialise(sequence_length=100)
   task_repn_map_mean[1] = 0.3;
   task_repn_map_mean[2] = 0.7;
   task_repn_map_stdev = zeros(Float64,2);
-  task_repn_map_stdev[1] = 0.3;
-  task_repn_map_stdev[2] = 0.3;
+  # task_repn_map_stdev[1] = sqrt(0.01);
+  # task_repn_map_stdev[2] = sqrt(0.01);
 
   # save parameters to dictionary
   settings_d = Dict();
@@ -65,4 +66,46 @@ function get_input_representation(task_sequence::Array{Int,2}, trial_number::Int
   # @show representation_value
 
   return representation_value;
+end
+
+
+# to plot
+#   individual beta distributions implied by critic representations
+#   individual hypothesis-space representations
+#   combined critic representation using full prior based prediction
+#   (Done) histogram/distribution of inputs
+
+function plot_input_representation(input_representations_seq, nbins)
+  # xkcd()
+  figure();
+  # StatsBase fitting
+  h = StatsBase.fit(Histogram,input_representations_seq, nbins=nbins)#,-0.6:0.1:1.6) #nbins=5)
+  @show h
+  # make a pdf
+  # h = normalize(h)
+
+  max_val = maximum(input_representations_seq);
+  min_val = minimum(input_representations_seq);
+  bar_width = ((max_val - min_val) / nbins) - 0.001;
+
+  # data points centered on the value being represented
+  x_coords = (h.edges[1][1:end-1] + h.edges[1][2:end]) / 2.0;
+  # x_coords = h.edges[1][1:end-1]
+  # line
+  plot(x_coords, h.weights, "red")
+  # bar
+  # y_coords = convert(Array{Float64,1}, h.weights)
+  # y_coords[y_coords .==0] 1e-7
+  y_coords = h.weights
+  bar(x_coords, y_coords, align="center", color="g", alpha=0.4, width=bar_width)
+
+  # pyplot histogram
+  # h2 = plt[:hist](input_representations_seq,nbins)
+
+  # inbuild hist() function
+  # hist(input_representations_seq)
+  title("Input representations presented")
+  xlabel("Arbitrary input representation (a.u)")
+  ylabel("Number of presentations")
+  return h
 end
