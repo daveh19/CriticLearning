@@ -61,7 +61,7 @@ function kalman_host()
   # Basic simulation tracking stuff
   srand(1);
   no_data_points = 10000;
-  switch_contingencies_point = 0;
+  switch_contingencies_point = 3001;
   tracking_updated_reward_estimates = zeros(2,no_data_points); # for plotting!
   tracking_corrected_reward_estimates = zeros(2,no_data_points);
   #tracking_updated_error_covariance = zeros(2,no_data_points);
@@ -70,7 +70,7 @@ function kalman_host()
   # Kalman filter parameters
   process_noise_model = [1. 0.01; 0.01 1.]; #[10.01 1.10; 1.10 10.01]; # process noise
   sigma_1_sq = sigma_2_sq = 1000.0; #150.0; # observation noise
-  observation_noise_model = [sigma_1_sq 0 ; 0 sigma_2_sq];
+  observation_noise_model = [sigma_1_sq 0. ; 0. sigma_2_sq];
 
   initial_covariance = 0.999;
   tau = 50.;
