@@ -2,6 +2,7 @@ using PyPlot
 using Distributions
 using StatsBase
 
+
 function bayes_initialise(sequence_length=100)
   # personalise parameters
   sequence_length = 100;
@@ -17,29 +18,39 @@ function bayes_initialise(sequence_length=100)
   settings_d["sequence_length"] = sequence_length;
   settings_d["task_repn_map_mean"] = task_repn_map_mean;
   settings_d["task_repn_map_stdev"] = task_repn_map_stdev;
-  return settings_d;
+
+  critic_params = Dict();
+  critic_p = zeros(Float64, 2);
+  critic_p[1] = 0.5;
+  critic_p[2] = 0.5;
+  critic_params["p"] = critic_p;
+  return (settings_d, critic_params);
 end
 
+
 function bayes_host()
-  settings_dict = bayes_initialise();
+  (settings_dict, critic_dict) = bayes_initialise();
 
   task_seq = generate_task_sequence(settings_dict);
 
   input_representations = zeros(Float64,settings_dict["sequence_length"]);
+  critic_representations = zeros(2,2,settings_dict["sequence_length"]);
   hypothesis_representations = zeros(2,2);
-  critic_representations = zeros(2,2);
 
   # main loop
   for i = 1:settings_dict["sequence_length"]
     input_representations[i] = get_input_representation(task_seq, i, settings_dict)
+    critic_representations[:,:,i] = get_pdfs_critic_given_d(input_representations[i], critic_dict)
   end
   print("Done\n")
   simulation_run = Dict{String,Any}()
   simulation_run["task_seq"] = task_seq;
   simulation_run["input_representations_seq"] = input_representations;
+  simulation_run["critic_representations_seq"] = critic_representations;
   # @show simulation_run
   return simulation_run;
 end
+
 
 function generate_task_sequence(settings_dict::Dict)
   sequence_length = settings_dict["sequence_length"]
@@ -49,6 +60,7 @@ function generate_task_sequence(settings_dict::Dict)
   end
   return sequence_id;
 end
+
 
 function get_input_representation(task_sequence::Array{Int,2}, trial_number::Int, settings_dict::Dict)
   task_id = task_sequence[trial_number];
@@ -66,6 +78,33 @@ function get_input_representation(task_sequence::Array{Int,2}, trial_number::Int
   # @show representation_value
 
   return representation_value;
+end
+
+
+# Critic is a Bernoulli(p) process. It can take on only two discrete output values
+#   hence the two rows in the output. We currently have two 'critics' in the system.
+function get_pdfs_critic(input_representation_d, critic_dict)
+  critic_per_column_array = zeros(2,2);
+  # Notation: each column of the array represents a different 'critic' in the system
+  #   each row is the probability of that critic attaining that (row_id) value
+  for i = 1:2
+    critic_per_column_array[1,i] = critic_dict["p"][i]
+    critic_per_column_array[2,i] = (1 - critic_dict["p"][i])
+  end
+
+  return critic_per_column_array;
+end
+
+
+function get_pdfs_d_given_critic(input_representation_d, critic_dict)
+# todo: this is the mid-level function, which works out d_given_c from a Bernoulli
+#   distribution
+end
+
+
+function get_pdfs_critic_given_d(input_representation_d, critic_dict)
+# todo: this is the outer function, which calls get_d_given_c and get_c
+  return ones(2,2);
 end
 
 
