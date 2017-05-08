@@ -96,9 +96,33 @@ function get_pdfs_critic(input_representation_d, critic_dict)
 end
 
 
+# This is the mid-level function, which works out d_given_c from a Bernoulli
+#   distribution.
+# The logic of using a pdf() is bogus in the discrete Bernoulli case, but I'll keep
+#   it for now as it is much more applicable to the continuous generalisation.
+#   should really be called get_P_d_given_critic()
 function get_pdfs_d_given_critic(input_representation_d, critic_dict)
-# todo: this is the mid-level function, which works out d_given_c from a Bernoulli
-#   distribution
+  theta = 0.5;
+  probability_of_d = zeros(1,2); # it's a row as each one is for a different critic
+
+  # We're using a Bernoulli critic representation, so just collapse input_representation_d
+  #   into two variables, greater than and less than theta=0.5
+  if input_representation_d < theta
+    discrete_input_class = 1;
+  else
+    discrete_input_class = 2;
+  end
+
+  # calculating for both critics!
+  if discrete_input_class == 1
+    probability_of_d[1] = critic_dict["p"][1];
+    probability_of_d[2] = critic_dict["p"][2];
+  else
+    probability_of_d[1] = (1 - critic_dict["p"][1]);
+    probability_of_d[2] = (1 - critic_dict["p"][2]);
+  end
+
+  return probability_of_d;
 end
 
 
