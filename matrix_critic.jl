@@ -1,10 +1,16 @@
 using PyPlot
 using Distributions
 
-function initialise(no_trials::Int)
+function initialise(no_trials::Int, no_tasks=2::Int64)
   task_sequence = zeros(Int, no_trials, 1);
-  for i = 1:no_trials
-    task_sequence[i] = (rand(Uniform(0,1)) < 0.5 ? 1 : 2);
+  if no_tasks == 2
+    for i = 1:no_trials
+      task_sequence[i] = (rand(Uniform(0,1)) < 0.5 ? 1 : 2);
+    end
+  else
+    for i = 1:no_trials
+      task_sequence[i] = 1;
+    end
   end
 
   W = ones(3,1) * 0.75;
@@ -53,10 +59,14 @@ function run_matrix()
   second_contingencies = [1.0; 0.5];
   (task_sequence, W) = initialise(no_trials);
 
+  (single_sequence, W_single) = initialise(no_trials,1);
+
   outputs = zeros(no_trials, 1);
 
   outputs_1 = zeros(no_trials,1);
   outputs_2 = zeros(no_trials,1);
+
+  outputs_single = zeros(round(Int, no_trials/2), 1);
 
   for i = 1:no_trials
     x = get_inputs(task_sequence[i]);
@@ -65,6 +75,15 @@ function run_matrix()
 
     outputs_1[i] = get_output(get_inputs(1), W)[1];
     outputs_2[i] = get_output(get_inputs(2), W)[1];
+
+    if i % 2 == 0
+      outputs_single[round(Int,i/2)] = get_output(get_inputs(single_sequence[i]), W_single)[1];
+      if i < switch_point
+        modify_W!(get_inputs(single_sequence[i]),outputs_single[round(Int,i/2)],initial_contingency,W_single);
+      else
+        modify_W!(get_inputs(single_sequence[i]),outputs_single[round(Int,i/2)],second_contingencies[single_sequence[i]],W_single);
+      end
+    end
 
     if i == switch_point
       print("Switching contingencies\n");
@@ -80,8 +99,14 @@ function run_matrix()
   end
 
   figure()
-  plot(linspace(1,no_trials,no_trials), outputs, "b");
-  plot(linspace(1,no_trials,no_trials), outputs_1, "r");
-  plot(linspace(1,no_trials,no_trials), outputs_2, "g");
+  # plot(linspace(1,no_trials,no_trials), outputs, "b", linewidth=3);
+  plot(linspace(1,no_trials,no_trials), outputs_1, "r", label="Task 1");
+  plot(linspace(1,no_trials,no_trials), outputs_2, "g", label="Task 2");
 
+  plot(linspace(1,no_trials,no_trials/2), outputs_single, "k", label="Only learning Task 1, every second step")
+
+  title("Matrix critic, overlapping inputs")
+  ylabel("abstract reward/performance unit")
+  xlabel("trial number")
+  savefig("matrix_critic_overlapping_inputs.pdf")
 end
