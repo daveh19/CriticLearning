@@ -97,6 +97,8 @@ function run_matrix()
       phase_counter = 1;
       # if phase_id == 2
       #   phase_id += 1;
+      # elseif phase_id > 3
+      #   phase_id = 3;
       # end
       # print("Incrementing phase_id now\n")
     end
