@@ -56,8 +56,14 @@ end
 
 
 function modify_W!(x, y, target, W)
-  alpha = 1.0;
-  tau = 10;
+  alpha = 1;
+  tau = 50;
+
+  # use contingency to generate probabilistic feedback signal
+  probability_target = target;
+  feedback = ( rand(Uniform(0,1)) < probability_target ? 1 : 0);
+  # @show feedback
+  target = feedback;
   error = (1./tau) * (target - y);
 
   # δW = zeros(3,1);
@@ -71,7 +77,7 @@ end
 
 function run_matrix()
   no_trials = 1500;
-  initial_contingency = [1.0; 0.5];
+  initial_contingency = [0.8; 0.5];
   # switch_point = 100;
   # second_contingencies = [1.0; 0.5];
   phase_length = 500;
@@ -144,7 +150,7 @@ function run_matrix()
 
   # plot(linspace(1,no_trials,no_trials/2), outputs_single, "k", label="Only learning Task 1, every second step")
 
-  title("Contingencies 1 and 0.5. Two phase changes.")
+  title("Contingencies 0.8 and 0.5. Two phase changes.")
   # title("Matrix critic, slowly separating representations")
   ylabel("abstract reward/performance unit")
   xlabel("trial number")
