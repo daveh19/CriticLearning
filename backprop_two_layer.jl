@@ -15,7 +15,7 @@ function initialise(no_trials::Int, no_tasks=2::Int64)
 
   #TODO: consider making a and d entries larger than b and c.
   W1 = ones(2,2) * 0.5;
-  stdev_weight_noise = 0.001;
+  stdev_weight_noise = 0.; #0.001;
   weight_noise = rand(Normal(0,1),2,2) * stdev_weight_noise;
   W1 += weight_noise;
 
@@ -44,8 +44,8 @@ end
 
 
 function modify_W!(x, y, z, target, W1, W2, use_realistic_feedback::Bool=false)
-  alpha = [1.; 1.];
-  tau = [50; 50];
+  alpha = [1.; 10.];
+  tau = [500; 50];
 
   if use_realistic_feedback
     # use contingency to generate probabilistic feedback signal
@@ -85,7 +85,7 @@ end
 
 
 function run_matrix()
-  no_trials = 100;
+  no_trials = 3000;
   initial_contingency = [0.8; 0.5];
   # switch_point = 100;
   # second_contingencies = [1.0; 0.5];
@@ -121,8 +121,8 @@ function run_matrix()
     x = get_inputs(task_sequence[i]); #, phase_id);
     y = get_output(x, W1);
     z = get_output(x, W1, W2);
-    sanity_test = get_output(y, W2);
-    @show z, sanity_test
+    # sanity_test = get_output(y, W2);
+    # @show z, sanity_test
     # actual performance on the desired task
     outputs[i] = z[1];
     # monitors of potential performance on the two underlying tasks
@@ -152,7 +152,7 @@ function run_matrix()
     #   modify_W!(x,y,second_contingencies[task_sequence[i]],W);
     # end
 
-    @show W1,W2, task_sequence[i]
+    @show W1 W2 task_sequence[i]
   end
 
   figure()
