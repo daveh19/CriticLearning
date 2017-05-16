@@ -14,7 +14,6 @@ function initialise(no_trials::Int, no_tasks=2::Int64)
     end
   end
 
-  #TODO: consider making a and d entries larger than b and c.
   W1 = ones(2,2) * 0.5;
   stdev_weight_noise = 0.; #0.001;
   weight_noise = rand(Normal(0,1),2,2) * stdev_weight_noise;

@@ -12,12 +12,14 @@ function bayes_initialise(sequence_length=100)
   task_repn_map_stdev = zeros(Float64,2);
   # task_repn_map_stdev[1] = sqrt(0.01);
   # task_repn_map_stdev[2] = sqrt(0.01);
+  bernoulli_conversion_theta = 0.5;
 
   # save parameters to dictionary
   settings_d = Dict();
   settings_d["sequence_length"] = sequence_length;
   settings_d["task_repn_map_mean"] = task_repn_map_mean;
   settings_d["task_repn_map_stdev"] = task_repn_map_stdev;
+  settings_d["bernoulli_conversion_theta"] = bernoulli_conversion_theta;
 
   critic_params = Dict();
   critic_p = zeros(Float64, 2);
@@ -40,7 +42,7 @@ function bayes_host()
   # main loop
   for i = 1:settings_dict["sequence_length"]
     input_representations[i] = get_input_representation(task_seq, i, settings_dict)
-    critic_representations[:,:,i] = get_pdfs_critic_given_d(input_representations[i], critic_dict)
+    critic_representations[:,:,i] = get_pdfs_critic_given_d(input_representations[i], critic_dict, settings_dict)
   end
   print("Done\n")
   simulation_run = Dict{String,Any}()
@@ -81,6 +83,21 @@ function get_input_representation(task_sequence::Array{Int,2}, trial_number::Int
 end
 
 
+function convert_input_representation_to_bernoulli(input_representation_d, settings_dict)::Int
+  theta = settings_dict["bernoulli_conversion_theta"];
+
+  # We're using a Bernoulli critic representation, so just collapse input_representation_d
+  #   into two variables, greater than and less than theta.
+  if input_representation_d < theta
+    discrete_input_class = 1;
+  else
+    discrete_input_class = 2;
+  end
+
+  return discrete_input_class;
+end
+
+
 # Critic is a Bernoulli(p) process. It can take on only two discrete output values
 #   hence the two rows in the output. We currently have two 'critics' in the system.
 function get_pdfs_critic(input_representation_d, critic_dict)
@@ -101,17 +118,12 @@ end
 # The logic of using a pdf() is bogus in the discrete Bernoulli case, but I'll keep
 #   it for now as it is much more applicable to the continuous generalisation.
 #   should really be called get_P_d_given_critic()
-function get_pdfs_d_given_critic(input_representation_d, critic_dict)
-  theta = 0.5;
+function get_P_d_given_critic(input_representation_d, critic_dict, settings_dict)
   probability_of_d = zeros(1,2); # it's a row as each one is for a different critic
 
   # We're using a Bernoulli critic representation, so just collapse input_representation_d
   #   into two variables, greater than and less than theta=0.5
-  if input_representation_d < theta
-    discrete_input_class = 1;
-  else
-    discrete_input_class = 2;
-  end
+  discrete_input_class = convert_input_representation_to_bernoulli(input_representation_d, settings_dict);
 
   # calculating for both critics!
   if discrete_input_class == 1
@@ -126,8 +138,11 @@ function get_pdfs_d_given_critic(input_representation_d, critic_dict)
 end
 
 
-function get_pdfs_critic_given_d(input_representation_d, critic_dict)
-# todo: this is the outer function, which calls get_d_given_c and get_c
+# This is the outer function, which calls get_d_given_c and get_c
+function get_P_critic_given_d(input_representation_d, critic_dict, settings_dict)
+  d_given_c = get_P_d_given_critic(input_representation_d, critic_dict, settings_dict);
+  pC = get_pdfs_critic(input_representation_d, critic_dict);
+
   return ones(2,2);
 end
 
