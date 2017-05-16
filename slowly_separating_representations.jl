@@ -150,7 +150,7 @@ function run_matrix()
 
   # plot(linspace(1,no_trials,no_trials/2), outputs_single, "k", label="Only learning Task 1, every second step")
 
-  title("Contingencies 0.8 and 0.5. Two phase changes.")
+  title("Contingencies 0.8 and 0.5. Two phase changes. Feedback {1,0}")
   # title("Matrix critic, slowly separating representations")
   ylabel("abstract reward/performance unit")
   xlabel("trial number")
