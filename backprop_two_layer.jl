@@ -344,3 +344,88 @@ function crossover_run_matrix()
   xlabel("trial number")
   savefig("backprop_two_layer_crossover.pdf")
 end
+
+
+function reverse_run_matrix()
+  no_trials = 10000;
+  initial_contingency = [0.8; 0.5];
+  switch_point = 3000;
+  second_contingencies = [0.6; 0.6];
+  # phase_length = 500;
+
+  (task_sequence, W1, W2) = initialise(no_trials);
+
+  # (single_sequence, W_single) = initialise(no_trials,1);
+
+  outputs = zeros(no_trials, 1);
+
+  outputs_1 = zeros(no_trials,1);
+  outputs_2 = zeros(no_trials,1);
+
+  # outputs_single = zeros(round(Int, no_trials/2), 1);
+
+  # phase_id = 1;
+  # phase_counter = 0;
+  for i = 1:no_trials
+    # # count through the three phases
+    # phase_counter += 1;
+    # if phase_counter > phase_length
+    #   phase_id += 1;
+    #   phase_counter = 1;
+    #   # if phase_id == 2
+    #   #   phase_id += 1;
+    #   # elseif phase_id > 3
+    #   #   phase_id = 3;
+    #   # end
+    #   # print("Incrementing phase_id now\n")
+    # end
+
+    x = get_inputs(task_sequence[i]); #, phase_id);
+    y = get_output(x, W1);
+    z = get_output(x, W1, W2);
+
+    # actual performance on the desired task
+    outputs[i] = z[1];
+    # monitors of potential performance on the two underlying tasks
+    #   ie. had I been asked to do task i how would I have done?
+    outputs_1[i] = get_output(get_inputs(1), W1, W2)[1];
+    outputs_2[i] = get_output(get_inputs(2), W1, W2)[1];
+
+
+    # if i % 2 == 0
+    #   outputs_single[round(Int,i/2)] = get_output(get_inputs(single_sequence[i]), W_single)[1];
+    #   if i < switch_point
+    #     modify_W!(get_inputs(single_sequence[i]),outputs_single[round(Int,i/2)],initial_contingency,W_single);
+    #   else
+    #     modify_W!(get_inputs(single_sequence[i]),outputs_single[round(Int,i/2)],second_contingencies[single_sequence[i]],W_single);
+    #   end
+    # end
+
+    if i == switch_point
+      print("Switching contingencies\n");
+    end
+
+    if i < switch_point
+      modify_W!(x,y,z,initial_contingency[task_sequence[i]],W1,W2,false);
+      # modify_W!(x,y,initial_contingency,W);
+    else
+      modify_W!(x,y,z,second_contingencies[task_sequence[i]],W1,W2,false);
+      # modify_W!(x,y,second_contingencies[task_sequence[i]],W);
+    end
+
+    @show W1 W2 task_sequence[i]
+  end
+
+  figure()
+  plot(linspace(1,no_trials,no_trials), outputs, "b", linewidth=3);
+  plot(linspace(1,no_trials,no_trials), outputs_1, "r", label="Task 1");
+  plot(linspace(1,no_trials,no_trials), outputs_2, "g", label="Task 2");
+
+  # plot(linspace(1,no_trials,no_trials/2), outputs_single, "k", label="Only learning Task 1, every second step")
+
+  title("Contingencies {0.8,0.5} then {0.6,0.6}. Two-layer using Backprop")
+  # title("Matrix critic, slowly separating representations")
+  ylabel("abstract reward/performance unit")
+  xlabel("trial number")
+  savefig("backprop_two_layer_reverse.pdf")
+end
