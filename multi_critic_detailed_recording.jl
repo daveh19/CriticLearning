@@ -172,7 +172,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
     if(sub_task_id == 0)
       print("correct answer: ", block_dat.trial[i].correct_answer)
     end
-    print(" sub_task_id: $sub_task_id\n")
+    # print(" sub_task_id: $sub_task_id\n")
     sub_task_count[sub_task_id] += 1;
     proportion_sub_task_correct[sub_task_id] += local_reward; # local_reward = {0,1}
     if(perform_detection_threshold)
@@ -383,7 +383,8 @@ end
 
 
 function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSelector, subjects_dat::Array{Subject,2}, subject_id::Int64=1, roving_experiment_id::Int64=1)
-  global enable_weight_updates :: Bool;
+  global enable_weight_updates;
+  typeassert(enable_weight_updates, Bool);
   global average_reward;
   global n_critic;
   global n_post;
@@ -474,7 +475,8 @@ end
 
 
 function perform_single_subject_experiment_trial_switching(tuning_type::TuningSelector, subjects::Array{Subject,2}, subject_id::Int64=1)
-  global enable_weight_updates::Bool;
+  global enable_weight_updates;
+  typeassert(enable_weight_updates, Bool);
   global average_reward;
   global n_critic;
   global n_post;
@@ -780,7 +782,8 @@ end
 
 function biased_compare_three_trial_types_with_multiple_subjects()
   ## fixed external bias sim comparison
-  global use_fixed_external_bias :: Bool;
+  global use_fixed_external_bias;
+  typeassert(use_fixed_external_bias, Bool);
 
   if(use_gaussian_tuning_function)
     # use gaussian basis functions

@@ -214,9 +214,11 @@ function initialise()
 
   global exp_results = Array(RovingExperiment, 0);
 
-  global enable_weight_updates = true::Bool;
+  global enable_weight_updates = true;
+  typeassert(enable_weight_updates, Bool);
 
-  global use_fixed_external_bias = false :: Bool;
+  global use_fixed_external_bias = false;
+  typeassert(use_fixed_external_bias, Bool);
 
   print("RND seeded $random_seed\n")
 end
@@ -297,8 +299,10 @@ end
 # update average_post variable
 #   note that intrinsic_baseline is not included in the running average
 function update_intrinsic_excitability(x::Float64, task_id::Int, tuning_type::TuningSelector)
-  global average_post :: Array{Float64,1};
-  global n_post :: Int;
+  global average_post;
+  typeassert(average_post, Array{Float64,1});
+  global n_post;
+  typeassert(n_post, Int);
 
   (noise_free_left, noise_free_right) = noise_free_post(x, task_id, tuning_type);
 
@@ -750,8 +754,10 @@ function multi_critic_running_av_reward(R, task_critic_id::Int, choice_critic_id
   # note regarding julia deprecation of :: Notation
   # my use of the notation should come back into use in
   # future versions of the language, so don't bother to remove
-  global n_critic :: Array{Int, 2};
-  global average_reward :: Array{Float64,2};
+  global n_critic;
+  typeassert(n_critic, Array{Int, 2});
+  global average_reward;
+  typeassert(average_reward, Array{Float64,2});
 
   tau_r = running_av_window_length;
 
