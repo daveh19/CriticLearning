@@ -770,7 +770,7 @@ function multi_critic_running_av_reward(R, task_critic_id::Int, choice_critic_id
 end
 
 
-@debug function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, trial_dat::Trial)
+function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, trial_dat::Trial)
   if(verbosity > 3)
     global instance_reward;
     global instance_average_reward;
@@ -928,7 +928,6 @@ end
       update_array[update_array.>0.0] .*= (weights_upper_bound - w[update_array.>0.0]);
       update_array[update_array.<0.0] .*= (weights_lower_bound - w[update_array.<0.0]);
       global w += (update_array * learning_rate) / weights_upper_bound;
-      #@bp
     end
 
     if (verbosity > 3)

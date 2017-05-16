@@ -3,8 +3,6 @@ using Distributions
 using PyPlot,PyCall
 using Grid
 
-#using Debug # not compatible with julia 0.5
-
 #@pyimport seaborn as sns
 #sns.set(font_scale=1.5)
 #sns.set_context("poster")
