@@ -3,10 +3,9 @@ using Distributions
 using PyPlot,PyCall
 using Grid
 
-
 #using Debug # not compatible with julia 0.5
 
-@pyimport seaborn as sns
+#@pyimport seaborn as sns
 #sns.set(font_scale=1.5)
 #sns.set_context("poster")
 
@@ -172,6 +171,10 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
     #   This is one of the places where a non-zero classification offset should be corrected
     #   for (if ever implemented).
     sub_task_id = round(Int, (block_dat.trial[i].correct_answer / 2.0) + 1.5) :: Int;
+    if(sub_task_id == 0)
+      print("correct answer: ", block_dat.trial[i].correct_answer)
+    end
+    print(" sub_task_id: $sub_task_id\n")
     sub_task_count[sub_task_id] += 1;
     proportion_sub_task_correct[sub_task_id] += local_reward; # local_reward = {0,1}
     if(perform_detection_threshold)

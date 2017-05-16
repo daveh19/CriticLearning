@@ -164,6 +164,11 @@ function initialise_weight_matrix(tuning_type::linear_tc)
   # calculate square root of average squared weight value, want to keep this constant during weight normalisation process
   #   Henning and I left out sqrt() when we were writing this together
   global subject_initial_weight_scale = sqrt( mean(w[:,:,:].^2) ) :: Float64; #sqrt(sum(w.^2))
+  # as a test, we look at normalisation separately per task
+  #   these normalisation factors must still combine the two outputs as the real learning
+  #   is to discriminate between left and right
+  global subject_task_1_initial_weight_scale = sqrt( mean(w[:,:,1].^2) ) :: Float64;
+  global subject_task_2_initial_weight_scale = sqrt( mean(w[:,:,2].^2) ) :: Float64;
 end
 
 
@@ -765,7 +770,7 @@ function multi_critic_running_av_reward(R, task_critic_id::Int, choice_critic_id
 end
 
 
-function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, trial_dat::Trial)
+@debug function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, trial_dat::Trial)
   if(verbosity > 3)
     global instance_reward;
     global instance_average_reward;
@@ -914,7 +919,17 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
 
   # the weight update
   if(enable_weight_updates)
-    global w += dw;
+    if (!use_soft_bounded_weight_rule)
+      global w += dw;
+    else
+      update_array = deepcopy(dw);
+      update_array /= learning_rate;
+      # be careful modifying the following logic
+      update_array[update_array.>0.0] .*= (weights_upper_bound - w[update_array.>0.0]);
+      update_array[update_array.<0.0] .*= (weights_lower_bound - w[update_array.<0.0]);
+      global w += (update_array * learning_rate) / weights_upper_bound;
+      #@bp
+    end
 
     if (verbosity > 3)
       #for now at least these sums are across all tasks, could make them task specific
@@ -923,18 +938,34 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
       print("after weight change, sum w left: $left_sum_w, sum w right: $right_sum_w\n")
     end
 
-    # hard bound weights at +/- 10
-    w[w .> weights_upper_bound] = weights_upper_bound;
-    w[w .< weights_lower_bound] = weights_lower_bound;
-
 
     # weight normalisation according to quadratic norm, multiplicative rule
-    if(use_weight_normalisation)
+    if(use_multiplicative_weight_normalisation)
       output_1_weights_norm = sqrt( mean(w[:,1,:].^2) ) #sqrt( sum(w[:,1,1].^2 ) + sum( w[:,1,2].^2) )
       output_2_weights_norm = sqrt( mean(w[:,2,:].^2) ) #sqrt( sum(w[:,2,1].^2 ) + sum( w[:,2,2].^2) )
       w[:, 1, :] = ( w[:, 1, :] ./ output_1_weights_norm ) * subject_initial_weight_scale;
       w[:, 2, :] = ( w[:, 2, :] ./ output_2_weights_norm ) * subject_initial_weight_scale;
+    elseif(use_per_task_multiplicative_weight_normalisation)
+      output_1_task_1_weights_norm = sqrt( mean(w[:,1,1].^2) ) #sqrt( sum(w[:,1,1].^2 ) + sum( w[:,1,2].^2) )
+      output_2_task_1_weights_norm = sqrt( mean(w[:,2,1].^2) ) #sqrt( sum(w[:,2,1].^2 ) + sum( w[:,2,2].^2) )
+      output_1_task_2_weights_norm = sqrt( mean(w[:,1,2].^2) ) #sqrt( sum(w[:,1,1].^2 ) + sum( w[:,1,2].^2) )
+      output_2_task_2_weights_norm = sqrt( mean(w[:,2,2].^2) ) #sqrt( sum(w[:,2,1].^2 ) + sum( w[:,2,2].^2) )
+      w[:, 1, 1] = ( w[:, 1, 1] ./ output_1_task_1_weights_norm ) * subject_task_1_initial_weight_scale;#  subject_initial_weight_scale;
+      w[:, 2, 1] = ( w[:, 2, 1] ./ output_2_task_1_weights_norm ) * subject_task_1_initial_weight_scale;#  subject_initial_weight_scale;
+      w[:, 1, 2] = ( w[:, 1, 2] ./ output_1_task_2_weights_norm ) * subject_task_1_initial_weight_scale;#  subject_initial_weight_scale;
+      w[:, 2, 2] = ( w[:, 2, 2] ./ output_2_task_2_weights_norm ) * subject_task_1_initial_weight_scale;#  subject_initial_weight_scale;
+    elseif(use_subtractive_weight_normalisation)
+      # normalise via sigma w
+      output_1_weights_norm = mean(dw[:,1,:]);
+      output_2_weights_norm = mean(dw[:,2,:]);
+      w[:,1,:] = w[:,1,:] - output_1_weights_norm;
+      w[:,2,:] = w[:,2,:] - output_2_weights_norm;
     end
+
+
+    # hard bound weights at +/- 10
+    #w[w .> weights_upper_bound] = weights_upper_bound;
+    #w[w .< weights_lower_bound] = weights_lower_bound;
   end # enable_weight_updates
 
 

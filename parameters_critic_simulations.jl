@@ -6,7 +6,7 @@ random_seed = 3::Int;#3;
 no_pre_neurons_per_task = 50::Int;
 no_post_neurons = 2::Int; # corresponds to number of output decision categories
 no_input_tasks = 2::Int;
-no_pop_scaling_post_neurons = 100 :: Int; # per output decision category
+no_pop_scaling_post_neurons = 1 :: Int; # per output decision category
 
 
 # trial length parameters
@@ -22,7 +22,7 @@ use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
 reset_average_reward_on_each_block = false :: Bool;
 #use_fixed_external_bias = false :: Bool; # default to off
-fixed_external_bias_value = (0.9) :: Float64;
+fixed_external_bias_value = (1.2) :: Float64;
 
 
 # changing the post part of the weight update rule
@@ -32,7 +32,10 @@ binary_outputs_mode = false :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
 use_intrinsic_plasticity = false :: Bool; #leave OFF for now! #enable updating, and subtraction of an intrinsic plasticity factor from post
-use_weight_normalisation = false :: Bool; # weight normalisation using quadratic norm, multiplicative rule
+use_multiplicative_weight_normalisation = false :: Bool; # weight normalisation using quadratic norm, multiplicative rule
+use_per_task_multiplicative_weight_normalisation = false :: Bool;
+use_subtractive_weight_normalisation = false :: Bool;
+use_soft_bounded_weight_rule = true :: Bool;
 use_decision_criterion_learner = true :: Bool;
 use_pooled_scaling_of_post_population_for_decisions = true :: Bool;
 if (!use_pooled_scaling_of_post_population_for_decisions) no_pop_scaling_post_neurons = 1; end # faster way to make sure that post applies noise correctly
@@ -43,7 +46,7 @@ problem_right_bound = (1.) :: Float64; #0.5;
 
 running_av_window_length = 50 :: Int; #50::Int;
 
-learning_rate = (0.002) :: Float64; #(0.000002) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
+learning_rate = (0.000005) :: Float64; #(0.000002) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
 learning_rate /= sqrt(no_pop_scaling_post_neurons) :: Float64; # rescale for population noise, try to keep signal-to-noise ratio constant while maintaining same rate of learning
 output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 
@@ -51,8 +54,8 @@ initial_weight_bias = (2.0); #(2.0) :: Float64; # 2.0
 gaussian_weight_bias = (0.5) :: Float64;
 
 # weight constraints
-weights_upper_bound = (1e3) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
-weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
+weights_upper_bound = (1e2) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
+weights_lower_bound = (-1e2) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 
 
 # criterion learning
