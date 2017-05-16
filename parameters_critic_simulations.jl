@@ -46,7 +46,7 @@ problem_right_bound = (1.) :: Float64; #0.5;
 
 running_av_window_length = 50 :: Int; #50::Int;
 
-learning_rate = (0.000005) :: Float64; #(0.000002) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
+learning_rate = (0.002) :: Float64; #(0.000002) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
 learning_rate /= sqrt(no_pop_scaling_post_neurons) :: Float64; # rescale for population noise, try to keep signal-to-noise ratio constant while maintaining same rate of learning
 output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 
@@ -54,15 +54,15 @@ initial_weight_bias = (2.0); #(2.0) :: Float64; # 2.0
 gaussian_weight_bias = (0.5) :: Float64;
 
 # weight constraints
-weights_upper_bound = (1e2) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
-weights_lower_bound = (-1e2) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
+weights_upper_bound = (1e3) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
+weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 
 
 # criterion learning
 # as a simplification of both intrinsic plasticity and weight normalisation
 #   here we use a simple decision bias measure
 #   associate 1 with output 2 and 0 with output 1
-decision_criterion_timescale = 1.0 :: Float64; # (dt/tau for updating of decision_criterion_monitor)
+decision_criterion_timescale = 10.0 :: Float64; # (dt/tau for updating of decision_criterion_monitor)
 reset_decision_criterion_monitor_on_each_block = false :: Bool;
 use_reset_decision_criterion_monitor_each_subject = true :: Bool;
 
