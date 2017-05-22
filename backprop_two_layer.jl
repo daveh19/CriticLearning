@@ -1,11 +1,50 @@
-module backprop_two_layer
+# module backprop_two_layer
 
-export update_critic_representation, get_reward_prediction
+export update_critic_representation, get_reward_prediction, initialise_critic_parameters
+
+type Critic_Representation
+  W1 :: Array{Float64,2}
+  W2 :: Array{Float64,2}
+  alpha :: Array{Float64,1}
+  tau :: Array{Int64,1}
+end
+
+global my_critic = Critic_Representation(Array{Float64,2}(), Array{Float64,2}(), Array{Float64,1}(), Array{Int64,1}());
 
 using PyPlot
 using Distributions
 
-function initialise(no_trials::Int, no_tasks=2::Int64)
+
+function initialise_critic_parameters()
+  global my_critic;
+  # srand(2); # use with care, it's being used elsewhere in my simulations
+
+  ## Layer 1
+  W1 = ones(2,2) * 0.5;
+  stdev_weight_noise = 0.; #0.001;
+  weight_noise = rand(Normal(0,1),2,2) * stdev_weight_noise;
+  # weight_noise = zeros(2,2);
+  # weight_noise[1,1] = 0.001;
+  # weight_noise[1,2] = -0.001;
+  # weight_noise[2,1] = -0.001;
+  # weight_noise[2,2] = 0.001;
+  W1 += weight_noise;
+
+  ## Layer 2
+  W2 = ones(2,1) #+ rand(Normal(0,1),2,1) * 0.001;
+
+  ## Learning parameters
+  alpha = [1.; 1.];
+  tau = [500; 5];
+  tau = [500; 30];
+
+  my_critic.W1 = W1;
+  my_critic.W2 = W2;
+  my_critic.alpha = alpha;
+  my_critic.tau = tau;
+end
+
+function initialise_critic_sim(no_trials::Int64, no_tasks=2::Int64)
   srand(1);
   task_sequence = zeros(Int, no_trials, 1);
   if no_tasks == 2
@@ -18,20 +57,14 @@ function initialise(no_trials::Int, no_tasks=2::Int64)
     end
   end
 
-  W1 = ones(2,2) * 0.5;
-  stdev_weight_noise = 0.; #0.001;
-  weight_noise = rand(Normal(0,1),2,2) * stdev_weight_noise;
-  # weight_noise = zeros(2,2);
-  # weight_noise[1,1] = 0.001;
-  # weight_noise[1,2] = -0.001;
-  # weight_noise[2,1] = -0.001;
-  # weight_noise[2,2] = 0.001;
-  W1 += weight_noise;
-
-  W2 = ones(2,1) #+ rand(Normal(0,1),2,1) * 0.001;
+  initialise_critic_parameters();
+  W1 = my_critic.W1;
+  W2 = my_critic.W2;
 
   return (task_sequence, W1, W2);
 end
+
+__init__ = initialise_critic_parameters();
 
 
 function get_inputs(task_id::Int)
@@ -53,9 +86,11 @@ end
 
 
 function modify_W!(x, y, z, target, W1, W2, use_realistic_feedback::Bool=false)
-  alpha = [1.; 1.];
-  tau = [500; 5];
-  tau = [500; 30];
+  # alpha = [1.; 1.];
+  # tau = [500; 5];
+  # tau = [500; 30];
+  alpha = my_critic.alpha;
+  tau = my_critic.tau;
 
   if use_realistic_feedback
     # use contingency to generate probabilistic feedback signal
@@ -94,15 +129,15 @@ function modify_W!(x, y, z, target, W1, W2, use_realistic_feedback::Bool=false)
 end
 
 
-function update_critic_representation(task_id::Int, local_reward::Int)
-  # use the Float64 version of this function for now
-  local_reward = local_reward * 1.0;
-  update_critic_representation(task_id, local_reward);
-end
-
 function update_critic_representation(task_id::Int, local_reward::Float64) # later can make Int of local_reward
   #TODO: fill out update_critic_representation function
   #   needs access to x (from get_inputs(task_id)), W1, W2
+end
+
+function update_critic_representation(task_id::Int, local_reward::Int)
+  # use the Float64 version of this function for now
+  # local_reward = local_reward * 1.0;
+  update_critic_representation(task_id, float(local_reward));
 end
 
 function get_reward_prediction(task_id::Int)
@@ -318,4 +353,4 @@ function reverse_run_matrix(realistic_feedback::Bool=false)
 end
 
 
-end # module backprop_two_layer
+# end # module backprop_two_layer
