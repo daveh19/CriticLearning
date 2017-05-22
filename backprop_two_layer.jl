@@ -1,5 +1,8 @@
 # module backprop_two_layer
 
+using PyPlot
+using Distributions
+
 export update_critic_representation, get_reward_prediction, initialise_critic_parameters
 
 type Critic_Representation
@@ -10,10 +13,6 @@ type Critic_Representation
 end
 
 global my_critic = Critic_Representation(Array{Float64,2}(), Array{Float64,2}(), Array{Float64,1}(), Array{Int64,1}());
-
-using PyPlot
-using Distributions
-
 
 function initialise_critic_parameters()
   global my_critic;
@@ -130,15 +129,19 @@ end
 
 
 function update_critic_representation(task_id::Int, local_reward::Float64) # later can make Int of local_reward
-  #TODO: fill out update_critic_representation function
-  #   needs access to x (from get_inputs(task_id)), W1, W2
+  # needs access to x (from get_inputs(task_id)), W1, W2
+  x = get_inputs(task_id);
+  y = get_output(x, my_critic.W1);
+  z = get_output(x, my_critic.W1, my_critic.W2);
+
+  modify_W!(x, y, z, local_reward, my_critic.W1, my_critic.W2, false);
 end
 
 function update_critic_representation(task_id::Int, local_reward::Int)
   # use the Float64 version of this function for now
-  # local_reward = local_reward * 1.0;
   update_critic_representation(task_id, float(local_reward));
 end
+
 
 function get_reward_prediction(task_id::Int)
   #TODO: fill out get_reward_prediction function
@@ -154,7 +157,7 @@ function run_matrix(realistic_feedback::Bool=false)
   switch_point = 3000;
   second_contingencies = [1.0; 0.2];
 
-  (task_sequence, W1, W2) = initialise(no_trials);
+  (task_sequence, W1, W2) = initialise_critic_sim(no_trials);
 
   outputs = zeros(no_trials, 1);
 
@@ -179,9 +182,11 @@ function run_matrix(realistic_feedback::Bool=false)
     end
 
     if i < switch_point
-      modify_W!(x,y,z,initial_contingency[task_sequence[i]],W1,W2,realistic_feedback);
+      # modify_W!(x,y,z,initial_contingency[task_sequence[i]],W1,W2,realistic_feedback);
+      update_critic_representation(task_sequence[i], initial_contingency[task_sequence[i]]);
     else
-      modify_W!(x,y,z,second_contingencies[task_sequence[i]],W1,W2,realistic_feedback);
+      # modify_W!(x,y,z,second_contingencies[task_sequence[i]],W1,W2,realistic_feedback);
+      update_critic_representation(task_sequence[i], second_contingencies[task_sequence[i]]);
     end
 
     @show W1 W2 task_sequence[i]
@@ -205,7 +210,7 @@ function single_task_run_matrix(realistic_feedback::Bool=false)
   switch_point = 3000;
   second_contingencies = [0.5; 0.2];
 
-  (task_sequence, W1, W2) = initialise(no_trials, 1);
+  (task_sequence, W1, W2) = initialise_critic_sim(no_trials, 1);
 
   outputs = zeros(no_trials, 1);
 
@@ -257,7 +262,7 @@ function crossover_run_matrix(realistic_feedback::Bool=false)
   switch_point = 3000;
   second_contingencies = [0.3; 0.7];
 
-  (task_sequence, W1, W2) = initialise(no_trials);
+  (task_sequence, W1, W2) = initialise_critic_sim(no_trials);
 
   outputs = zeros(no_trials, 1);
 
@@ -308,7 +313,7 @@ function reverse_run_matrix(realistic_feedback::Bool=false)
   switch_point = 3000;
   second_contingencies = [0.6; 0.6];
 
-  (task_sequence, W1, W2) = initialise(no_trials);
+  (task_sequence, W1, W2) = initialise_critic_sim(no_trials);
 
   outputs = zeros(no_trials, 1);
 
