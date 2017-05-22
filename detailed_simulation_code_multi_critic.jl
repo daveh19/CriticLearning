@@ -190,6 +190,10 @@ function initialise()
   update_noise();
   initialise_weight_matrix(tuning_type);
 
+  if !use_hard_coded_critic
+    initialise_critic_parameters()
+  end
+
   global decision_criterion_monitor = 0.0; #0.5;
 
   global average_delta_reward = 0.0;
@@ -883,7 +887,7 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
       local_average_reward = 0.;
     end
   else # use critic representation learner version
-    local_average_reward = get_reward_prediction(task_id);
+    local_average_reward = get_reward_prediction(task_id)[1]; # note this returns a single element array
   end
 
   # the weight update matrix

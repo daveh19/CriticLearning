@@ -1,4 +1,4 @@
-# module backprop_two_layer
+module backprop_two_layer
 
 using PyPlot
 using Distributions
@@ -358,4 +358,4 @@ function reverse_run_matrix(realistic_feedback::Bool=false)
 end
 
 
-# end # module backprop_two_layer
+end # module backprop_two_layer
