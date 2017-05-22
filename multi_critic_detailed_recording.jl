@@ -21,6 +21,7 @@ include("high_dim_array2.jl");
 ########## Main simulation functions #############
 
 if !use_hard_coded_critic
+  include("backprop_two_layer.jl")
   using backprop_two_layer
 end
 
