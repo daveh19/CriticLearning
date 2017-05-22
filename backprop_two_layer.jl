@@ -94,6 +94,12 @@ function modify_W!(x, y, z, target, W1, W2, use_realistic_feedback::Bool=false)
 end
 
 
+function update_critic_representation(task_id::Int, local_reward::Int)
+  # use the Float64 version of this function for now
+  local_reward = local_reward * 1.0;
+  update_critic_representation(task_id, local_reward);
+end
+
 function update_critic_representation(task_id::Int, local_reward::Float64) # later can make Int of local_reward
   #TODO: fill out update_critic_representation function
   #   needs access to x (from get_inputs(task_id)), W1, W2
@@ -103,6 +109,7 @@ function get_reward_prediction(task_id::Int)
   #TODO: fill out get_reward_prediction function
   #   needs access to x (from get_inputs(task_id)) and W1, W2
   #get_output(x, W1, W2);
+  return 0.;
 end
 
 
