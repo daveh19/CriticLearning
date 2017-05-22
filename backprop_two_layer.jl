@@ -1,4 +1,4 @@
-module backprop_two_layer
+# module backprop_two_layer
 
 using PyPlot
 using Distributions
@@ -31,6 +31,10 @@ function initialise_critic_parameters()
 
   ## Layer 2
   W2 = ones(2,1) #+ rand(Normal(0,1),2,1) * 0.001;
+  # Playing with difference in weight initialisation values
+  # W2[1] = 3;
+  # W2[2] = 0.3;
+
 
   ## Learning parameters
   alpha = [1.; 1.];
@@ -124,6 +128,12 @@ function modify_W!(x, y, z, target, W1, W2, use_realistic_feedback::Bool=false)
   W2[1] += δW2[1];
   W2[2] += δW2[2];
 
+  # Playing with weight normalisation
+  # W1[:,1] = W1[:,1] / norm(W1[:,1]) # inputs to neuron 1 in layer 1
+  # W1[:,2] = W1[:,2] / norm(W1[:,2]) # inputs to neuron 2 in layer 1
+  #
+  # W2 = W2 ./ norm(W2)
+
   # @show W
 end
 
@@ -182,11 +192,11 @@ function run_matrix(realistic_feedback::Bool=false)
     end
 
     if i < switch_point
-      # modify_W!(x,y,z,initial_contingency[task_sequence[i]],W1,W2,realistic_feedback);
-      update_critic_representation(task_sequence[i], initial_contingency[task_sequence[i]]);
+      modify_W!(x,y,z,initial_contingency[task_sequence[i]],W1,W2,realistic_feedback);
+      # update_critic_representation(task_sequence[i], initial_contingency[task_sequence[i]]);
     else
-      # modify_W!(x,y,z,second_contingencies[task_sequence[i]],W1,W2,realistic_feedback);
-      update_critic_representation(task_sequence[i], second_contingencies[task_sequence[i]]);
+      modify_W!(x,y,z,second_contingencies[task_sequence[i]],W1,W2,realistic_feedback);
+      # update_critic_representation(task_sequence[i], second_contingencies[task_sequence[i]]);
     end
 
     @show W1 W2 task_sequence[i]
@@ -358,4 +368,4 @@ function reverse_run_matrix(realistic_feedback::Bool=false)
 end
 
 
-end # module backprop_two_layer
+# end # module backprop_two_layer
