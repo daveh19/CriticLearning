@@ -22,7 +22,7 @@ include("high_dim_array2.jl");
 
 if !use_hard_coded_critic
   include("backprop_two_layer.jl")
-  using backprop_two_layer
+  # using backprop_two_layer
 end
 
 #include("detailed_simulation_code_herzog12.jl")

@@ -861,7 +861,7 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
     #TODO: link to my new critic representation learner
     # needs task_id, to form representation
     # and reward received, to form association
-    update_critic_representation(task_id, local_reward);
+    update_critic_representation(task_id, local_reward, true);
   end
 
   # decide which form of average reward we're using here:
@@ -887,7 +887,7 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
       local_average_reward = 0.;
     end
   else # use critic representation learner version
-    local_average_reward = get_reward_prediction(task_id)[1]; # note this returns a single element array
+    local_average_reward = get_reward_prediction(task_id,true)[1]; # note this returns a single element array
   end
 
   # the weight update matrix
