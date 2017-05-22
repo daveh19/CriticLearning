@@ -63,7 +63,7 @@ function initialise_critic_sim(no_trials::Int64, no_tasks=2::Int64)
   return (task_sequence, W1, W2);
 end
 
-__init__ = initialise_critic_parameters();
+# __init__ = initialise_critic_parameters();
 
 
 function get_inputs(task_id::Int)
@@ -144,10 +144,10 @@ end
 
 
 function get_reward_prediction(task_id::Int)
-  #TODO: fill out get_reward_prediction function
-  #   needs access to x (from get_inputs(task_id)) and W1, W2
-  #get_output(x, W1, W2);
-  return 0.;
+  # needs access to x (from get_inputs(task_id)) and W1, W2
+  x = get_inputs(task_id);
+  rp = get_output(x, my_critic.W1, my_critic.W2);
+  return rp;
 end
 
 
