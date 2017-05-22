@@ -1,3 +1,7 @@
+module backprop_two_layer
+
+export update_critic_representation, get_reward_prediction
+
 using PyPlot
 using Distributions
 
@@ -87,6 +91,18 @@ function modify_W!(x, y, z, target, W1, W2, use_realistic_feedback::Bool=false)
   W2[2] += δW2[2];
 
   # @show W
+end
+
+
+function update_critic_representation(task_id::Int, local_reward::Float64) # later can make Int of local_reward
+  #TODO: fill out update_critic_representation function
+  #   needs access to x (from get_inputs(task_id)), W1, W2
+end
+
+function get_reward_prediction(task_id::Int)
+  #TODO: fill out get_reward_prediction function
+  #   needs access to x (from get_inputs(task_id)) and W1, W2
+  #get_output(x, W1, W2);
 end
 
 
@@ -293,3 +309,6 @@ function reverse_run_matrix(realistic_feedback::Bool=false)
   xlabel("trial number")
   savefig("backprop_two_layer_reverse.pdf")
 end
+
+
+end # module backprop_two_layer

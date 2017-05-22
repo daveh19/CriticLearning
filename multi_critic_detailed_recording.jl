@@ -20,6 +20,10 @@ include("high_dim_array2.jl");
 
 ########## Main simulation functions #############
 
+if !use_hard_coded_critic
+  using backprop_two_layer
+end
+
 #include("detailed_simulation_code_herzog12.jl")
 include("detailed_simulation_code_multi_critic.jl");
 

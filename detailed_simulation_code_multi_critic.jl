@@ -835,6 +835,8 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   global average_task_reward;
   average_task_reward[task_id] = ( (n_task_within_block[task_id] - 1) * average_task_reward[task_id] + local_reward) / (n_task_within_block[task_id]);
 
+
+  ## The Critic: Reward Predictor
   #running_av_reward(local_reward); # Nicolas is doing this before dw update, so first timestep is less unstable...
   # TODO: need to improve critic response axis and task type bin logic here
   # Binning along input-output/selection choice axis
@@ -848,28 +850,40 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   if(no_task_critics > 1)
     local_critic_task_bin = trial_dat.task_type;
   end
-  multi_critic_running_av_reward(local_reward, local_critic_task_bin, local_critic_response_bin);
+  if use_hard_coded_critic
+    # as in Fremaux paper
+    multi_critic_running_av_reward(local_reward, local_critic_task_bin, local_critic_response_bin);
+  else
+    #TODO: link to my new critic representation learner
+    # needs task_id, to form representation
+    # and reward received, to form association
+    update_critic_representation(task_id, local_reward);
+  end
 
   # decide which form of average reward we're using here:
-  if( use_multi_critic )
-    #   multi critic:
-    #     currently expanding logic to use number of critics declared in params
-    local_average_reward = average_reward[local_critic_task_bin, local_critic_response_bin];
-  elseif (use_single_global_critic)
-    #   single global critic:
-    local_sum_reward = 0.;
-    local_sum_critics = 0;
-    for i=1:no_task_critics
-      for j = 1:no_choices_per_task_critics
-        local_sum_reward += average_reward[i, j] * n_critic[i,j];
-        local_sum_critics += n_critic[i,j];
+  if use_hard_coded_critic
+    if( use_multi_critic )
+      #   multi critic:
+      #     currently expanding logic to use number of critics declared in params
+      local_average_reward = average_reward[local_critic_task_bin, local_critic_response_bin];
+    elseif (use_single_global_critic)
+      #   single global critic:
+      local_sum_reward = 0.;
+      local_sum_critics = 0;
+      for i=1:no_task_critics
+        for j = 1:no_choices_per_task_critics
+          local_sum_reward += average_reward[i, j] * n_critic[i,j];
+          local_sum_critics += n_critic[i,j];
+        end
       end
+      local_average_reward = ( local_sum_reward / local_sum_critics );
+    else
+      # Rmax (no running average):
+      #TODO: actually this is not Rmax, that would also require (post-\bar{post}) in the dw formula
+      local_average_reward = 0.;
     end
-    local_average_reward = ( local_sum_reward / local_sum_critics );
-  else
-    # Rmax (no running average):
-    #TODO: actually this is not Rmax, that would also require (post-\bar{post}) in the dw formula
-    local_average_reward = 0.;
+  else # use critic representation learner version
+    local_average_reward = get_reward_prediction(task_id);
   end
 
   # the weight update matrix

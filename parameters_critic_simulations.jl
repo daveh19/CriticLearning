@@ -20,6 +20,7 @@ no_task_critics = 1 :: Int;
 no_choices_per_task_critics = 1 :: Int;
 use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
+use_hard_coded_critic = false :: Bool; # switch for critic representation learner
 reset_average_reward_on_each_block = false :: Bool;
 #use_fixed_external_bias = false :: Bool; # default to off
 fixed_external_bias_value = (1.2) :: Float64;
