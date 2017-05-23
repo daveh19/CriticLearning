@@ -126,6 +126,7 @@ use_ab_persistence = false :: Bool;
 # Reward can be saved from the state of the running average or on a per block basis
 #	reward averaging on a per task basis is only on a per block basis
 save_reward_from_running_average = true :: Bool;
+if (!use_hard_coded_critic) save_reward_from_running_average = false; print("PARAMETERS: Unable to save reward from running average\n"); end
 
 # first block of each experiment is just used to build up a running average
 const disable_learning_on_first_block = true :: Bool;
