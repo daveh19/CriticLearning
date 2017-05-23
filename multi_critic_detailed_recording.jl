@@ -1,3 +1,7 @@
+#TODO: monitor critic prediction and actual performance per block
+#TODO: how is our critic representation learner performing on reasonable length simulations?
+#TODO: use a logic switch to disable trial_dat level recording of performance (for longer runs)
+
 ######## External requirements ###########
 using Distributions
 using PyPlot,PyCall
@@ -2342,6 +2346,12 @@ function will_subject_learn(subjects::Array{Subject,2}, task_id::Int=1, begin_id
     end
   end
   print("\nWarning: function altered global variables a, b and w\n")
+end
+
+
+function plot_critic_representation_vs_performance()
+  #TODO: write plot_critic_representation_vs_performance() function
+  # plot per block, task-based reward prediction vs proportion correct on that task
 end
 
 

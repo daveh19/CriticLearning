@@ -11,7 +11,7 @@ no_pop_scaling_post_neurons = 1 :: Int; # per output decision category
 
 # trial length parameters
 no_trials_in_block = 80::Int; #80;
-no_blocks_in_experiment = 14::Int; #20::Int; #14;
+no_blocks_in_experiment = 30::Int; #20::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = true ::Bool;
 
