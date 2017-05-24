@@ -40,6 +40,7 @@ function initialise_critic_parameters()
   alpha = [1.; 1.];
   tau = [500; 5];
   tau = [500; 30];
+  tau = [4000; 20];
 
   my_critic.W1 = W1;
   my_critic.W2 = W2;
@@ -185,7 +186,7 @@ end
 
 function run_matrix(realistic_feedback::Bool=false, change_reward_range::Bool=false)
   no_trials = 6000;
-  initial_contingency = [0.; 0.5];
+  initial_contingency = [0.05; 0.8];
   switch_point = 3000;
   second_contingencies = [-0.7; 0.2];
 
@@ -229,7 +230,7 @@ function run_matrix(realistic_feedback::Bool=false, change_reward_range::Bool=fa
   plot(linspace(1,no_trials,no_trials), outputs_1, "r", label="Task 1");
   plot(linspace(1,no_trials,no_trials), outputs_2, "g", label="Task 2");
 
-  title("Contingencies {0.0,0.5} then {-0.7,0.2}. Two-layer using Backprop")
+  title("Contingencies {0.05,0.8} then {-0.7,0.2}. Two-layer using Backprop")
   ylabel("abstract reward/performance unit")
   xlabel("trial number")
   savefig("backprop_two_layer.pdf")
