@@ -256,6 +256,12 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   block_dat.probability_correct[task_id, 1] = probability_correct(problem_left_bound, task_id, tuning_type);
   block_dat.probability_correct[task_id, 2] = probability_correct(problem_right_bound, task_id, tuning_type);
 
+  # store critic learner reward prediction at end of each block
+  if (!use_hard_coded_critic)
+    block_dat.reward_prediction[1] = reward_prediction(1)[1];
+    block_dat.reward_prediction[2] = reward_prediction(2)[1];
+  end
+
   #print("Block end decision_criterion_monitor: $decision_criterion_monitor \n")
   return proportion_correct;
 end

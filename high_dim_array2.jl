@@ -58,6 +58,8 @@ type Block
 
   noise_free_positive_output :: Array{Float64, 2};
   probability_correct :: Array{Float64, 2};
+
+  reward_prediction :: Array{Float64, 2};
 end
 
 function initialise_empty_block(no_blocks::Int, trials_per_block::Int, double_trials::Bool=false)
@@ -69,7 +71,7 @@ function initialise_empty_block(no_blocks::Int, trials_per_block::Int, double_tr
 
   for i = 1:no_blocks
     local_trial = initialise_empty_trials(trials_per_block);
-    block[i] = Block( local_trial, 0., 0., 0., 0., 0., zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks, no_classifications_per_task), zeros(no_input_tasks, no_classifications_per_task));
+    block[i] = Block( local_trial, 0., 0., 0., 0., 0., zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks, no_classifications_per_task), zeros(no_input_tasks, no_classifications_per_task), zeros(2,1) );
   end
 
   return block;
