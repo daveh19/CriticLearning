@@ -1,6 +1,6 @@
-#TODO: monitor critic prediction and actual performance per block
-#TODO: how is our critic representation learner performing on reasonable length simulations?
-#TODO: use a logic switch to disable trial_dat level recording of performance (for longer runs)
+#TODO: try the simplified representation switcher as our critic learner
+#   the backprop looks like it may not work, need to see if this is just
+#   an issue with backprop or if our system has larger learning problems
 
 ######## External requirements ###########
 using Distributions
