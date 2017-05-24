@@ -229,7 +229,7 @@ function run_matrix(realistic_feedback::Bool=false, change_reward_range::Bool=fa
   plot(linspace(1,no_trials,no_trials), outputs_1, "r", label="Task 1");
   plot(linspace(1,no_trials,no_trials), outputs_2, "g", label="Task 2");
 
-  title("Contingencies {0.8,0.5} then {1,0.2}. Two-layer using Backprop")
+  title("Contingencies {0.0,0.5} then {-0.7,0.2}. Two-layer using Backprop")
   ylabel("abstract reward/performance unit")
   xlabel("trial number")
   savefig("backprop_two_layer.pdf")

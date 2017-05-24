@@ -258,8 +258,8 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
 
   # store critic learner reward prediction at end of each block
   if (!use_hard_coded_critic)
-    block_dat.reward_prediction[1] = reward_prediction(1)[1];
-    block_dat.reward_prediction[2] = reward_prediction(2)[1];
+    block_dat.reward_prediction[1] = get_reward_prediction(1)[1];
+    block_dat.reward_prediction[2] = get_reward_prediction(2)[1];
   end
 
   #print("Block end decision_criterion_monitor: $decision_criterion_monitor \n")
@@ -391,6 +391,12 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
     # calculate and record Probability(correct | task, input) for each of the given tasks, for the extremal potential inputs
     block_dat.probability_correct[local_task_id, 1] = probability_correct(problem_left_bound, local_task_id, tuning_type);
     block_dat.probability_correct[local_task_id, 2] = probability_correct(problem_right_bound, local_task_id, tuning_type);
+  end
+
+  # store critic learner reward prediction at end of each block
+  if (!use_hard_coded_critic)
+    block_dat.reward_prediction[1] = get_reward_prediction(1)[1];
+    block_dat.reward_prediction[2] = get_reward_prediction(2)[1];
   end
 
   return proportion_correct;
@@ -2085,7 +2091,7 @@ function plot_multi_subject_probability_correct(subjects::Array{Subject,2}, exp_
 end
 
 
-function plot_single_subject_reward_prediction(subject::Subject, task_id::Int=1)
+function plot_single_subject_reward_prediction(subject::Subject)
   #figure()
   local_reward_prediction = zeros(no_blocks_in_experiment, 2);
   x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
@@ -2094,15 +2100,15 @@ function plot_single_subject_reward_prediction(subject::Subject, task_id::Int=1)
     #print("", x[i], " ", local_reward_prediction[i], "\n")
   end
   #print("", size(local_reward_prediction), " ", size(x),"\n")
-  plot(x, local_reward_prediction[:,task_id,1], linewidth=2, c="c")
-  plot(x, local_reward_prediction[:,task_id,2], linewidth=2, c="m")
+  plot(x, local_reward_prediction[:,1], linewidth=2, c="c")
+  plot(x, local_reward_prediction[:,2], linewidth=2, c="m")
   # plot(x, local_av_probability, linewidth=1, c="k", zorder=3)
 end
 
-function plot_multi_subject_reward_prediction(subjects::Array{Subject,2}, exp_id::Int=1, task_id::Int=exp_id, begin_id::Int=1, end_id::Int=no_subjects)
+function plot_multi_subject_reward_prediction(subjects::Array{Subject,2}, exp_id::Int=1, begin_id::Int=1, end_id::Int=no_subjects)
   figure()
   for i = begin_id:end_id
-    plot_single_subject_reward_prediction(subjects[i,exp_id],task_id)
+    plot_single_subject_reward_prediction(subjects[i,exp_id])
   end
   xlabel("Block number")
   ylabel("Reward Prediction")
