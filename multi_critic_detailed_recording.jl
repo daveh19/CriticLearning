@@ -2085,6 +2085,31 @@ function plot_multi_subject_probability_correct(subjects::Array{Subject,2}, exp_
 end
 
 
+function plot_single_subject_reward_prediction(subject::Subject, task_id::Int=1)
+  #figure()
+  local_reward_prediction = zeros(no_blocks_in_experiment, 2);
+  x = linspace(1, no_blocks_in_experiment, no_blocks_in_experiment);
+  for i = 1:no_blocks_in_experiment
+    local_reward_prediction[i,:] = subject.blocks[i].reward_prediction;
+    #print("", x[i], " ", local_reward_prediction[i], "\n")
+  end
+  #print("", size(local_reward_prediction), " ", size(x),"\n")
+  plot(x, local_reward_prediction[:,task_id,1], linewidth=2, c="c")
+  plot(x, local_reward_prediction[:,task_id,2], linewidth=2, c="m")
+  # plot(x, local_av_probability, linewidth=1, c="k", zorder=3)
+end
+
+function plot_multi_subject_reward_prediction(subjects::Array{Subject,2}, exp_id::Int=1, task_id::Int=exp_id, begin_id::Int=1, end_id::Int=no_subjects)
+  figure()
+  for i = begin_id:end_id
+    plot_single_subject_reward_prediction(subjects[i,exp_id],task_id)
+  end
+  xlabel("Block number")
+  ylabel("Reward Prediction")
+  axis([0,no_blocks_in_experiment,0,1])
+end
+
+
 function plot_single_subject_block_average_decision_monitor(subject::Subject, task_id::Int=1)
   #figure()
   local_av_decision_monitor = zeros(no_blocks_in_experiment);
