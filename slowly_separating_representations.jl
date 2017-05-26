@@ -1,7 +1,41 @@
+# module slowly_separating_representations
+
 using PyPlot
 using Distributions
 
-function initialise(no_trials::Int, no_tasks=2::Int64)
+export update_critic_representation, get_reward_prediction, initialise_critic_parameters
+
+type Critic_Representation
+  W :: Array{Float64,2}
+  alpha :: Float64
+  tau :: Int64
+  phase_id :: Int64
+end
+
+global my_critic = Critic_Representation(Array{Float64,2}(), 0., 0, 0);
+
+function initialise_critic_parameters()
+  global my_critic;
+
+  ## Learned weights initialisation
+  W = ones(3,1) * 0.5;
+
+  ## Learning parameters
+  alpha = 1;
+  tau = 50;
+
+  # Phase must be pased around for compatibility with other methods
+  phase_id = 1;
+
+  my_critic.W = W;
+  my_critic.alpha = alpha;
+  my_critic.tau = tau;
+  my_critic.phase_id = phase_id;
+end
+
+
+function initialise_critic_sim(no_trials::Int64, no_tasks=2::Int64)
+#function initialise(no_trials::Int, no_tasks=2::Int64)
   task_sequence = zeros(Int, no_trials, 1);
   if no_tasks == 2
     for i = 1:no_trials
@@ -13,13 +47,15 @@ function initialise(no_trials::Int, no_tasks=2::Int64)
     end
   end
 
-  W = ones(3,1) * 0.75;
+  initialise_critic_parameters();
+  W = my_critic.W;
 
   return (task_sequence, W);
 end
 
 
-function get_inputs(task_id::Int, phase_id::Int)
+function get_inputs(task_id::Int)
+  phase_id = my_critic.phase_id;
   x = zeros(Float64, 3, 1);
 
   if phase_id == 1
@@ -55,15 +91,30 @@ function get_output(x, W)
 end
 
 
-function modify_W!(x, y, target, W)
-  alpha = 1;
-  tau = 50;
+function modify_W!(x, y, target, W, use_realistic_feedback::Bool=false, change_reward_range::Bool=false)
+  # alpha = 1;
+  # tau = 50;
+  alpha = my_critic.alpha;
+  tau = my_critic.tau;
 
-  # use contingency to generate probabilistic feedback signal
-  probability_target = target;
-  feedback = ( rand(Uniform(0,1)) < probability_target ? 1 : 0);
-  # @show feedback
-  target = feedback;
+  if change_reward_range
+    # convert reward from [-1,+1] to [0,1] internal representation (it's smoother)
+    target = (target / 2.) + 0.5;
+  end
+
+  if use_realistic_feedback
+    # use contingency to generate probabilistic feedback signal
+    probability_target = target;
+    feedback = ( rand(Uniform(0,1)) < probability_target ? 1 : 0);
+    # this code is for debugging, in the backprop host code it originally generated locally a
+    #   feedback of {0,1}, in the sim we typically provide feedback of {-1,+1} so
+    #   we're briefly going to generate that locally here... for debugging.
+    # feedback = ( rand(Uniform(0,1)) < probability_target ? 1 : -1);
+    # @show feedback
+    target = feedback;
+  end
+
+  # delta error algorithm
   error = (1./tau) * (target - y);
 
   # δW = zeros(3,1);
@@ -71,18 +122,60 @@ function modify_W!(x, y, target, W)
   W[1] += δW[1];
   W[2] += δW[2];
   W[3] += δW[3];
+
+  # Playing with weight normalisation
+  # W1[:,1] = W1[:,1] / norm(W1[:,1]) # inputs to neuron 1 in layer 1
+  # W1[:,2] = W1[:,2] / norm(W1[:,2]) # inputs to neuron 2 in layer 1
+  #
+  # W2 = W2 ./ norm(W2)
   # @show W
 end
 
 
-function run_matrix()
-  no_trials = 1500;
-  initial_contingency = [0.8; 0.5];
+function update_critic_representation(task_id::Int, local_reward::Float64, change_reward_range::Bool=false) # later can make Int of local_reward
+  # needs access to x (from get_inputs(task_id)), W, phase_id
+  x = get_inputs(task_id);
+  y = get_output(x, my_critic.W);
+
+  if change_reward_range
+    # convert reward from [-1,+1] to [0,1] internal representation (it's smoother)
+    local_reward = (local_reward / 2.) + 0.5;
+  end
+
+  modify_W!(x, y, local_reward, my_critic.W, false);
+end
+
+function update_critic_representation(task_id::Int, local_reward::Int, change_reward_range::Bool=false)
+  # use the Float64 version of this function for now
+  update_critic_representation(task_id, float(local_reward), change_reward_range);
+end
+
+
+function get_reward_prediction(task_id::Int, change_reward_range::Bool=false)
+  # needs access to x (from get_inputs(task_id)) and W1, W2
+  x = get_inputs(task_id);
+  rp = get_output(x, my_critic.W);
+
+  if change_reward_range
+    # convert to [-1,+1] scale
+    ret_val = (rp - 0.5) * 2;
+  else
+    ret_val = rp;
+  end
+
+  return ret_val;
+end
+
+
+function run_matrix(realistic_feedback::Bool=false, change_reward_range::Bool=false)
+  global my_critic;
+  no_trials = 3000;
+  initial_contingency = [-0.2; 0.4]; #[0.8; 0.5];
   # switch_point = 100;
   # second_contingencies = [1.0; 0.5];
-  phase_length = 500;
+  phase_length = 1000;
 
-  (task_sequence, W) = initialise(no_trials);
+  (task_sequence, W) = initialise_critic_sim(no_trials);
 
   # (single_sequence, W_single) = initialise(no_trials,1);
 
@@ -109,16 +202,20 @@ function run_matrix()
       # print("Incrementing phase_id now\n")
     end
 
-    x = get_inputs(task_sequence[i], phase_id);
+    # setting phase_id via a global variable is a workaround, to maintain
+    #   api compatibility with the backprop_two_layer module
+    my_critic.phase_id = phase_id;
+
+    x = get_inputs(task_sequence[i]);
     y = get_output(x, W);
     # actual performance on the desired task
     outputs[i] = y[1];
     # monitors of potential performance on the two underlying tasks
     #   ie. had I been asked to do task i how would I have done?
-    outputs_1[i] = get_output(get_inputs(1, phase_id), W)[1];
-    outputs_2[i] = get_output(get_inputs(2, phase_id), W)[1];
+    outputs_1[i] = get_output(get_inputs(1), W)[1];
+    outputs_2[i] = get_output(get_inputs(2), W)[1];
 
-    modify_W!(x,y,initial_contingency[task_sequence[i]],W);
+    modify_W!(x,y,initial_contingency[task_sequence[i]],W,realistic_feedback,change_reward_range);
 
 
     # if i % 2 == 0
@@ -150,9 +247,11 @@ function run_matrix()
 
   # plot(linspace(1,no_trials,no_trials/2), outputs_single, "k", label="Only learning Task 1, every second step")
 
-  title("Contingencies 0.8 and 0.5. Two phase changes. Feedback {1,0}")
+  title("Contingencies $initial_contingency. Two phase changes.")
   # title("Matrix critic, slowly separating representations")
   ylabel("abstract reward/performance unit")
   xlabel("trial number")
   savefig("slowly_separating_representations.pdf")
 end
+
+# end # slowly_separating_representations module
