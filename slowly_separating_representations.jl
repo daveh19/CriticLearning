@@ -3,16 +3,17 @@
 using PyPlot
 using Distributions
 
-export update_critic_representation, get_reward_prediction, initialise_critic_parameters
+export update_critic_representation, get_reward_prediction, initialise_critic_parameters, set_phase_id
 
 type Critic_Representation
   W :: Array{Float64,2}
   alpha :: Float64
   tau :: Int64
   phase_id :: Int64
+  phase_counter :: Int64
 end
 
-global my_critic = Critic_Representation(Array{Float64,2}(), 0., 0, 0);
+global my_critic = Critic_Representation(Array{Float64,2}(), 0., 0, 0, 0);
 
 function initialise_critic_parameters()
   global my_critic;
@@ -26,11 +27,13 @@ function initialise_critic_parameters()
 
   # Phase must be pased around for compatibility with other methods
   phase_id = 1;
+  phase_counter = 0;
 
   my_critic.W = W;
   my_critic.alpha = alpha;
   my_critic.tau = tau;
   my_critic.phase_id = phase_id;
+  my_critic.phase_counter = phase_counter;
 end
 
 
@@ -51,6 +54,44 @@ function initialise_critic_sim(no_trials::Int64, no_tasks=2::Int64)
   W = my_critic.W;
 
   return (task_sequence, W);
+end
+
+
+function increment_phase_id(phase_length::Int=1000)
+  global my_critic;
+
+  phase_id = my_critic.phase_id;
+  phase_counter = my_critic.phase_counter;
+
+  # count through the three phases
+  phase_counter += 1;
+  if phase_counter > phase_length
+    phase_id += 1;
+    phase_counter = 1;
+    # if phase_id == 2
+    #   phase_id += 1;
+    # elseif phase_id > 3
+    #   phase_id = 3;
+    # end
+    if phase_id > 3
+      phase_id = 3;
+    end
+    print("Incrementing phase_id now\n")
+  end
+
+  # @show phase_id phase_counter
+
+  my_critic.phase_id = phase_id;
+  my_critic.phase_counter = phase_counter;
+
+  # @show phase_id my_critic.phase_id phase_counter
+end
+
+
+function set_phase_id(phase_id::Int)
+  global my_critic;
+  my_critic.phase_id = phase_id;
+  my_critic.phase_counter = 1;
 end
 
 
@@ -81,6 +122,8 @@ function get_inputs(task_id::Int)
   else
     print("Error\n");
   end
+
+  x ./ norm(x);
 
   return x;
 end
@@ -186,25 +229,10 @@ function run_matrix(realistic_feedback::Bool=false, change_reward_range::Bool=fa
 
   # outputs_single = zeros(round(Int, no_trials/2), 1);
 
-  phase_id = 1;
-  phase_counter = 0;
   for i = 1:no_trials
-    # count through the three phases
-    phase_counter += 1;
-    if phase_counter > phase_length
-      phase_id += 1;
-      phase_counter = 1;
-      # if phase_id == 2
-      #   phase_id += 1;
-      # elseif phase_id > 3
-      #   phase_id = 3;
-      # end
-      # print("Incrementing phase_id now\n")
-    end
-
     # setting phase_id via a global variable is a workaround, to maintain
     #   api compatibility with the backprop_two_layer module
-    my_critic.phase_id = phase_id;
+    increment_phase_id(phase_length);
 
     x = get_inputs(task_sequence[i]);
     y = get_output(x, W);
