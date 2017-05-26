@@ -987,8 +987,8 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
 
 
     # hard bound weights at +/- 10
-    #w[w .> weights_upper_bound] = weights_upper_bound;
-    #w[w .< weights_lower_bound] = weights_lower_bound;
+    w[w .> weights_upper_bound] = weights_upper_bound;
+    w[w .< weights_lower_bound] = weights_lower_bound;
   end # enable_weight_updates
 
 

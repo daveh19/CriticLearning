@@ -25,8 +25,10 @@ include("high_dim_array2.jl");
 ########## Main simulation functions #############
 
 if !use_hard_coded_critic
-  include("backprop_two_layer.jl")
+  # include("backprop_two_layer.jl")
   # using backprop_two_layer
+  include("slowly_separating_representations.jl")
+  # using slowly_separating_representations
 end
 
 #include("detailed_simulation_code_herzog12.jl")
@@ -552,6 +554,13 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
   for i = 1:no_blocks_in_experiment
     if(verbosity > -1)
       print("-------------------------------------------\n")
+    end
+
+    # Effectively a hack to set the representation in the critic on block 31
+    if i == 31
+      if !use_hard_coded_critic
+        set_phase_id(3);
+      end
     end
 
     perform_learning_block_trial_switching(tuning_type, subjects[subject_id, roving_experiment_id].blocks[i])
@@ -2246,7 +2255,7 @@ function plot_single_subject_nth_weight_vs_bias(subject::Array{Subject,2}, task_
 end
 
 
-function plot_single_subject_final_weight_vs_bias(subject::Array{Subject,2}, exp_id::Int=1, task_ids::Array{Int,1}=[1])
+function plot_single_subject_final_weight_vs_bias(subject::Array{Subject,1}, exp_id::Int=1, task_ids::Array{Int,1}=[1])
   # subject array should contain subject i with each of his task instances
   #figure()
   for task_id in task_ids
@@ -2276,7 +2285,7 @@ function plot_multi_subject_final_weight_vs_bias(subjects::Array{Subject,2}, exp
 end
 
 
-function plot_single_subject_initial_weight_vs_bias(subject::Array{Subject,2}, exp_id::Int=1, task_ids::Array{Int,1}=[1])
+function plot_single_subject_initial_weight_vs_bias(subject::Array{Subject,1}, exp_id::Int=1, task_ids::Array{Int,1}=[1])
   #figure()
   for task_id in task_ids
     if (task_id == 1)

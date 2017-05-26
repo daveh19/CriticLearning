@@ -23,7 +23,7 @@ function initialise_critic_parameters()
 
   ## Learning parameters
   alpha = 1;
-  tau = 50;
+  tau = 30;
 
   # Phase must be pased around for compatibility with other methods
   phase_id = 1;
@@ -213,7 +213,7 @@ end
 function run_matrix(realistic_feedback::Bool=false, change_reward_range::Bool=false)
   global my_critic;
   no_trials = 3000;
-  initial_contingency = [-0.2; 0.4]; #[0.8; 0.5];
+  initial_contingency = [0.8, 0.]; #[-0.2; 0.4]; #[0.8; 0.5];
   # switch_point = 100;
   # second_contingencies = [1.0; 0.5];
   phase_length = 1000;
