@@ -10,8 +10,8 @@ no_pop_scaling_post_neurons = 1 :: Int; # per output decision category
 
 
 # trial length parameters
-no_trials_in_block = 60::Int; #80::Int; #80;
-no_blocks_in_experiment = 120::Int; #150::Int; #100; #14::Int; #20::Int; #14;
+no_trials_in_block = 80::Int; #80;
+no_blocks_in_experiment = 14::Int; #20::Int; #14;
 no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = true ::Bool;
 
@@ -20,10 +20,9 @@ no_task_critics = 1 :: Int;
 no_choices_per_task_critics = 1 :: Int;
 use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
-use_hard_coded_critic = true :: Bool; # switch for critic representation learner
 reset_average_reward_on_each_block = false :: Bool;
 #use_fixed_external_bias = false :: Bool; # default to off
-fixed_external_bias_value = (1.2) :: Float64;
+fixed_external_bias_value = (0.9) :: Float64;
 
 
 # changing the post part of the weight update rule
@@ -33,11 +32,8 @@ binary_outputs_mode = false :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
 use_intrinsic_plasticity = false :: Bool; #leave OFF for now! #enable updating, and subtraction of an intrinsic plasticity factor from post
-use_multiplicative_weight_normalisation = true :: Bool; # weight normalisation using quadratic norm, multiplicative rule
-use_per_task_multiplicative_weight_normalisation = false :: Bool;
-use_subtractive_weight_normalisation = false :: Bool;
-use_soft_bounded_weight_rule = false :: Bool;
-use_decision_criterion_learner = true :: Bool;
+use_weight_normalisation = true :: Bool; # weight normalisation using quadratic norm, multiplicative rule
+use_decision_criterion_learner = false :: Bool;
 use_pooled_scaling_of_post_population_for_decisions = true :: Bool;
 if (!use_pooled_scaling_of_post_population_for_decisions) no_pop_scaling_post_neurons = 1; end # faster way to make sure that post applies noise correctly
 
@@ -47,7 +43,7 @@ problem_right_bound = (1.) :: Float64; #0.5;
 
 running_av_window_length = 50 :: Int; #50::Int;
 
-learning_rate = (0.002) #(0.002) :: Float64; #(0.000002) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
+learning_rate = (0.002) :: Float64; #(0.000002) #(0.00000001) #(0.0001) linear #(0.02) binary #(0.0001) #(0.0025) #(0.00008); #(0.001); #(0.0001); #0.00012 :: Float64; #0.00001 for debugging # 0.00012 was pretty good with Henning # 0.001; #0.002;
 learning_rate /= sqrt(no_pop_scaling_post_neurons) :: Float64; # rescale for population noise, try to keep signal-to-noise ratio constant while maintaining same rate of learning
 output_noise_variance = 10.0^2; #3.5; #sqrt(10.0) :: Float64; #10.0;
 
@@ -55,8 +51,8 @@ initial_weight_bias = (2.0); #(2.0) :: Float64; # 2.0
 gaussian_weight_bias = (0.5) :: Float64;
 
 # weight constraints
-weights_upper_bound = (1e1) #(1e3) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
-weights_lower_bound = (-1e1) #(-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
+weights_upper_bound = (1e3) #(10.0) #(1e10) #(Inf) #(10.0) #(Inf) :: Float64;
+weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 
 
 # criterion learning
@@ -126,7 +122,6 @@ use_ab_persistence = false :: Bool;
 # Reward can be saved from the state of the running average or on a per block basis
 #	reward averaging on a per task basis is only on a per block basis
 save_reward_from_running_average = true :: Bool;
-if (!use_hard_coded_critic) save_reward_from_running_average = false; print("PARAMETERS: Unable to save reward from running average, falling back on actual average reward per block\n"); end
 
 # first block of each experiment is just used to build up a running average
 const disable_learning_on_first_block = true :: Bool;
@@ -158,4 +153,3 @@ use_plot_mean = false :: Bool; # plot mean rather than median for proportions co
 # The following two are not equivalent
 plotting_task_by_task_on = true :: Bool; # Separated task plotting in roving experiment
 plotting_separate_choices_on = true :: Bool; # Separated proportion correct plotting in each experiment, eg. for left versus right
-plotting_hack_to_have_separate_choices_in_roving_example = false :: Bool;
