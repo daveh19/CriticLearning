@@ -1,7 +1,7 @@
 using PyPlot;
 using Distributions;
 using LaTeXStrings;
-using Debug;
+#using Debug;
 
 ### Useful functions
 ## There are a number of alternative ways to calculate pdf and cdf inverse
@@ -128,10 +128,10 @@ function calculate_p_trajectories()
 			  p_temp_b += Db[j] * (-0.5 * R_ext);=#
 			  #=p_temp_a += Da[i] * (-a_multiplier * R_ext);
 			  p_temp_b += Db[j] * (-a_multiplier * R_ext);=#
-			  for(k = 3:critic_dimensions)
+			  for k = 3:critic_dimensions
 				  p_temp_a += Da * (A[1,k] * R_ext);
 				  p_temp_b += Db * (A[2,k] * R_ext);
-			   end
+			  end
 		  end
 
 		  # Multiply by probability of occurence of each task
@@ -195,25 +195,25 @@ function calculate_p_trajectories()
       if (abs(deriv_p_a) < Inf )
         p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] = p_trajectories[trajectory_id_1, trajectory_id_2, 1, t-1] + (dt_euler * deriv_p_a);
       elseif (deriv_p_a == Inf)
-        @bp
+        #@bp
         p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] = 1;
       elseif (deriv_p_a == -Inf)
-        @bp
+        #@bp
         p_trajectories[trajectory_id_1, trajectory_id_2, 1, t] = 0;
       else
-        @bp
+        #@bp
         print("Catch error!!\n")
       end
       if ( abs(deriv_p_b) < Inf )
         p_trajectories[trajectory_id_1, trajectory_id_2, 2, t] = p_trajectories[trajectory_id_1, trajectory_id_2, 2, t-1] + (dt_euler * deriv_p_b);
       elseif (deriv_p_b == Inf)
-        @bp
+        #@bp
         p_trajectories[trajectory_id_1, trajectory_id_2, 2, t] = 1;
       elseif (deriv_p_b == -Inf)
-        @bp
+        #@bp
         p_trajectories[trajectory_id_1, trajectory_id_2, 2, t] = 0;
       else
-        @bp
+        #@bp
         print("Catch error!\n")
       end
 

@@ -1,7 +1,7 @@
 using PyPlot;
 using Distributions;
 using LaTeXStrings;
-using Debug;
+#using Debug;
 
 ### Useful functions
 ## There are a number of alternative ways to calculate pdf and cdf inverse
@@ -126,7 +126,7 @@ function calculate_D_pos_trajectories()
         #temp_b += d_b[j] * (-0.5 * R_ext);
         #temp_a += d_a[i] * (-a_multiplier * R_ext);
         #temp_b += d_b[j] * (-a_multiplier * R_ext);
-        for(k = 3:critic_dimensions)
+        for k = 3:critic_dimensions
           temp_a += d_a * (A[1,k] * R_ext);
           temp_b += d_b * (A[2,k] * R_ext);
         end

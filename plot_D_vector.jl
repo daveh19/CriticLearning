@@ -1,7 +1,8 @@
 using PyPlot;
 using Distributions;
 using LaTeXStrings;
-using Debug;
+#using Debug;
+
 
 using PyCall
 @pyimport seaborn as sns
@@ -35,9 +36,9 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 	global use_overlay_p_Euler_trajectories = false :: Bool;
 	global use_overlay_D_pos_Euler_trajectories = false :: Bool;
 	# separate components of flow field
-	global use_include_learning_term_in_flow = true :: Bool;
+	global use_include_learning_term_in_flow = false :: Bool;
 	global use_include_internal_bias_term_in_flow = true :: Bool;
-	global use_include_external_bias_term_in_flow = true :: Bool;
+	global use_include_external_bias_term_in_flow = false :: Bool;
 
 	## Space over which vector field is calculated / plotted
 	global no_points = 15; #17; #25; #30;
@@ -74,7 +75,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 
 
 	# Confusion parameter
-	global critic_dimensions = 2;
+	global critic_dimensions = 4;
 	# perfect critic (overwritten if any of the following are active)
 	global C = eye(critic_dimensions)
 	#=
@@ -88,7 +89,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 	global internal_task_probability = ones(1,2) / 2; # relative probability of task 1 vs task 2
 	global prob_task = ones(1,critic_dimensions); # only used in critic now!
 	prob_task /= critic_dimensions;
-	prob_task = [0.5 0.5 0.5]; #[0.5 0.5]; #[0.25 0.25 0.25 0.25]; #[0.25 0.25 0.5];
+	#prob_task = [0.5 0.5 0.5]; #[0.5 0.5]; #[0.25 0.25 0.25 0.25]; #[0.25 0.25 0.5];
 	#prob_task = [1, 0.001, 10, 10]; # manual tweaking
 	#prob_task /= sum(prob_task); # normalise, so I can use arbitrary units
 	# this influences Confustion matrix
@@ -152,7 +153,7 @@ function calculate_linear_model_flow_vectors()
 						temp_b += d_b[j] * (-0.5 * R_ext);=#
 						#=temp_a += d_a[i] * (-a_multiplier * R_ext);
 						temp_b += d_b[j] * (-a_multiplier * R_ext);=#
-						for(k = 3:critic_dimensions)
+						for k = 3:critic_dimensions
 							temp_a += d_a[i] * (A[1,k] * R_ext);
 							temp_b += d_b[j] * (A[2,k] * R_ext);
 						end
@@ -203,7 +204,7 @@ function calculate_linear_model_flow_vectors()
 						temp_b += d_b[j] * (-0.5 * R_ext);=#
 						#=temp_a += d_a[i] * (-a_multiplier * R_ext);
 						temp_b += d_b[j] * (-a_multiplier * R_ext);=#
-						for(k = 3:critic_dimensions)
+						for k = 3:critic_dimensions
 							temp_a += (d_a[i]*O[1]) * (A[1,k] * R_ext);
 							temp_b += (d_b[j]*O[2]) * (A[2,k] * R_ext);
 						end
@@ -253,7 +254,7 @@ function calculate_linear_model_flow_vectors()
 						#p_temp_b += Db[j] * (-0.5 * R_ext);
 						#p_temp_a += Da[i] * (-a_multiplier * R_ext);
 						#p_temp_b += Db[j] * (-a_multiplier * R_ext);
-						for(k = 3:critic_dimensions)
+						for k = 3:critic_dimensions
 							p_temp_a += Da[i] * (A[1,k] * R_ext);
 							p_temp_b += Db[j] * (A[2,k] * R_ext);
 						end
