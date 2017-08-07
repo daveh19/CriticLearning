@@ -364,7 +364,7 @@ function plot_figure_3_2(results_id=1::Int)
   if(plotting_scatter_plot_on)
     for i = 1:no_blocks_in_experiment
       for j = 1:no_subjects
-        scatter(i-0., latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct, marker="o", edgecolors="face", c="b", alpha=0.7)
+        #scatter(i-0., latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_correct, marker="o", edgecolors="face", c="b", alpha=0.7)
         if(plotting_task_by_task_on)
           scatter(i-0., latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[1], marker="o", edgecolors="face", c="r", alpha=0.3)
           scatter(i-0., latest_experiment_results.subjects_roving_task[j,1].blocks[i].proportion_task_correct[2], marker="o", edgecolors="face", c="g", alpha=0.3)
@@ -392,11 +392,11 @@ function plot_figure_3_2(results_id=1::Int)
         plot(block_id-0., local_prop_roving_task_1_correct, "r", alpha=0.1)
         plot(block_id-0., local_prop_roving_task_2_correct, "g", alpha=0.1)
       end
-      plot(block_id-0., local_prop_roving_correct, "b", alpha=0.1)
+      #plot(block_id-0., local_prop_roving_correct, "b", alpha=0.1)
     end
   end
 
-  plot(block_id-0., latest_experiment_results.roving_correct[:,1], "b", linewidth=3, label="Block mean performance average")
+  #plot(block_id-0., latest_experiment_results.roving_correct[:,1], "b", linewidth=3, label="Block mean performance average")
   plot(block_id-0., latest_experiment_results.roving_task_correct[:,1,1], "r", linewidth=3, label="Block mean performance on Bisection Task 1")
   plot(block_id-0., latest_experiment_results.roving_task_correct[:,2,1], "g", linewidth=3, label="Block mean performance on Bisection Task 2")
 

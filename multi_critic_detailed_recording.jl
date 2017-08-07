@@ -5,7 +5,7 @@
 ######## External requirements ###########
 using Distributions
 using PyPlot,PyCall
-using Grid
+#using Grid
 
 #@pyimport seaborn as sns
 #sns.set(font_scale=1.5)
