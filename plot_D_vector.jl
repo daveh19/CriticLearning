@@ -1,13 +1,12 @@
 using PyPlot;
 using Distributions;
 using LaTeXStrings;
-#using Debug;
 
 
-using PyCall
-@pyimport seaborn as sns
-#sns.set(font_scale=1.5)
-sns.set_context("poster")
+# using PyCall
+# @pyimport seaborn as sns
+# #sns.set(font_scale=1.5)
+# sns.set_context("poster")
 
 ### Useful functions
 ## There are a number of alternative ways to calculate pdf and cdf inverse
@@ -21,7 +20,7 @@ include("plotting_assist_functions.jl");
 include("p_space_outcome_integrator_linear.jl");
 include("d_pos_space_outcome_integrator_linear.jl");
 
-function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
+function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1, local_critic_dims=4)
 	## Plotting over D, D~ (+ve), and p optional
 	global use_plot_over_D_pos = false :: Bool;
 	global use_plot_over_D = false :: Bool;
@@ -38,7 +37,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 	# separate components of flow field
 	global use_include_learning_term_in_flow = false :: Bool;
 	global use_include_internal_bias_term_in_flow = true :: Bool;
-	global use_include_external_bias_term_in_flow = false :: Bool;
+	global use_include_external_bias_term_in_flow = true :: Bool;
 
 	## Space over which vector field is calculated / plotted
 	global no_points = 15; #17; #25; #30;
@@ -75,7 +74,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 
 
 	# Confusion parameter
-	global critic_dimensions = 4;
+	global critic_dimensions = local_critic_dims;
 	# perfect critic (overwritten if any of the following are active)
 	global C = eye(critic_dimensions)
 	#=
@@ -97,7 +96,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1)
 		C[k,:] = prob_task[1:critic_dimensions];
 	end
 	global A = eye(critic_dimensions) - C;
-	#A = eye(critic_dimensions);
+	# A = eye(critic_dimensions);
 
 	if(local_c != -1)
 		global A = eye(critic_dimensions) - local_c;
@@ -268,11 +267,11 @@ function calculate_linear_model_flow_vectors()
 				# putting it all together
 				p_deriv_D_a[i,j] = (O[1] * S[1,1] * p_temp_a + O[2] * S[1,2] * p_temp_b);
 				p_deriv_D_b[i,j] = (O[1] * S[2,1] * p_temp_a + O[2] * S[2,2] * p_temp_b);
-#@bp
+
 				# we need to transform derivatives to D_pos space
 				p_deriv_D_a[i,j] *= O[1];
 				p_deriv_D_b[i,j] *= O[2];
-#@bp
+
 				# and we scale everything by the pdf of the underlying probability
 				deriv_p_a[i,j] = pdf(Normal(0,sigma), Da[i]) * p_deriv_D_a[i,j];
 				deriv_p_b[i,j] = pdf(Normal(0,sigma), Db[j]) * p_deriv_D_b[i,j];
@@ -444,8 +443,8 @@ function plot_linear_model_flow_vectors()
 		figure(figsize=(5,5));
 		##streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
 		quiver(p,p_y,deriv_p_a',deriv_p_b', units="width", scale=p_scale);
-		xtxt = latexstring("p_1");
-		ytxt = latexstring("p_2");
+		xtxt = latexstring("p_R");
+		ytxt = latexstring("p_L");
 		xlabel(xtxt)
 		ylabel(ytxt) # L"D_2"
 		aa = abs(a);
