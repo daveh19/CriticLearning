@@ -40,7 +40,7 @@ function setup_plot_D_basic_variables(local_a = 0.5, local_c = -1, local_critic_
 	global use_include_external_bias_term_in_flow = true :: Bool;
 
 	## Space over which vector field is calculated / plotted
-	global no_points = 15; #17; #25; #30;
+	global no_points = 11; #no_points = 15; #17; #25; #30;
 	#no_points = 10;
 	#no_y_points = no_points - 1;
 	# The no_y_points is to ensure that I plot the vector field in the right direction,
@@ -443,8 +443,8 @@ function plot_linear_model_flow_vectors()
 		figure(figsize=(5,5));
 		##streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
 		quiver(p,p_y,deriv_p_a',deriv_p_b', units="width", scale=p_scale);
-		xtxt = latexstring("p_R");
-		ytxt = latexstring("p_L");
+		xtxt = latexstring("P(correct|Right)");
+		ytxt = latexstring("P(correct|Left)");
 		xlabel(xtxt)
 		ylabel(ytxt) # L"D_2"
 		aa = abs(a);
