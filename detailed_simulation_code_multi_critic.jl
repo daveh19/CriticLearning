@@ -216,7 +216,7 @@ function initialise()
   global proportion_1_correct = 0.0;
   global proportion_2_correct = 0.0;
 
-  global exp_results = Array(RovingExperiment, 0);
+  global exp_results = Array{RovingExperiment}(0);
 
   global enable_weight_updates = true;
   typeassert(enable_weight_updates, Bool);
@@ -939,7 +939,7 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
     print("before weight change, sum w left: $left_sum_w, sum w right: $right_sum_w\n")
   end
 
-  trial_dat.mag_dw = sum(abs(dw));
+  trial_dat.mag_dw = sum(abs.(dw));
 
   # the weight update
   if(enable_weight_updates)

@@ -34,7 +34,7 @@ rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
 use_intrinsic_plasticity = false :: Bool; #leave OFF for now! #enable updating, and subtraction of an intrinsic plasticity factor from post
 
-use_multiplicative_weight_normalisation = true :: Bool; # weight normalisation using quadratic norm, multiplicative rule
+use_multiplicative_weight_normalisation = false :: Bool; # weight normalisation using quadratic norm, multiplicative rule
 use_per_task_multiplicative_weight_normalisation = false :: Bool;
 use_subtractive_weight_normalisation = false :: Bool;
 use_soft_bounded_weight_rule = false :: Bool;
@@ -102,7 +102,7 @@ task_tuning_slope_variance[2] = 0.2^2; #0.2^2; #0.2^2; #0.25^2; #0.25; #0.0625; 
 
 # input tuning function
 # empty constructors utilise multiple dispatch in selecting tuning function
-abstract TuningSelector
+abstract type TuningSelector end
 type gaussian_tc <: TuningSelector end
 type linear_tc <: TuningSelector end
 use_gaussian_tuning_function = false ::Bool;

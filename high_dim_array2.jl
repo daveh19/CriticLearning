@@ -28,7 +28,7 @@ type Trial
 end
 
 function initialise_empty_trials(no_trials::Int)
-  trial = Array(Trial, no_trials);
+  trial = Array{Trial}(no_trials);
 
   for i = 1:no_trials
     trial[i] = Trial( 0, 0., 0., false, 0., 0., 0., zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks), zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks), 0. );
@@ -63,7 +63,7 @@ type Block
 end
 
 function initialise_empty_block(no_blocks::Int, trials_per_block::Int, double_trials::Bool=false)
-  block = Array(Block, no_blocks);
+  block = Array{Block}(no_blocks);
 
   if (double_trials)
     trials_per_block *= 2;
@@ -78,7 +78,7 @@ function initialise_empty_block(no_blocks::Int, trials_per_block::Int, double_tr
 end
 
 
-abstract Subject
+abstract type Subject end
 type LinearInputsSubject <: Subject
   # an array of blocks for this subject
   blocks :: Array{Block, 1}
@@ -145,8 +145,8 @@ end
 function initialise_empty_roving_experiment(tuning_type::TuningSelector, no_subjects::Int, blocks_per_subject::Int, trials_per_block::Int, no_roving_experiments::Int)
   #no_roving_tasks = 1::Int;
 
-  subjects_task = Array(Subject, (no_subjects, no_input_tasks) );
-  subjects_roving_task = Array(Subject, (no_subjects, no_roving_experiments) );
+  subjects_task = Array{Subject}((no_subjects, no_input_tasks) );
+  subjects_roving_task = Array{Subject}((no_subjects, no_roving_experiments) );
 
   task_correct = zeros(blocks_per_subject, no_input_tasks);
   roving_correct = zeros(blocks_per_subject, no_roving_experiments);

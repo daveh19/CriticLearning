@@ -13,7 +13,7 @@ type Critic_Representation
   phase_counter :: Int64
 end
 
-global my_critic = Critic_Representation(Array{Float64,2}(), 0., 0, 0, 0);
+global my_critic = Critic_Representation(Array{Float64,2}(0,0), 0., 0, 0, 0);
 
 function initialise_critic_parameters()
   global my_critic;

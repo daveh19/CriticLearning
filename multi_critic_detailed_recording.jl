@@ -101,7 +101,7 @@ function generate_task_sequence(seq_length::Int64)
   # end
 
   # random arrangement of 1/2
-  x = Array(Int, seq_length);
+  x = Array{Int}(seq_length);
   choice = rand(Uniform(0,1), seq_length);
   for i = 1:seq_length
     x[i] = (choice[i] < (0.5 + task_sequence_bias) ? 1 : 2)
