@@ -442,7 +442,7 @@ function plot_linear_model_flow_vectors()
 		## probabilistic view
 		figure(figsize=(5,5));
 		##streamplot(d_a,d_b,deriv_D_a',deriv_D_b');
-		quiver(p,p_y,deriv_p_a',deriv_p_b', units="width", scale=p_scale);
+		quiver(p,p_y,deriv_p_a',deriv_p_b', units="width", scale=p_scale, headwidth=8);
 		xtxt = latexstring("P(correct|Right)");
 		ytxt = latexstring("P(correct|Left)");
 		xlabel(xtxt)

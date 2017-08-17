@@ -84,72 +84,72 @@ savefig("testflowfigs_4critic_fullsystem.pdf", bbox_inches="tight")
 
 
 
-#
-# ### Second run : omit the hidden task, just have two subtasks on a single macro task
-# local_c = 0.5;
-# local_critic_dims = 2;
-# setup_plot_D_basic_variables(local_similarity, local_c, local_critic_dims);
-# R_ext = 0.95;
-#
-# global use_include_learning_term_in_flow = true :: Bool;
-# global use_include_internal_bias_term_in_flow = false :: Bool;
-# global use_include_external_bias_term_in_flow = false :: Bool;
-#
-# calculate_linear_model_flow_vectors();
-# plot_linear_model_flow_vectors();
-# title("");
-#
-# savefig("testflowfigs_2critic_purelearn.pdf", bbox_inches="tight")
-#
-#
-# ## internal bias
-#
-# global use_include_learning_term_in_flow = false :: Bool;
-# global use_include_internal_bias_term_in_flow = true :: Bool;
-# global use_include_external_bias_term_in_flow = false :: Bool;
-#
-# calculate_linear_model_flow_vectors();
-# plot_linear_model_flow_vectors();
-# title("");
-#
-# savefig("testflowfigs_2critic_internalbias.pdf", bbox_inches="tight")
-#
-#
-# ## external bias
-#
-# global use_include_learning_term_in_flow = false :: Bool;
-# global use_include_internal_bias_term_in_flow = false :: Bool;
-# global use_include_external_bias_term_in_flow = true :: Bool;
-#
-# calculate_linear_model_flow_vectors();
-# plot_linear_model_flow_vectors();
-# title("");
-#
-# savefig("testflowfigs_2critic_externalbias.pdf", bbox_inches="tight")
-#
-#
-# ## both biases
-#
-# global use_include_learning_term_in_flow = false :: Bool;
-# global use_include_internal_bias_term_in_flow = true :: Bool;
-# global use_include_external_bias_term_in_flow = true :: Bool;
-#
-# calculate_linear_model_flow_vectors();
-# plot_linear_model_flow_vectors();
-# title("");
-#
-# savefig("testflowfigs_2critic_bothbiases.pdf", bbox_inches="tight")
-#
-#
-#
-# ## full system
-#
-# global use_include_learning_term_in_flow = true :: Bool;
-# global use_include_internal_bias_term_in_flow = true :: Bool;
-# global use_include_external_bias_term_in_flow = true :: Bool;
-#
-# calculate_linear_model_flow_vectors();
-# plot_linear_model_flow_vectors();
-# title("");
-#
-# savefig("testflowfigs_2critic_fullsystem.pdf", bbox_inches="tight")
+
+### Second run : omit the hidden task, just have two subtasks on a single macro task
+local_c = 0.5;
+local_critic_dims = 2;
+setup_plot_D_basic_variables(local_similarity, local_c, local_critic_dims);
+R_ext = 0.95;
+
+global use_include_learning_term_in_flow = true :: Bool;
+global use_include_internal_bias_term_in_flow = false :: Bool;
+global use_include_external_bias_term_in_flow = false :: Bool;
+
+calculate_linear_model_flow_vectors();
+plot_linear_model_flow_vectors();
+title("");
+
+savefig("testflowfigs_2critic_purelearn.pdf", bbox_inches="tight")
+
+
+## internal bias
+
+global use_include_learning_term_in_flow = false :: Bool;
+global use_include_internal_bias_term_in_flow = true :: Bool;
+global use_include_external_bias_term_in_flow = false :: Bool;
+
+calculate_linear_model_flow_vectors();
+plot_linear_model_flow_vectors();
+title("");
+
+savefig("testflowfigs_2critic_internalbias.pdf", bbox_inches="tight")
+
+
+## external bias
+
+global use_include_learning_term_in_flow = false :: Bool;
+global use_include_internal_bias_term_in_flow = false :: Bool;
+global use_include_external_bias_term_in_flow = true :: Bool;
+
+calculate_linear_model_flow_vectors();
+plot_linear_model_flow_vectors();
+title("");
+
+savefig("testflowfigs_2critic_externalbias.pdf", bbox_inches="tight")
+
+
+## both biases
+
+global use_include_learning_term_in_flow = false :: Bool;
+global use_include_internal_bias_term_in_flow = true :: Bool;
+global use_include_external_bias_term_in_flow = true :: Bool;
+
+calculate_linear_model_flow_vectors();
+plot_linear_model_flow_vectors();
+title("");
+
+savefig("testflowfigs_2critic_bothbiases.pdf", bbox_inches="tight")
+
+
+
+## full system
+
+global use_include_learning_term_in_flow = true :: Bool;
+global use_include_internal_bias_term_in_flow = true :: Bool;
+global use_include_external_bias_term_in_flow = true :: Bool;
+
+calculate_linear_model_flow_vectors();
+plot_linear_model_flow_vectors();
+title("");
+
+savefig("testflowfigs_2critic_fullsystem.pdf", bbox_inches="tight")
