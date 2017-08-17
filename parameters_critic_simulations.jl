@@ -28,7 +28,7 @@ fixed_external_bias_value = (1.0) :: Float64;
 
 # changing the post part of the weight update rule
 floor_on_post = (-Inf) :: Float64; # applied in post()
-disable_winner_takes_all = true :: Bool; # applied in post()
+disable_winner_takes_all = false :: Bool; # applied in post()
 binary_outputs_mode = false :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
@@ -38,7 +38,7 @@ use_multiplicative_weight_normalisation = false :: Bool; # weight normalisation 
 use_per_task_multiplicative_weight_normalisation = false :: Bool;
 use_subtractive_weight_normalisation = false :: Bool;
 use_soft_bounded_weight_rule = false :: Bool;
-use_decision_criterion_learner = false :: Bool;
+use_decision_criterion_learner = true :: Bool;
 
 use_pooled_scaling_of_post_population_for_decisions = true :: Bool;
 if (!use_pooled_scaling_of_post_population_for_decisions) no_pop_scaling_post_neurons = 1; end # faster way to make sure that post applies noise correctly

@@ -155,6 +155,72 @@ function plot_figure_1(results_id=1::Int)
 end
 
 
+function plot_figure_3(results_id=1::Int)
+  # uses:
+  #    compare_three_trial_types_with_multiple_subjects()
+  #    paper_binary_inputs_parameters_critic_simulations.jl
+  # shows:
+  #    learning occurs on hard task when it is performed alone
+
+  plotting_separate_choices_on = false;
+
+  latest_experiment_results = exp_results[results_id];
+
+  figure(figsize=(10,12))
+
+  block_id = linspace(1,no_blocks_in_experiment, no_blocks_in_experiment);
+
+  ## Task 2 subplot
+  xlim((0-0.1,no_blocks_in_experiment+0.1))
+  ylim((0-0.02,1+0.02))
+  xlabel("Block number")
+  ylabel("Proportion correct")
+
+  if(plotting_scatter_plot_on)
+    for i = 1:no_blocks_in_experiment
+      for j = 1:no_subjects
+        scatter(i+0., latest_experiment_results.subjects_task[j,2].blocks[i].proportion_correct, marker="o", edgecolors="face", c="g", alpha=0.5)
+        if(plotting_separate_choices_on)
+          # adding plotting of sub-task related results
+          scatter(i+0., latest_experiment_results.subjects_task[j,2].blocks[i].proportion_task_correct[1], marker="o", c="c")
+          scatter(i+0., latest_experiment_results.subjects_task[j,2].blocks[i].proportion_task_correct[2], marker="o", c="m")
+        end
+      end
+    end
+  end
+
+  if(plotting_error_bars_on)
+    errorbar(block_id+0., latest_experiment_results.task_correct[:,2], latest_experiment_results.task_range[:,2], ecolor="g", color="g", linewidth=2)
+    errorbar(block_id+0., latest_experiment_results.task_correct[:,2], latest_experiment_results.task_error[:,2], ecolor="k", color="g", linewidth=2)
+  end
+
+  if(plotting_individual_subjects_on)
+    for j = 1:no_subjects
+      local_prop_2_correct = zeros(no_blocks_in_experiment);
+      # adding plotting of sub-task related results
+      local_prop_sub_1_correct = zeros(no_blocks_in_experiment);
+      local_prop_sub_2_correct = zeros(no_blocks_in_experiment);
+      for i = 1:no_blocks_in_experiment
+        local_prop_2_correct[i] = latest_experiment_results.subjects_task[j,2].blocks[i].proportion_correct;
+        local_prop_sub_1_correct[i] = latest_experiment_results.subjects_task[j,2].blocks[i].proportion_task_correct[1];
+        local_prop_sub_2_correct[i] = latest_experiment_results.subjects_task[j,2].blocks[i].proportion_task_correct[2];
+      end
+      plot(block_id, local_prop_2_correct, "g", alpha=0.1)
+      if(plotting_separate_choices_on)
+        # adding plotting of sub-task related results
+        plot(block_id, local_prop_sub_1_correct, "c")
+        plot(block_id, local_prop_sub_2_correct, "m")
+      end
+    end
+  end
+
+  plot(block_id+0., latest_experiment_results.task_correct[:,2], "g", linewidth=2, label="Subjects learning difficult task")
+  # legend(loc=4)
+  #savefig("figure_1_1.pdf", transparent="True", bbox_inches="tight", pad_inches=0.1)
+  savefig("figure_pop_size.pdf", bbox_inches="tight", pad_inches=0.1)
+end
+
+
 
 plot_figure_1()
 plot_figure_2()
