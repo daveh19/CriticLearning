@@ -20,15 +20,15 @@ no_task_critics = 1 :: Int;
 no_choices_per_task_critics = 1 :: Int;
 use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
-use_hard_coded_critic = false :: Bool; # switch for critic representation learner
+use_hard_coded_critic = true :: Bool; # switch for critic representation learner
 reset_average_reward_on_each_block = false :: Bool;
 #use_fixed_external_bias = false :: Bool; # default to off
-fixed_external_bias_value = (0.9) :: Float64;
+fixed_external_bias_value = (1.0) :: Float64;
 
 
 # changing the post part of the weight update rule
 floor_on_post = (-Inf) :: Float64; # applied in post()
-disable_winner_takes_all = false :: Bool; # applied in post()
+disable_winner_takes_all = true :: Bool; # applied in post()
 binary_outputs_mode = false :: Bool; # applied to dw
 rescaled_outputs_mode = false :: Bool; # applied to dw
 if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs and winner takes all are mutually exclusive in weight update code
@@ -38,7 +38,7 @@ use_multiplicative_weight_normalisation = false :: Bool; # weight normalisation 
 use_per_task_multiplicative_weight_normalisation = false :: Bool;
 use_subtractive_weight_normalisation = false :: Bool;
 use_soft_bounded_weight_rule = false :: Bool;
-use_decision_criterion_learner = true :: Bool;
+use_decision_criterion_learner = false :: Bool;
 
 use_pooled_scaling_of_post_population_for_decisions = true :: Bool;
 if (!use_pooled_scaling_of_post_population_for_decisions) no_pop_scaling_post_neurons = 1; end # faster way to make sure that post applies noise correctly
@@ -159,4 +159,4 @@ use_plot_mean = false :: Bool; # plot mean rather than median for proportions co
 # The following two are not equivalent
 plotting_task_by_task_on = true :: Bool; # Separated task plotting in roving experiment
 plotting_separate_choices_on = true :: Bool; # Separated proportion correct plotting in each experiment, eg. for left versus right
-plotting_hack_to_have_separate_choices_in_roving_example = false :: Bool;
+plotting_hack_to_have_separate_choices_in_roving_example = true :: Bool;

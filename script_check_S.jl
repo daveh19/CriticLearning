@@ -2,12 +2,13 @@
 # usage: Run a simulation of the roving experiment first.
 #   then run this script
 #   if S is commented out in plot_D_vector.jl then it will plot the
-#   accurate flow fields for each simulation in turn
+#   accurate flow fields for each simulation in turn (since they're
+#	evaluated here first)
 
-task_id = 2;
-exp_id = 2;
-use_linear_out = false :: Bool;
-use_roving_subjects = false :: Bool;
+task_id = 2; # red or green
+exp_id = 2; # in biased sim this is biased 1 (red) or biased 2 (green)
+use_linear_out = true :: Bool; # otherwise Binary
+use_roving_subjects = true :: Bool;
 
 result_set_id = 1 :: Int;
 
