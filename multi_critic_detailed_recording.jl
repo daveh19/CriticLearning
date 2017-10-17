@@ -159,7 +159,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
     end
   end
   if(reset_decision_criterion_monitor_on_each_block)
-    global decision_criterion_monitor = 0.5;
+    global decision_criterion_monitor = zeros(no_decision_monitors,1); #0.5;
   end
   global average_delta_reward = 0;
   global average_choice = 0.0;
@@ -167,13 +167,14 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   global n_task_within_block = zeros(Int, no_input_tasks);
   local_average_threshold = 0.0;
   local_average_task_threshold = zeros(no_input_tasks);
-  local_average_decision_criterion_monitor = 0.0;
+  local_average_decision_criterion_monitor = zeros(no_decision_monitors,1); #0.0;
   #for(xi in x)
   for i = 1:no_trials_in_block
     update_noise()
     local_reward = (update_weights(x[i], task_id, tuning_type, block_dat.trial[i]) / 2);
     monitor_reward += local_reward;
-    local_average_decision_criterion_monitor += decision_criterion_monitor;
+    local_monitor_task_id = min(task_id, no_decision_monitors);
+    local_average_decision_criterion_monitor[local_monitor_task_id] += decision_criterion_monitor[local_monitor_task_id];
     # adding a monitor of sub-task performance (eg. L, R distinction)
     #   correct_answer contains +/- 1, need to correct for array indexing
     #   the cast/round to int splits at 1.5 between outputs 1 and 2
@@ -219,7 +220,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   end
   proportion_correct = monitor_reward / no_trials_in_block;
   proportion_sub_task_correct = proportion_sub_task_correct ./ sub_task_count;
-  local_average_decision_criterion_monitor /= no_trials_in_block;
+  local_average_decision_criterion_monitor /= no_trials_in_block; # single task in non-roved case
   if(perform_detection_threshold)
     local_average_threshold /= no_trials_in_block;
     local_average_task_threshold[task_id] = local_average_task_threshold[task_id] ./ no_trials_in_block;
@@ -239,7 +240,7 @@ function perform_learning_block_single_problem(task_id::Int, tuning_type::Tuning
   #   this is a hack but one which obviates the need for more storage variables
   block_dat.proportion_task_correct = proportion_sub_task_correct;
   block_dat.average_choice = average_choice;
-  block_dat.average_decision_criterion_monitor = local_average_decision_criterion_monitor;
+  block_dat.average_decision_criterion_monitor = deepcopy(local_average_decision_criterion_monitor);
 
   block_dat.average_reward = average_block_reward;
   block_dat.average_task_reward = average_task_reward;
@@ -314,7 +315,7 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
     end
   end
   if(reset_decision_criterion_monitor_on_each_block)
-    global decision_criterion_monitor = 0.5;
+    global decision_criterion_monitor = zeros(no_decision_monitors,1); #0.5;
   end
   global average_delta_reward = 0;
   global average_choice = 0.0;
@@ -326,12 +327,13 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
   local_average_task_choice = zeros(no_input_tasks);
   local_average_threshold = 0.0;
   local_average_task_threshold = zeros(no_input_tasks);
-  local_average_decision_criterion_monitor = 0.0;
+  local_average_decision_criterion_monitor = zeros(no_decision_monitors,1); #0.0;
   for i = 1:no_trials_in_block
     update_noise()
     local_reward = (update_weights(x[i], task[i], tuning_type, block_dat.trial[i]) / 2);
     monitor_reward += local_reward;
-    local_average_decision_criterion_monitor += decision_criterion_monitor;
+    local_monitor_task_id = min(no_decision_monitors, task[i]);
+    local_average_decision_criterion_monitor[local_monitor_task_id] += decision_criterion_monitor[local_monitor_task_id];
     task_count[task[i]] += 1;
     if plotting_hack_to_have_separate_choices_in_roving_example
       if task[i] == 2
@@ -357,7 +359,11 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
     proportion_task_correct = proportion_task_correct ./ task_count;
   end
   local_average_task_choice = local_average_task_choice ./ task_count;
-  local_average_decision_criterion_monitor /= no_trials_in_block;
+  if (no_decision_monitors == 1)
+      local_average_decision_criterion_monitor /= no_trials_in_block;
+  else
+      local_average_decision_criterion_monitor /= task_count;
+  end
   if(perform_detection_threshold)
     local_average_threshold /= no_trials_in_block;
     local_average_task_threshold = local_average_task_threshold ./ task_count;
@@ -377,7 +383,7 @@ function perform_learning_block_trial_switching(tuning_type::TuningSelector, blo
   block_dat.proportion_task_correct = proportion_task_correct;
   block_dat.average_choice = average_choice;
   block_dat.average_task_choice = local_average_task_choice;
-  block_dat.average_decision_criterion_monitor = local_average_decision_criterion_monitor;
+  block_dat.average_decision_criterion_monitor = deepcopy(local_average_decision_criterion_monitor);
 
   block_dat.average_reward = average_block_reward;
   block_dat.average_task_reward = average_task_reward;
@@ -457,7 +463,7 @@ function perform_single_subject_experiment(task_id::Int, tuning_type::TuningSele
 
 
   if(use_reset_decision_criterion_monitor_each_subject || subject_id==1)
-    global decision_criterion_monitor = 0.5 :: Float64;
+    global decision_criterion_monitor = zeros(no_decision_monitors,1); #0.5 :: Float64;
   end
 
   for i = 1:no_blocks_in_experiment
@@ -544,7 +550,8 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
 
 
   if(use_reset_decision_criterion_monitor_each_subject || subject_id==1)
-    global decision_criterion_monitor = 0.5 :: Float64;
+    global decision_criterion_monitor = zeros(no_decision_monitors,1); #0.5 :: Float64;
+    global transition_reset_of_decision_monitors = false;
   end
 
   if(double_no_of_trials_in_alternating_experiment)
@@ -584,6 +591,10 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
     if (use_simple_variance_normalised_critic)
         if (i > no_blocks_to_maintain_simple_variance_cut_off)
             enable_weight_updates = true;
+            if(!transition_reset_of_decision_monitors)
+                global decision_criterion_monitor = zeros(no_decision_monitors,1);
+                global transition_reset_of_decision_monitors = true;
+            end
         end
     else
         enable_weight_updates = true;

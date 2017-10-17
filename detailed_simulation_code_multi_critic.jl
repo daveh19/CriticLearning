@@ -194,7 +194,7 @@ function initialise()
     initialise_critic_parameters()
   end
 
-  global decision_criterion_monitor = 0.0; #0.5;
+  global decision_criterion_monitor = zeros(no_decision_monitors,1);
 
   global average_delta_reward = 0.0;
   global average_choice = 0.0;
@@ -292,8 +292,9 @@ function noise_free_post(x::Float64, task_id::Int, tuning_type::TuningSelector)
 
   # alternative way of biasing decisions 50:50 Left:Right
   if( use_decision_criterion_learner )
-    noise_free_left = noise_free_left + decision_criterion_monitor;
-    noise_free_right = noise_free_right - decision_criterion_monitor;
+    local_monitor_task_id = min(no_decision_monitors, task_id);
+    noise_free_left = noise_free_left + decision_criterion_monitor[local_monitor_task_id];
+    noise_free_right = noise_free_right - decision_criterion_monitor[local_monitor_task_id];
   end
 
   return (noise_free_left, noise_free_right);
@@ -345,15 +346,19 @@ end
 
 
 # criterion learner is capable of accounting for biases in presentation frequency between left and right
-function update_decision_criterion_learner(local_post)
+function update_decision_criterion_learner(local_post, task_id::Int)
   global decision_criterion_monitor;
+
+  # following the logic that a critic which cannot distinguish the two tasks
+  #     will only have a single criterion learner... (bad idea?)
+  local_monitor_task_id = min(task_id, no_decision_monitors);
 
   # associate 1 with output 2 and 0 with output 1
   update_choice = (local_post[2] > local_post[1] ? 1. : 0.) :: Float64;
   # I previously forgot to include the following term, which maintains the 50:50 ratio
   update_choice = update_choice - criterion_learner_expectation;
 
-  decision_criterion_monitor = decision_criterion_monitor + (decision_criterion_timescale * update_choice);
+  decision_criterion_monitor[local_monitor_task_id] = decision_criterion_monitor[local_monitor_task_id] + (decision_criterion_timescale * update_choice);
 
   # the multiplicative decision criterion monitor was clamped between 0 and 1, this is currently not of use
 #=  if (decision_criterion_monitor > 1)
@@ -996,8 +1001,8 @@ function update_weights(x::Float64, task_id::Int, tuning_type::TuningSelector, t
   update_intrinsic_excitability(x, task_id, tuning_type);
   # decision_criterion_learner tries to ensure a 50:50 left:right ratio
   #update_decision_criterion_learner(local_post);
-  update_decision_criterion_learner(pop_rate);
-  trial_dat.decision_criterion_monitor = decision_criterion_monitor;
+  update_decision_criterion_learner(pop_rate, task_id);
+  trial_dat.decision_criterion_monitor = deepcopy(decision_criterion_monitor);
 
   return (local_reward+1); # make it 0 or 2, rather than +/-1
 end

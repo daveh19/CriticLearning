@@ -71,6 +71,10 @@ weights_lower_bound = (-1e3) #(-10.0) #(-1e10) #(-10.0) #(-Inf) :: Float64;
 decision_criterion_timescale = 10.0 :: Float64; # (dt/tau for updating of decision_criterion_monitor)
 reset_decision_criterion_monitor_on_each_block = false :: Bool;
 use_reset_decision_criterion_monitor_each_subject = true :: Bool;
+no_decision_monitors = 2 :: Int;
+# for basic setup there should never be more decision monitors than task critics (although technically it is feasible)
+no_decision_monitors = min(no_decision_monitors, no_task_critics);
+transition_reset_of_decision_monitors = false;
 
 
 # intrinsic plasticity

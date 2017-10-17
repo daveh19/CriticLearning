@@ -24,14 +24,14 @@ type Trial
   #   dimension the separate input tasks
   w :: Array{Float64, 3};
   dw :: Array{Float64, 3};
-  decision_criterion_monitor :: Float64;
+  decision_criterion_monitor :: Array{Float64,2};
 end
 
 function initialise_empty_trials(no_trials::Int)
   trial = Array{Trial}(no_trials);
 
   for i = 1:no_trials
-    trial[i] = Trial( 0, 0., 0., false, 0., 0., 0., zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks), zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks), 0. );
+    trial[i] = Trial( 0, 0., 0., false, 0., 0., 0., zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks), zeros(no_pre_neurons_per_task, no_post_neurons, no_input_tasks), zeros(no_decision_monitors,1) );
   end
 
   return trial;
@@ -46,7 +46,7 @@ type Block
   average_reward :: Float64; # this is the state of the running average at the end of the block
   average_choice :: Float64;
   average_threshold :: Float64;
-  average_decision_criterion_monitor :: Float64;
+  average_decision_criterion_monitor :: Array{Float64,2};
 
   proportion_task_correct :: Array{Float64, 1};
   average_task_reward :: Array{Float64, 1}; # this is a true per task average for the block
@@ -71,7 +71,7 @@ function initialise_empty_block(no_blocks::Int, trials_per_block::Int, double_tr
 
   for i = 1:no_blocks
     local_trial = initialise_empty_trials(trials_per_block);
-    block[i] = Block( local_trial, 0., 0., 0., 0., 0., zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks, no_classifications_per_task), zeros(no_input_tasks, no_classifications_per_task), zeros(2,1) );
+    block[i] = Block( local_trial, 0., 0., 0., 0., zeros(no_decision_monitors,1), zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks), zeros(no_input_tasks, no_classifications_per_task), zeros(no_input_tasks, no_classifications_per_task), zeros(2,1) );
   end
 
   return block;
