@@ -519,7 +519,7 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
   initialise_weight_matrix(tuning_type) # must be called after a and b are setup
   subjects[subject_id, roving_experiment_id].w_initial = deepcopy(w);
 
-  if(disable_learning_on_first_block)
+  if(disable_learning_on_first_block || use_simple_variance_normalised_critic)
     enable_weight_updates = false :: Bool;
   end
 
@@ -581,7 +581,13 @@ function perform_single_subject_experiment_trial_switching(tuning_type::TuningSe
     if(verbosity > -1)
       print("Block $i completed. Alternating tasks.\n") 
     end
-    enable_weight_updates = true;
+    if (use_simple_variance_normalised_critic)
+        if (i > no_blocks_to_maintain_simple_variance_cut_off)
+            enable_weight_updates = true;
+        end
+    else
+        enable_weight_updates = true;
+    end
   end
 
   if(double_no_of_trials_in_alternating_experiment)

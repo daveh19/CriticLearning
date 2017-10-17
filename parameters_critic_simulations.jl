@@ -16,11 +16,14 @@ no_subjects = 10::Int; #10;
 double_no_of_trials_in_alternating_experiment = true ::Bool;
 
 # critic parameters
-no_task_critics = 1 :: Int;
+no_task_critics = 2 :: Int;
 no_choices_per_task_critics = 1 :: Int;
 use_multi_critic = true :: Bool;
 use_single_global_critic = false :: Bool;
 use_hard_coded_critic = true :: Bool; # switch for critic representation learner
+use_simple_variance_normalised_critic = true :: Bool; # initially give no feedback, then switch to two task critics
+if (use_simple_variance_normalised_critic) no_task_critics = 2; end
+no_blocks_to_maintain_simple_variance_cut_off = 6 :: Int;
 reset_average_reward_on_each_block = false :: Bool;
 #use_fixed_external_bias = false :: Bool; # default to off
 fixed_external_bias_value = (1.0) :: Float64;
@@ -35,7 +38,7 @@ if (binary_outputs_mode) disable_winner_takes_all = true; end # binary outputs a
 use_intrinsic_plasticity = false :: Bool; #leave OFF for now! #enable updating, and subtraction of an intrinsic plasticity factor from post
 
 use_multiplicative_weight_normalisation = false :: Bool; # weight normalisation using quadratic norm, multiplicative rule
-use_per_task_multiplicative_weight_normalisation = false :: Bool;
+use_per_task_multiplicative_weight_normalisation = false :: Bool; # disable use_multiplicative_weight_normalisation if you want this to work!
 use_subtractive_weight_normalisation = false :: Bool;
 use_soft_bounded_weight_rule = false :: Bool;
 use_decision_criterion_learner = true :: Bool;
