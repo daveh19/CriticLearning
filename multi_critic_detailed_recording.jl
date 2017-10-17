@@ -1977,14 +1977,15 @@ end
 function plot_single_block_decision_criterion_monitor(block::Block)
   #figure()
   no_trials_in_block = length(block.trial); # may not be global value due to double length roving sims
-  local_decision_criterion_monitor = zeros(no_trials_in_block);
+  local_decision_criterion_monitor = zeros(no_trials_in_block, no_decision_monitors);
   x = linspace(1, no_trials_in_block, no_trials_in_block);
   for i = 1:no_trials_in_block
-    local_decision_criterion_monitor[i] = block.trial[i].decision_criterion_monitor;
+    local_decision_criterion_monitor[i,:] = transpose(deepcopy(block.trial[i].decision_criterion_monitor));
     #print("", x[i], " ", local_reward_received[i], "\n")
   end
   #print("", size(local_reward_received), " ", size(x),"\n")
-  plot(x, local_decision_criterion_monitor, linewidth=2)
+  plot(x, local_decision_criterion_monitor[:,1], linewidth=2, "r")
+  plot(x, local_decision_criterion_monitor[:,2], linewidth=2, "g")
   return no_trials_in_block;
 end
 
